@@ -1,0 +1,11 @@
+import { navPrimary, navSecondary } from '../../app/navigation';
+import { Icon } from '../common/Icon';
+
+export function Sidebar({app}: any){const link=(n:any)=><a key={n.route} href={'#'+n.route} onClick={()=>app.setState({mobileOpen:false})} className={'nav-link '+((app.state.route===n.route||app.state.route.startsWith(n.route+'/'))?'active':'')}><Icon name={n.icon} size={18}/><span>{n.title}</span>{n.route==='/live'&&<i className="nav-live-dot"/>}</a>;
+   return <aside className={'sidebar '+(app.state.mobileOpen?'open':'')}><div className="sidebar-head"><a className="brand" href="#/overview"><span className="brand-logo"><span>+</span></span><span className="brand-label"><strong>BREACH<span>/</span>INTEL</strong><small>TACTICAL DATA SYSTEM</small></span></a><button className="mobile-close" onClick={()=>app.setState({mobileOpen:false})}><Icon name="close"/></button></div>
+    <div className="side-scroller"><div className="workspace-chip"><div className="workspace-icon"><Icon name="shield" size={19}/></div><span><strong>NOVA UNIT</strong><small>TEAM WORKSPACE <i>•</i> 05 ONLINE</small></span><Icon name="chevrondown" size={15}/></div>
+    <div className="nav-group"><div className="nav-caption">WORKSPACE <span>01</span></div>{navPrimary.map(link)}</div><div className="nav-group"><div className="nav-caption">ANALYTICS & TOOLS <span>02</span></div>{navSecondary.map(link)}</div>
+    <div className="sidebar-mini"><div className="mini-heading"><span className="live-bullet"/> SYSTEM STATUS</div><strong>All systems operational</strong><p>Data collectors are simulated in this demo.</p><div className="mini-mini"><span>MOCK DATASET</span><span>16 MATCHES</span></div></div></div>
+    <div className="side-footer"><div className="avatar foot-avatar"><span>AD</span></div><div><strong>Demo Administrator</strong><small>INVESTOR PREVIEW</small></div><Icon name="chevrondown" size={14}/></div>
+   </aside>;
+  }
