@@ -1,3 +1,4 @@
+import {RealOverviewPage,RealMatchesPage,RealMatchDetailPage,RealRoundPage,RealPlayersPage,RealPlayerPage,RealUnavailablePage} from '../pages/real/RealPages';
 import { OverviewPage } from '../pages/overview/OverviewPage';
 import { LivePage } from '../pages/live/LivePage';
 import { MatchCenterPage, MatchDetailPage, RoundDetailPage } from '../pages/matches/MatchesPage';
@@ -9,10 +10,21 @@ import { ComparePage } from '../pages/compare/ComparePage';
 import { ManualEntryPage } from '../pages/manual/ManualEntryPage';
 import { SettingsPage } from '../pages/settings/SettingsPage';
 
+const navTitle=(base:string)=>({'live':'Live operations','operators':'Operator intel','maps':'Map intelligence','insights':'Insights & reports','compare':'Compare players','entry':'Manual entry'} as Record<string,string>)[base]??'Feature';
+
 /** Keep the existing hash URLs working; no new routing dependency required. */
 export function RouteView({app}: any){
   const parts = app.state.route.split('/').filter(Boolean);
   const base = parts[0] || 'overview';
+  if(app.state.dataMode==='real') {
+    switch(base) {
+      case 'overview': return <RealOverviewPage/>;
+      case 'matches': return parts[1] ? (parts[2]==='round' ? <RealRoundPage id={parts[1]} number={Number(parts[3])}/> : <RealMatchDetailPage id={parts[1]}/>) : <RealMatchesPage/>;
+      case 'players': return parts[1] ? <RealPlayerPage id={parts[1]}/> : <RealPlayersPage/>;
+      case 'settings': return <SettingsPage app={app}/>;
+      default: return <RealUnavailablePage feature={navTitle(base)}/>;
+    }
+  }
   switch (base) {
     case 'overview': return <OverviewPage app={app}/>;
     case 'live': return <LivePage app={app}/>;

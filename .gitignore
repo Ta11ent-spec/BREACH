@@ -26,3 +26,26 @@ Thumbs.db
 # Local test scratch files
 .tmp/
 tmp/
+
+# ASP.NET Core local build output
+**/bin/
+**/obj/
+**/.vs/
+# Private developer override files
+**/appsettings.Development.json
+
+
+# BREACH / INTEL private match data
+extracted-match/
+output/
+*.rec
+*.mdf
+*.ldf
+
+# Local database backups
+*.bak
+
+# Python temporary files
+__pycache__/
+*.pyc
+.venv/

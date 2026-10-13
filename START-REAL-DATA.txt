@@ -1,0 +1,13 @@
+BREACH / INTEL — LOCAL API UPDATE
+
+This is an update to the existing GitHub website, NOT a replacement repository.
+Copy backend, src, docs, vite.config.ts and .gitignore into the root of your existing BREACH project.
+Read docs/REAL_DATA_API.md BEFORE running.
+
+Terminal 1: dotnet run --project .\backend\Breach.Intel.Api\Breach.Intel.Api.csproj
+Terminal 2: npm run build ; npm run dev
+
+Health check: http://127.0.0.1:5087/api/health
+Website:      http://localhost:5173/#/matches
+
+.NET 10 SDK required. No real match data is included in this ZIP.

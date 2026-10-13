@@ -12,7 +12,7 @@ export class App extends React.Component<any,any>{
   constructor(props:any){super(props);
    let entries:any[]=[],prefs:any={sound:false,compact:false,notifications:true,advanced:true};
    try {entries=JSON.parse(localStorage.getItem('breach_entries')||'[]');prefs={...prefs,...JSON.parse(localStorage.getItem('breach_settings')||'{}')}} catch(e){}
-   this.state={route:window.location.hash.slice(1)||'/overview',period:'30D',query:'',showSearch:false,mobileOpen:false,toast:'',matchFilter:'ALL',matchQuery:'',matchMode:'ALL',matchTab:'scoreboard',roundTab:'events',profileTab:'overview',operatorSide:'ALL',operatorSort:'pick',selectedMap:'ALL',compareA:'vex',compareB:'ghost',entries,prefs,entryMatch:matches[0].id,entryRound:'1',entryPlayer:'vex',entryCategory:'Kill correction',entryValue:'1',entryNotes:'',entrySource:'Manual review',liveStep:3,livePaused:false};
+   this.state={dataMode:localStorage.getItem('breach_data_mode')==='demo'?'demo':'real',route:window.location.hash.slice(1)||'/overview',period:'30D',query:'',showSearch:false,mobileOpen:false,toast:'',matchFilter:'ALL',matchQuery:'',matchMode:'ALL',matchTab:'scoreboard',roundTab:'events',profileTab:'overview',operatorSide:'ALL',operatorSort:'pick',selectedMap:'ALL',compareA:'vex',compareB:'ghost',entries,prefs,entryMatch:matches[0].id,entryRound:'1',entryPlayer:'vex',entryCategory:'Kill correction',entryValue:'1',entryNotes:'',entrySource:'Manual review',liveStep:3,livePaused:false};
    this.handleHash=this.handleHash.bind(this);this.handleKey=this.handleKey.bind(this);
   }
   componentDidMount(){window.addEventListener('hashchange',this.handleHash);window.addEventListener('keydown',this.handleKey);if(!window.location.hash)window.location.hash='#/overview';}
@@ -27,6 +27,7 @@ export class App extends React.Component<any,any>{
   removeEntry(id:string){const entries=this.state.entries.filter((e:any)=>e.id!==id);localStorage.setItem('breach_entries',JSON.stringify(entries));this.setState({entries});this.toast('Manual record removed');}
   setPref(key:string,value:boolean){const prefs={...this.state.prefs,[key]:value};localStorage.setItem('breach_settings',JSON.stringify(prefs));this.setState({prefs});}
   resetDemo(){localStorage.removeItem('breach_entries');localStorage.removeItem('breach_settings');this.setState({entries:[],prefs:{sound:false,compact:false,notifications:true,advanced:true},liveStep:3});this.toast('Local demo data reset');}
+  setDataMode(mode:'real'|'demo'){localStorage.setItem('breach_data_mode',mode);this.setState({dataMode:mode,showSearch:false});}
   nav(route:string){const selected=this.state.route===route||this.state.route.startsWith(route+'/');return this.go.bind(this,route);}
   headline(eyebrow:string,title:string,desc:string,actions?:any){return <div className="page-head"><div><div className="eyebrow with-line">{eyebrow}</div><h1>{title}</h1><p>{desc}</p></div>{actions&&<div className="page-head-actions">{actions}</div>}</div>}
   render(){
@@ -39,12 +40,12 @@ export class App extends React.Component<any,any>{
             <RouteView app={this}/>
             <footer className="main-footer">
               <span><span className="footer-cross">+</span> BREACH / INTEL <i>·</i> INDEPENDENT CONCEPT UI</span>
-              <span>FICTIONAL DATA <i>·</i> NO LIVE GAME CONNECTION <i>·</i> BUILD 01.04</span>
+              <span>{this.state.dataMode==='real'?'LOCAL SQL SERVER · REAL REPLAY RECORDS':'FICTIONAL DATA · NO LIVE GAME CONNECTION'} <i>·</i> BUILD 02.00</span>
             </footer>
           </main>
         </div>
         {this.state.mobileOpen&&<div className="mobile-backdrop" onClick={()=>this.setState({mobileOpen:false})}/>}
-        <div className="demo-label"><span className="live-bullet"/> INTERACTIVE DEMO <span>•</span> SAMPLE DATA</div>
+        <div className="demo-label"><span className="live-bullet"/> {this.state.dataMode==='real'?'REAL DATA · LOCAL SQL':'INTERACTIVE DEMO · SAMPLE DATA'}</div>
         {this.state.toast&&<div className="toast"><Icon name="check" size={17}/>{this.state.toast}</div>}
       </div>
     );
