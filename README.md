@@ -1,102 +1,78 @@
 # BREACH / INTEL
 
-**Official website codebase — UI-only foundation, built from the interactive investor demo.**
+**Official website codebase — UI-only investor demo foundation.**
 
-A React + TypeScript + Vite project for an independent Rainbow Six Siege analytics platform. Includes the existing screens, fictional demo data, round explorer, match history, team and player analytics, map/operator intelligence, comparisons, live-feed simulation, manual annotations, and CSV/JSON demo exports.
+React + TypeScript + Vite interface for an independent Rainbow Six Siege analytics concept. Contains interactive match and round analysis, fictional team and player statistics, operator/map intelligence, manual annotations, comparisons, CSV/JSON exports, and simulated live events.
 
-> **Demo only.** No real Ubisoft connection, database, authentication, or backend exists yet. All match/player data is fictional. "Live" is simulated. Manual entries are browser-local.
+> **Demo only:** All player and match data is fictional. There is no Ubisoft connection, backend, authentication, database or live telemetry. Annotations are saved in this browser only.
 
-## Start in VS Code (Windows)
+## Run in VS Code (Windows)
 
-1. Install [Node.js 22 LTS](https://nodejs.org/) and [Git for Windows](https://git-scm.com/download/win) if needed.
-2. Extract the full ZIP, including the **hidden `.git` folder**. Open the outer `breach-intel-website` folder with **File → Open Folder** in VS Code.
-3. Open **Terminal → New Terminal** and run:
+Open your existing `breach-intel-website` folder in VS Code, then run:
 
-   ```powershell
-   npm install
-   npm run dev
-   ```
+```powershell
+npm install
+npm run dev
+```
 
-4. Open **http://localhost:5173/#/overview**.
-5. Edit `src/App.tsx` or `src/styles.css` and save: Vite reloads the site automatically.
+Visit **http://localhost:5173/#/overview**. Vite automatically reloads changes.
 
-**Easier launch:** On Windows, double-click `start-dev.bat` to install dependencies (if needed) and start Vite. You can also press `Ctrl+Shift+B` to run the production build, or, **after starting `npm run dev`**, open **Run and Debug** → **BREACH: Debug Website (Chrome)** to launch a debugger.
+```powershell
+npm run build       # type-check + production build
+npm run preview     # preview the production build
+npm run typecheck   # TypeScript check
+```
 
-**If you are offline:** `standalone-demo/index.html` opens directly in a browser, with no setup. This is a **frozen snapshot** for presentations and does **not** reflect later edits to `src/` until you build the Vite site.
+**Editable source:** each screen lives in `src/pages/`, shared UI is in `src/components/`, navigation and app state are in `src/app/`, mock stats live in `src/data/`, and split styling is in `src/styles/`. `src/App.tsx` and `src/styles.css` are intentionally tiny compatibility entry points.
 
-## Commands
-
-| Command | Purpose |
-| --- | --- |
-| `npm install` | Install React, Vite and development dependencies |
-| `npm run dev` | Start VS Code-friendly development server with hot reload |
-| `npm run dev:network` | Expose dev server on your LAN (only on networks you trust) |
-| `npm run typecheck` | Type-check newer source files |
-| `npm run build` | Type-check and produce deployable static website in `dist/` |
-| `npm run preview` | Preview a production build at `http://localhost:4173` |
-
-**Note on type checking:** The imported 81 KB prototype `src/App.tsx` uses `// @ts-nocheck` to preserve the working investor demo during this tooling migration. New files have normal strict TypeScript checking. Refactor screens and fixture logic into typed modules progressively; see `docs/ROADMAP.md`.
-
-## Link your own GitHub and push changes
-
-The downloaded ZIP includes an **initialized Git repository on the `main` branch with a first commit**. No GitHub account, URL, or credentials are embedded.
-
-1. Create a new **empty** repository on [GitHub](https://github.com/new), e.g. `breach-intel-website`. **Do not** select "Add a README", a `.gitignore` template, or a license (they are already here).
-2. In the VS Code terminal (replace `YOUR_USERNAME`):
-
-   ```powershell
-   git remote add origin https://github.com/YOUR_USERNAME/breach-intel-website.git
-   git push -u origin main
-   ```
-
-   Or use the guided script:
-
-   ```powershell
-   .\scripts\connect-github.ps1 -RepoUrl "https://github.com/YOUR_USERNAME/breach-intel-website.git"
-   ```
-
-   You may be prompted to sign into GitHub by Git Credential Manager; don't paste passwords or access tokens into source files.
-
-3. For every future update, use the VS Code **Source Control** tab: stage changes (`+`) → enter a commit message → **Commit** → **Sync Changes / Push**. Terminal equivalent:
-
-   ```powershell
-   git add .
-   git commit -m "Describe what changed"
-   git push
-   ```
-
-The repo includes `.gitignore`, `.gitattributes`, `.editorconfig`, VS Code tasks, a build-check GitHub Action, and basic hosting config. **Do not remove the hidden `.git` folder** if you want VS Code to recognize this local repository. If your target GitHub repo is not empty, see `docs/GIT_GITHUB_SETUP.md` before pushing.
-
-## Source layout
+## Project layout
 
 ```text
 breach-intel-website/
-├── .git/                      Local Git history (included in download)
-├── .github/workflows/ci.yml   Build checks on pushes / pull requests
-├── .vscode/                   VS Code tasks, debugger, editor settings
 ├── src/
-│   ├── main.tsx               Modern React browser entry point
-│   ├── App.tsx                Existing interactive prototype screens
-│   ├── styles.css             Full UI design system and page styles
-│   └── vite-env.d.ts          Vite types
-├── public/                    Static assets
-├── standalone-demo/           Frozen offline presentation backup
-├── docs/                      Git, architecture, roadmap, demo guide
-├── scripts/                   GitHub remote connection helpers
-├── index.html                 Vite HTML entry
-├── package.json               Dependencies and scripts
-├── vite.config.ts             Dev/build configuration
-├── tsconfig.json              Strict TS config for new modules
-├── netlify.toml               Optional static site deployment
-└── start-dev.bat              Quick Windows launcher
+│   ├── app/                # app controller, page routing, navigation
+│   ├── components/         # icons, cards, charts, tables, sidebar, topbar
+│   ├── pages/              # overview, matches/rounds, live, players,
+│   │                       # maps, operators, compare, insights, entry, settings
+│   ├── data/               # deterministic fictional fixtures and selectors
+│   ├── lib/                # formatting and exports
+│   ├── styles/             # screen-by-screen CSS, original cascade preserved
+│   ├── types/              # preliminary domain contracts
+│   ├── App.tsx             # compatibility entry
+│   ├── styles.css          # CSS import entry
+│   └── main.tsx            # React browser entry
+├── standalone-demo/        # frozen, offline investor demo (not source of truth)
+├── docs/                   # architecture, roadmap, demo guide, refactor guide
+├── .github/workflows/      # build checks on commits and pull requests
+└── package.json
 ```
 
-## Where we go from here
+The refactor preserves all existing `#/...` page URLs and local storage keys. We intentionally kept the existing class-backed state controller during Stage 1 to minimize breakage; view types and state architecture still need incremental modernization. See [the Stage 1 guide](docs/REFACTOR_GUIDE.md) and [architecture notes](docs/ARCHITECTURE.md).
 
-This repo is the source of truth for the **eventual official website**. Do new UI work under `src/`—not in the `standalone-demo/` backup. Priorities: move mock data to typed fixtures, split the large demo component into routes/screens and reusable components, add authentication and real data adapters **after** the UI is finalized. See `docs/ROADMAP.md` and `docs/ARCHITECTURE.md`.
+## GitHub workflow
 
-For an investor presentation, follow `docs/INVESTOR_DEMO_GUIDE.md`.
+Existing GitHub remote: [Ta11ent-spec/BREACH](https://github.com/Ta11ent-spec/BREACH). **Don't reinitialize Git or add `origin` again.**
 
-## Intellectual property / disclaimer
+For new features, work in a branch:
 
-Independent product concept, not affiliated with or endorsed by Ubisoft. Rainbow Six Siege names are used descriptively. Demo players and all match results are fictional. Confirm trademark, intellectual property and data-access requirements before the public launch.
+```powershell
+git switch main
+git pull
+git switch -c feature/frontend-foundation
+# edit and test...
+npm run build
+git add .
+git commit -m "Refactor frontend into feature modules"
+git push -u origin feature/frontend-foundation
+```
+
+Open a pull request on GitHub to merge your feature branch into `main` after reviewing the changes. The Stage 1 ZIP is an **update overlay for the existing repository**—it does not include or replace `.git`, `node_modules`, or `package-lock.json`.
+
+## Product roadmap
+
+- **Stage 0:** Vite/TypeScript website + GitHub connection — complete.
+- **Stage 1:** Separate pages, shared UI, mock data and CSS into modules — delivered in this update; screen typing/tests remain.
+- **Stage 2:** Polish public pages, authentication concept, workflows and data interfaces.
+- **Stage 3:** Backend, database and only the game data sources we can validate and legally use.
+
+This is an independent project, not affiliated with or endorsed by Ubisoft. Consult platform terms, privacy requirements and IP obligations before launch.

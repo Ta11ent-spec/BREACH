@@ -11,11 +11,11 @@
 
 ## Stage 1: Production-quality frontend architecture
 
-- [ ] Break `src/App.tsx` into screen components and shared layout
-- [ ] Move fictional fixtures into `src/data/`
-- [ ] Define strict TypeScript domain models for round and match events
+- [x] Break `src/App.tsx` into screen components and shared layout
+- [x] Move fictional fixtures into `src/data/`
+- [x] Define preliminary TypeScript domain interfaces for round and match events (needs integration across legacy screens)
 - [ ] Remove `@ts-nocheck` from migrated modules
-- [ ] Add routing library and real not-found/accessibility handling
+- [ ] Improve hash routing, invalid-route handling and accessibility (a new routing library is optional)
 - [ ] Add automated component tests and responsive visual regression tests
 - [ ] Design public marketing pages, privacy policy and terms
 - [ ] Add user-facing demo-data labeling in all exports/screens

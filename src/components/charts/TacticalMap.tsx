@@ -1,0 +1,8 @@
+import { Icon } from '../common/Icon';
+
+export function TacticalMap({name,heat=false}:any){return <div className="tactical-schematic"><div className="map-grid"/><svg viewBox="0 0 500 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Conceptual map diagram for ${name}`}>
+<g stroke="#5a6e70" strokeWidth="2.5" fill="#17242a"><rect x="95" y="42" width="306" height="236"/><rect x="120" y="60" width="114" height="96"/><rect x="255" y="60" width="125" height="92"/><rect x="120" y="175" width="113" height="78"/><rect x="255" y="176" width="125" height="77"/><path d="M234 111h21M234 212h21M177 156v19M319 152v24" stroke="#99abb3" strokeWidth="9"/><path d="M177 156v19M319 152v24" stroke="#17242a" strokeWidth="5"/></g>
+<g fill="none" stroke="#6c8589" strokeWidth="2"><path d="M68 72H95M68 239H95M401 92h37M401 237h37M68 72v167M438 92v145" strokeDasharray="5 6"/><rect x="145" y="78" width="47" height="34"/><rect x="277" y="195" width="51" height="30"/><rect x="142" y="200" width="39" height="22"/></g>
+<g fill="#71878d" fontSize="11" fontFamily="monospace"><text x="129" y="139">SITE A</text><text x="266" y="137">CONNECTOR</text><text x="129" y="241">LOWER</text><text x="267" y="246">SITE B</text><text x="17" y="22">L02 / TACTICAL SCHEMATIC</text><text x="300" y="310">NOT TO GAME SCALE</text></g>
+<g>{[[173,112,'#d0ff61'],[293,91,'#6caefa'],[331,212,'#6caefa'],[194,216,'#eab87c'],[370,116,'#d0ff61']].map(([x,y,color]:any,i:number)=><g key={i}><circle cx={x} cy={y} r={heat?27:17} fill={color} opacity={heat?.13:.09}/><circle cx={x} cy={y} r="6" fill={color} stroke="#111c22" strokeWidth="3"/></g>)}</g>
+</svg><div className="map-corner"><Icon name="crosshair" size={14}/> SCHEMATIC VIEW</div></div>}

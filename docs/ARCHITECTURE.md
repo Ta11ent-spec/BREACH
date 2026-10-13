@@ -1,48 +1,35 @@
-# Architecture (UI-first version)
+# BREACH / INTEL — Frontend architecture
 
-## What is working today
+## Current implementation (Stage 1)
 
-- Modern Vite entry point (`src/main.tsx`) creates the React root.
-- The original investor demo's interactive UI lives in `src/App.tsx`.
-- Existing styling is imported in `src/styles.css`.
-- Mock match + round + player fixtures are generated inside `src/App.tsx`.
-- Hash navigation supports static hosts (`#/overview`, `#/matches`, `#/players`, etc.).
-- Manual annotations/preferences live in browser `localStorage` only.
-- `standalone-demo/` is an immutable offline backup for investor meetings.
+- `src/main.tsx` mounts the React app using Vite.
+- `src/App.tsx` is a backward-compatible entry point that forwards to `src/app/App.tsx`.
+- `src/app/App.tsx` retains demo state, hash-navigation listeners, browser-local preferences, and export actions.
+- `src/app/RouteView.tsx` selects feature pages using the existing `#/...` URLs.
+- `src/components/layout/` contains the sidebar and top toolbar.
+- `src/components/common/`, `charts/`, and `matches/` contain shared presentation components.
+- `src/pages/` contains per-feature screens: overview, live, matches and rounds, players, operators, maps, insights, compare, manual entries and settings.
+- `src/data/demoData.ts` contains the deterministic fictional dataset; `src/data/selectors.ts` houses basic statistics and lookup utilities.
+- `src/lib/` contains formatting and download utilities; `src/types/domain.ts` defines preliminary domain contracts for the future backend.
+- `src/styles.css` imports smaller CSS files in the original stylesheet's order. The resulting selectors and rule content have not been altered.
+- `standalone-demo/` remains the original offline investor presentation and is intentionally untouched.
 
-## Migration targets (not implemented yet)
+## Future improvements
 
-```text
-src/
-├── app/
-│   ├── App.tsx
-│   ├── router.tsx
-│   └── layout/
-├── components/             Reusable UI controls, charts, tables, filters
-├── features/
-│   ├── dashboard/
-│   ├── matches/
-│   ├── rounds/
-│   ├── players/
-│   ├── operators/
-│   ├── maps/
-│   ├── reports/
-│   └── annotations/
-├── data/                   Fixtures and future data-source adapters
-├── domain/                 Strict types: player, match, round, event
-└── styles/
-```
+This is a **behavior-preserving extraction**, not a completed rewrite. Some screens still use legacy `any` typings and a class-backed controller, and localStorage has not been replaced with a proper repository abstraction.
 
-Prefer an API abstraction instead of binding screens directly to backend details:
+The next technical steps are to migrate the controller to typed feature-level hooks/state, introduce selectors with tested typed interfaces, and add automated component and interaction tests. Keep the existing routes working during migration.
+
+Data ownership should eventually look like:
 
 ```text
-UI components -> typed selectors/hooks -> data repository interface
-  ├── MockRepository (current UI fixture equivalent)
-  └── ApiRepository (future server adapter)
+feature page -> feature hooks -> typed selectors -> repository adapter
+                                          |-> MockRepository (today)
+                                          |-> API / replay / authorized telemetry source (future)
 ```
 
-**For real Siege data:** track provenance (replay/live/manual), importer version, event deduplication keys, and a complete round timeline. The current UI does not claim full game telemetry access. Console capture will need a separate path.
+For real Siege data, retain provenance (replay/live/manual), importer version, data corrections, event deduplication identifiers, and detailed round timelines. The UI currently makes **no real telemetry connection**. Console capture is a separate future workflow.
 
 ## Deployment
 
-`npm run build` emits a static site into `dist/`. Deploy `dist/` to a static provider like Netlify, Cloudflare Pages, Vercel or GitHub Pages. `netlify.toml` is included. Keep GitHub Source Control separate from hosting. Hash routes require no server-side rewrite.
+`npm run build` emits static files into `dist/`. Hosting is a separate step from pushing code to GitHub. Hash-based URLs do not require a server-side router. See [REFACTOR_GUIDE.md](REFACTOR_GUIDE.md) for integration and smoke-test instructions.
