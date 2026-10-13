@@ -1,0 +1,5 @@
+This demo includes React v16.0.0 and ReactDOM v16.0.1 minified browser bundles.
+Copyright (c) Facebook, Inc. and its affiliates.
+Licensed under the MIT License. See https://github.com/facebook/react/blob/main/LICENSE
+
+The bundled scripts are included solely to make the independent investor mockup run locally without an npm installation or network access.

@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "BREACH: Debug Website (Chrome)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173/#/overview",
+      "webRoot": "${workspaceFolder}/src"
+    }
+  ]
+}
