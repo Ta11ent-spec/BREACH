@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.7" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
+  <ItemGroup><Content Include="Sql/**/*.sql" CopyToOutputDirectory="PreserveNewest" /><Content Update="Contracts/*.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

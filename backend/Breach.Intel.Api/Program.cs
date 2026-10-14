@@ -2,12 +2,17 @@ using Breach.Intel.Api;
 using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddSingleton<SqlStore>();
-builder.Services.AddSingleton<SquadStore>();
+builder.Services.AddScoped<Workspace>();
+builder.Services.AddScoped<SqlStore>();
+builder.Services.AddScoped<SquadStore>();
+var authConfigured=builder.AddBreachAuthentication();
 // Local development only. Vite forwards /api requests, so no public CORS policy is necessary.
 var app = builder.Build();
+app.UseBreachAuthentication(authConfigured);
+app.MapUploads();
 app.MapSquads();
 app.MapMatchReports();
+app.MapWorkflows();
 
 app.MapGet("/api/health", async (SqlStore db) =>
 {

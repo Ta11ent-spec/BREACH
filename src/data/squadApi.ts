@@ -1,9 +1,10 @@
 import { ApiError } from './realApi';
 import type { Squad } from './localSquads';
+import {authHeaders} from '../auth/apiAuth';
 
 async function request<T>(path:string, method='GET', body?:unknown, signal?:AbortSignal):Promise<T>{
   const response=await fetch(`/api/squads${path}`,{
-    method,signal,headers:{Accept:'application/json','Content-Type':'application/json','X-Breach-Request':'squads'},
+    method,signal,headers:{Accept:'application/json','Content-Type':'application/json','X-Breach-Request':'squads',...await authHeaders()},
     ...(body===undefined?{}:{body:JSON.stringify(body)}),
   });
   if(!response.ok){

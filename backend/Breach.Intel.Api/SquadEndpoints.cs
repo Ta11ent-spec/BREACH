@@ -32,8 +32,8 @@ public static class SquadEndpoints
         group.AddEndpointFilter(async (context, next) =>
         {
             var http = context.HttpContext;
-            // No account ownership exists yet: this API is only for the local developer.
-            if (!app.Environment.IsDevelopment() || http.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address))
+            // Workspace was resolved from the verified account before entering this endpoint.
+            if (http.User.Identity?.IsAuthenticated!=true && (!app.Environment.IsDevelopment() || http.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address)))
                 return Results.NotFound();
             // A cross-origin page cannot send this custom header without a CORS preflight.
             // The API grants no CORS access. Vite's same-origin proxy passes it through.

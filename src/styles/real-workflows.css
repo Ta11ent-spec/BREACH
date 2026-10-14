@@ -1,0 +1,24 @@
+.workflow-error{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#392e23;border:1px solid #725338;color:#edbf90;padding:15px;border-radius:5px;margin-bottom:18px;font-size:12px;line-height:1.6}
+.workflow-log-filters{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;font-size:11px;color:var(--muted)}
+.workflow-log-filters select{background:#192329;border:1px solid #39454a;color:var(--text);padding:8px;border-radius:4px}
+.workflow-log-filters label{display:flex;gap:7px;align-items:center}
+.real-workflows .entry-record small{line-height:1.7}
+.real-workflows .entry-record p{white-space:pre-wrap;overflow-wrap:anywhere}
+.workflow-collection-counts{display:flex;justify-content:space-around;gap:20px;padding:25px 0}
+.workflow-collection-counts>div{display:flex;flex-direction:column;gap:7px}
+.workflow-collection-counts strong{font:700 50px var(--display);color:var(--accent)}
+.workflow-collection-counts small{font:9px var(--mono);color:var(--muted)}
+.workflow-batch{padding:14px 0;border-bottom:1px solid var(--lineSoft);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.workflow-batch>strong{display:flex;align-items:center;justify-content:space-between;gap:8px;font:700 14px var(--display)}
+.workflow-batch small{display:block;font:9px var(--mono);color:var(--muted);margin:8px 0}
+.workflow-batch p{color:var(--muted);font-size:11px}
+.workflow-contract{margin-top:18px}
+.workflow-contract-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:25px;font-size:12px;line-height:1.7}
+.workflow-file-label{display:flex;flex-direction:column;gap:15px;font:10px var(--mono);color:var(--muted);margin-bottom:18px}
+.workflow-file-label input{font:12px var(--mono);max-width:100%}
+.workflow-validation-errors{max-height:260px;overflow:auto;color:var(--red);line-height:1.8;overflow-wrap:anywhere}
+.real-workflows .settings-danger{margin-top:18px}
+.real-workflows .recorded-operation-columns{grid-template-columns:repeat(3,minmax(0,1fr))}
+.real-workflows .key-value{gap:15px;flex-wrap:wrap}
+@media(max-width:1100px){.real-workflows .recorded-operation-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.recorded-operation-columns>section:last-child{grid-column:1/-1}}
+@media(max-width:780px){.workflow-contract-grid,.real-workflows .recorded-operation-columns{grid-template-columns:1fr}.recorded-operation-columns>section:last-child{grid-column:auto}.workflow-collection-counts{flex-wrap:wrap}.workflow-collection-counts strong{font-size:35px}}

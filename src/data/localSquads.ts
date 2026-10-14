@@ -8,6 +8,7 @@ export type Squad = {
   version?: number;
 };
 
+const account = () => {try{return sessionStorage.getItem('breach_workspace') || 'local';}catch{return 'local';}};
 const KEY = 'breach_squads_v1';
 const SELECTED = 'breach_selected_squad_v1';
 const MODE = 'breach_overview_mode_v1';
@@ -59,25 +60,25 @@ export function cleanSquads(input: unknown): Squad[] {
 }
 
 export function loadSquads():Squad[]{
-  try{return cleanSquads(JSON.parse(localStorage.getItem(KEY)??'[]'));}catch{return [];}
+  try{return cleanSquads(JSON.parse(localStorage.getItem(account()+':'+KEY)??'[]'));}catch{return [];}
 }
 export function saveSquads(squads:Squad[]):void{
-  try{localStorage.setItem(KEY,JSON.stringify(cleanSquads(squads)));}catch{/* browser storage unavailable */}
+  try{localStorage.setItem(account()+':'+KEY,JSON.stringify(cleanSquads(squads)));}catch{/* browser storage unavailable */}
 }
 export function pendingSquadImport():Squad[]{
-  try{return localStorage.getItem('breach_squads_imported_v1')==='true'?[]:loadSquads();}catch{return [];}
+  try{return localStorage.getItem(account()+':'+'breach_squads_imported_v1')==='true'?[]:loadSquads();}catch{return [];}
 }
 export function markSquadsImported():void{
   // Keep the original browser roster as a recovery copy.
-  try{localStorage.setItem('breach_squads_imported_v1','true');}catch{/* Import is idempotent if retried. */}
+  try{localStorage.setItem(account()+':'+'breach_squads_imported_v1','true');}catch{/* Import is idempotent if retried. */}
 }
 export function loadPreference(key:'squad'|'mode'|'player'):string{
   const storageKey=key==='squad'?SELECTED:key==='mode'?MODE:PLAYER;
-  try{return localStorage.getItem(storageKey)??'';}catch{return '';}
+  try{return localStorage.getItem(account()+':'+storageKey)??'';}catch{return '';}
 }
 export function savePreference(key:'squad'|'mode'|'player',value:string):void{
   const storageKey=key==='squad'?SELECTED:key==='mode'?MODE:PLAYER;
-  try{localStorage.setItem(storageKey,value);}catch{/* browser storage unavailable */}
+  try{localStorage.setItem(account()+':'+storageKey,value);}catch{/* browser storage unavailable */}
 }
 export function newSquad(name:string):Squad{
   return {id:typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function'?crypto.randomUUID():`local-${Date.now()}`,

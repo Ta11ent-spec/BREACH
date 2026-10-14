@@ -1,3 +1,4 @@
+import {MyWorkspace} from '../pages/workspace/MyWorkspace';
 import {RealUnavailablePage} from '../pages/real/RealPages';
 import {RealPlayersPage} from '../pages/players/RealPlayersPage';
 import {RealMapsPage} from '../pages/maps/RealMapsPage';
@@ -14,6 +15,9 @@ import { InsightsPage } from '../pages/insights/InsightsPage';
 import { ComparePage } from '../pages/compare/ComparePage';
 import { RealComparePage } from '../pages/compare/RealComparePage';
 import { RealInsightsPage } from '../pages/insights/RealInsightsPage';
+import { RealSettingsPage } from '../pages/settings/RealSettingsPage';
+import { RealManualPage } from '../pages/manual/RealManualPage';
+import { RealOperationsPage } from '../pages/live/RealOperationsPage';
 import { ManualEntryPage } from '../pages/manual/ManualEntryPage';
 import { SettingsPage } from '../pages/settings/SettingsPage';
 
@@ -23,6 +27,7 @@ const navTitle=(base:string)=>({'live':'Live operations','operators':'Operator i
 export function RouteView({app}: any){
   const parts = app.state.route.split('/').filter(Boolean);
   const base = parts[0] || 'overview';
+  if(base==='workspace')return <MyWorkspace app={app}/>;
   if(app.state.dataMode==='real') {
     switch(base) {
       case 'overview': return <RealDashboardPage app={app}/>;
@@ -32,7 +37,10 @@ export function RouteView({app}: any){
       case 'operators': return <RealOperatorsPage app={app}/>;
       case 'compare': return <RealComparePage app={app}/>;
       case 'insights': return <RealInsightsPage app={app}/>;
-      case 'settings': return <SettingsPage app={app}/>;
+      case 'settings': return <RealSettingsPage app={app}/>;
+      case 'entry': return <RealManualPage app={app}/>;
+      case 'live': return <RealOperationsPage app={app}/>;
+      case 'collector': return <RealOperationsPage app={app} setup/>;
       default: return <RealUnavailablePage feature={navTitle(base)}/>;
     }
   }
