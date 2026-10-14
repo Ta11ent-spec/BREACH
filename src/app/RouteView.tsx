@@ -1,5 +1,6 @@
-import {RealOverviewPage,RealMatchesPage,RealMatchDetailPage,RealRoundPage,RealPlayersPage,RealPlayerPage,RealUnavailablePage} from '../pages/real/RealPages';
+import {RealMatchesPage,RealMatchDetailPage,RealRoundPage,RealPlayersPage,RealPlayerPage,RealUnavailablePage} from '../pages/real/RealPages';
 import { OverviewPage } from '../pages/overview/OverviewPage';
+import { RealDashboardPage } from '../pages/overview/RealDashboardPage';
 import { LivePage } from '../pages/live/LivePage';
 import { MatchCenterPage, MatchDetailPage, RoundDetailPage } from '../pages/matches/MatchesPage';
 import { PlayerDirectoryPage, PlayerDetailPage } from '../pages/players/PlayersPage';
@@ -18,7 +19,7 @@ export function RouteView({app}: any){
   const base = parts[0] || 'overview';
   if(app.state.dataMode==='real') {
     switch(base) {
-      case 'overview': return <RealOverviewPage/>;
+      case 'overview': return <RealDashboardPage app={app}/>;
       case 'matches': return parts[1] ? (parts[2]==='round' ? <RealRoundPage id={parts[1]} number={Number(parts[3])}/> : <RealMatchDetailPage id={parts[1]}/>) : <RealMatchesPage/>;
       case 'players': return parts[1] ? <RealPlayerPage id={parts[1]}/> : <RealPlayersPage/>;
       case 'settings': return <SettingsPage app={app}/>;

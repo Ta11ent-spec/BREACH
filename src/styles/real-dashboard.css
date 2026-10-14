@@ -1,0 +1,13 @@
+/* Real overview: preserve original demo dashboard components and layout. */
+.real-dashboard .hero-card { min-height:284px; }
+.real-dashboard .result.unknown { color:#d7d5c0; background:#333835; }
+.real-dashboard .round-chip.unknown { background:#30393c; border-color:#4b5b5e; color:#d4dedb; }
+.real-dashboard .real-dashboard-empty { color:var(--muted);font-size:12px;line-height:1.65;margin:20px 0; }
+.real-dashboard .featured-match>.real-dashboard-empty { flex:1;display:flex;align-items:center;justify-content:center;text-align:center; }
+.real-dashboard .real-dashboard-status { padding:28px;display:flex;align-items:center;flex-wrap:wrap;gap:12px;min-height:140px; }
+.real-dashboard .real-dashboard-status code { display:block;width:100%;color:var(--accent);font-size:12px;overflow-wrap:anywhere; }
+.real-dashboard .real-dashboard-disclaimer { margin:20px 0 26px;font:10px/1.8 var(--mono);color:#8d9e99;letter-spacing:.03em; }
+.real-dashboard .featured-map { flex-wrap:wrap;text-align:center;line-height:1.6; }
+.real-dashboard .leader-person strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.real-dashboard .map-rank { cursor:default; }
+.real-dashboard .featured-team strong { white-space:normal;text-align:center; }
