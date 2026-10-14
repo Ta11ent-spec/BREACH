@@ -1,0 +1,26 @@
+.real-map-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.real-map-toolbar select{background:#192329;border:1px solid #39454a;color:var(--text);padding:9px 12px;border-radius:4px;font:10px var(--mono)}
+.real-map-toolbar .period-switch{margin:0 0 0 auto}
+.map-back-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.map-back-row .period-switch{margin-bottom:20px}
+.map-scope-caption{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:18px 0 20px;color:var(--muted);font:10px var(--mono);line-height:1.6}
+.real-maps .map-card-body>div:first-child{min-width:0}
+.real-maps .map-card-body h3{overflow-wrap:anywhere;font-size:28px}
+.real-maps .map-card-bottom{flex-wrap:wrap;line-height:1.6}
+.real-maps .map-detail-hero h1{overflow-wrap:anywhere}
+.real-maps .two-grid{margin-bottom:18px}
+.map-identity-note{display:flex;gap:10px;align-items:flex-start;padding:15px;background:#273024;border:1px solid #4c6141;border-radius:5px;color:#b9cba9;font-size:11px;line-height:1.6;margin-bottom:18px}
+.map-identity-note svg{flex-shrink:0;margin-top:3px}
+.recorded-map-sides{display:flex;flex-direction:column;gap:25px;margin:24px 0}
+.recorded-map-sides .side-row{margin-bottom:10px}
+.map-record-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 0;border-top:1px solid var(--line)}
+.map-record-summary>div{display:flex;flex-direction:column;gap:5px}
+.map-record-summary strong{font:700 32px var(--display)}
+.map-record-summary small{color:var(--muted);font:9px var(--mono)}
+.real-map-footnote{font-size:11px;color:var(--muted);line-height:1.7;margin:24px 0}
+.real-maps .site-row span{line-height:1.8}
+.real-maps .site-row>div:last-child{min-width:75px}
+.real-maps .profile-matches>button{flex-wrap:wrap}
+.real-maps .profile-matches>button>div{min-width:150px}
+@media(max-width:780px){.real-maps .map-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.real-map-toolbar .period-switch{margin-left:0}.real-maps .map-detail-numbers{gap:25px}.real-maps .section-title{flex-wrap:wrap;gap:12px}}
+@media(max-width:500px){.real-maps .map-card-grid{grid-template-columns:1fr}.real-map-toolbar .filter-search{width:100%}.real-maps .map-detail-hero{padding:20px}}

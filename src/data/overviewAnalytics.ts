@@ -1,10 +1,11 @@
 /** Deterministic, unit-testable V3 analytics. No replay slot-0 assumption. */
+import { displayMapLabel } from './mapCatalog';
 export type V3Match = {
   matchId: string; playedAt: string | null; mapName: string | null; mapId: number | null;
   matchType: string | null; gameMode: string | null;
   recordingProfileId: string | null; isCompleteMatch: boolean | null; roundCount: number;
 };
-export type V3Round = { roundId: string; matchId: string; roundNumber: number; teamSlot: number; side: string | null; won: boolean | null };
+export type V3Round = { roundId: string; matchId: string; roundNumber: number; teamSlot: number; side: string | null; won: boolean | null; site?: string | null };
 export type V3Appearance = {
   roundId: string; matchId: string; playerId: string; teamIndex: number | null;
   kills: number | null; died: boolean | null; assists: number | null;
@@ -119,7 +120,7 @@ export function analyzeOverview(data: OverviewV3, perspective: Perspective, peri
   }).sort((a,b)=>b.kills-a.kills || a.username.localeCompare(b.username));
   const maps=new Map<string,MapStat>();
   for(const m of decided){
-    const label = m.mapName && !/^Map\(\d+\)$/.test(m.mapName) ? m.mapName : m.mapId!=null ? `Unresolved map · ${m.mapId}` : 'Unknown map';
+    const label = displayMapLabel(m.mapName,m.mapId);
     const key=m.mapId!=null?String(m.mapId):label;
     const x=maps.get(key)??{key,label,played:0,wins:0};
     x.played++; if(m.outcome==='WIN') x.wins++; maps.set(key,x);

@@ -4,10 +4,12 @@ const ts=require('typescript');
 const fs=require('node:fs');
 const path=require('node:path');
 function loadTs(file){
-  const code=fs.readFileSync(path.join(__dirname,'..',file),'utf8');
+  const full=path.resolve(__dirname,'..',file);
+  const code=fs.readFileSync(full,'utf8');
   const output=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
   const module={exports:{}};
-  new Function('module','exports','require',output)(module,module.exports,require);
+  const localRequire=name=>name.startsWith('.')?loadTs(path.relative(path.resolve(__dirname,'..'),path.resolve(path.dirname(full),name+'.ts'))):require(name);
+  new Function('module','exports','require',output)(module,module.exports,localRequire);
   return module.exports;
 }
 const {analyzeOverview,asPercent}=loadTs('src/data/overviewAnalytics.ts');
