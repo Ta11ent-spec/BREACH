@@ -23,8 +23,8 @@ export function Topbar({app}:any){
       </div>}
       <div className="top-sep"/>
       <div className="season-chip"><Icon name="calendar" size={16}/><span>{app.state.dataMode==='real'?'LOCAL DB':'Y10S4'}</span></div>
-      <button className="top-alert" title="View system status" onClick={()=>app.toast(app.state.dataMode==='real'?'Local API status: check /api/health':'Demo systems are simulated')}><Icon name="activity" size={18}/><i/></button>
-      <div className="top-avatar">AD</div>
+      <button className="top-alert" title="View system status" onClick={()=>app.state.dataMode==='real'?app.go('/live'):app.toast('Demo systems are simulated')}><Icon name="activity" size={18}/>{app.state.dataMode==='demo'&&<i/>}</button>
+      <div className="top-avatar">{app.state.dataMode==='real'?'LR':'AD'}</div>
     </div>
   </header>;
 }

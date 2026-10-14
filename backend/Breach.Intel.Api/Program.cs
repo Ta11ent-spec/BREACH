@@ -6,8 +6,23 @@ builder.Services.AddSingleton<SqlStore>();
 builder.Services.AddSingleton<SquadStore>();
 // Local development only. Vite forwards /api requests, so no public CORS policy is necessary.
 var app = builder.Build();
+if(builder.Configuration.GetValue<bool>("inspect-review-schema"))
+{
+    if(!app.Environment.IsDevelopment()) throw new InvalidOperationException("Schema inspection is available only in Development.");
+    var columns=await app.Services.GetRequiredService<SqlStore>().ReadAsync("SELECT OBJECT_NAME(c.object_id) AS tableName,c.name,TYPE_NAME(c.user_type_id) AS type,c.max_length AS maxLength,c.collation_name AS collation FROM sys.columns c WHERE (c.object_id=OBJECT_ID('dbo.Matches') AND c.name='MatchId') OR (c.object_id=OBJECT_ID('dbo.Players') AND c.name='PlayerId')");
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(columns));
+    return;
+}
+if(builder.Configuration.GetValue<bool>("apply-review-schema"))
+{
+    if(!app.Environment.IsDevelopment()) throw new InvalidOperationException("Review migration is available only in Development.");
+    await app.Services.GetRequiredService<SqlStore>().ReadAsync(File.ReadAllText(Path.Combine(app.Environment.ContentRootPath,"Sql","002_review_notes.sql")));
+    Console.WriteLine("Review schema migration applied.");
+    return;
+}
 app.MapSquads();
 app.MapMatchReports();
+app.MapWorkflows();
 
 app.MapGet("/api/health", async (SqlStore db) =>
 {

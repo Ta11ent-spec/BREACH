@@ -1,0 +1,12 @@
+{
+  "schemaVersion":"1.0.0","messageId":"00000000-0000-4000-8000-000000000001",
+  "collector":{"installationId":"00000000-0000-4000-8000-000000000002","version":"0.1.0-example"},
+  "source":{"kind":"pc-replay","parserName":"siege-dissect","parserVersion":"example","normalizerVersion":"1.0.0","gameVersion":"EXAMPLE","collectedAt":"2026-10-14T12:00:00Z"},
+  "payload":{
+    "match":{"matchId":"00000000-0000-4000-8000-000000000003","mapId":"259816839773","mapName":"Chalet","playedAt":"2026-10-14T11:00:00Z","recordingProfileId":null,"completion":"incomplete","matchType":"Ranked","gameMode":"Bomb"},
+    "rounds":[{"roundId":"00000000-0000-4000-8000-000000000004","number":1,"site":null,"sourceSha256":"0000000000000000000000000000000000000000000000000000000000000000","teams":[{"slot":0,"side":"ATK","won":null},{"slot":1,"side":"DEF","won":null}]}],
+    "players":[{"playerId":"00000000-0000-4000-8000-000000000005","profileId":null,"username":"Synthetic example player"}],
+    "appearances":[{"roundId":"00000000-0000-4000-8000-000000000004","playerId":"00000000-0000-4000-8000-000000000005","teamIndex":0,"operatorId":null,"operatorName":null,"stats":{"kills":null,"died":null,"assists":null,"headshots":null,"damageDealt":null,"damageTaken":null,"scoreSnapshot":null}}],
+    "events":[],"issues":[{"severity":"info","code":"SYNTHETIC_EXAMPLE","message":"Contract example only. Not a real replay or evidence of a complete match."}]
+  }
+}

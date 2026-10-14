@@ -14,6 +14,9 @@ import { InsightsPage } from '../pages/insights/InsightsPage';
 import { ComparePage } from '../pages/compare/ComparePage';
 import { RealComparePage } from '../pages/compare/RealComparePage';
 import { RealInsightsPage } from '../pages/insights/RealInsightsPage';
+import { RealSettingsPage } from '../pages/settings/RealSettingsPage';
+import { RealManualPage } from '../pages/manual/RealManualPage';
+import { RealOperationsPage } from '../pages/live/RealOperationsPage';
 import { ManualEntryPage } from '../pages/manual/ManualEntryPage';
 import { SettingsPage } from '../pages/settings/SettingsPage';
 
@@ -32,7 +35,10 @@ export function RouteView({app}: any){
       case 'operators': return <RealOperatorsPage app={app}/>;
       case 'compare': return <RealComparePage app={app}/>;
       case 'insights': return <RealInsightsPage app={app}/>;
-      case 'settings': return <SettingsPage app={app}/>;
+      case 'settings': return <RealSettingsPage app={app}/>;
+      case 'entry': return <RealManualPage app={app}/>;
+      case 'live': return <RealOperationsPage app={app}/>;
+      case 'collector': return <RealOperationsPage app={app} setup/>;
       default: return <RealUnavailablePage feature={navTitle(base)}/>;
     }
   }

@@ -1,10 +1,10 @@
 # BREACH / INTEL
 
-**Official website codebase — UI-only investor demo foundation.**
+**BREACH website — local replay analytics with a preserved investor demo.**
 
-React + TypeScript + Vite interface for an independent Rainbow Six Siege analytics concept. Contains interactive match and round analysis, fictional team and player statistics, operator/map intelligence, manual annotations, comparisons, CSV/JSON exports, and simulated live events.
+React + TypeScript + Vite frontend with an ASP.NET Core API and SQL Server LocalDB. Real Data mode provides recorded match/player/map/operator analytics, squads, comparisons, insights, persistent reviews, diagnostics and exports. Demo mode preserves the original fictional preview.
 
-> **Demo only:** All player and match data is fictional. There is no Ubisoft connection, backend, authentication, database or live telemetry. Annotations are saved in this browser only.
+> **Local development:** Real Data uses imported replay records. Account authentication, hosted ownership, downloadable collector and live telemetry are not implemented. See [local workflows and review migration](docs/REAL_WORKFLOWS.md), [collector contract](docs/COLLECTOR_DATA_CONTRACT.md) and [development roadmap](docs/ROADMAP.md). The frontend needs the local backend to use Real Data.
 
 ## Run in VS Code (Windows)
 

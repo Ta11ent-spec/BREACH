@@ -15,7 +15,9 @@
     "test:players": "node --test tests/playerAccuracy.test.cjs",
     "test:maps": "node --test tests/mapAccuracy.test.cjs",
     "test:operators": "node --test tests/operatorAccuracy.test.cjs",
-    "test:reports": "node --test tests/reportAccuracy.test.cjs"
+    "test:reports": "node --test tests/reportAccuracy.test.cjs",
+    "test:collector": "node --test tests/collectorContract.test.cjs",
+    "test": "node --test tests/*.test.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",
