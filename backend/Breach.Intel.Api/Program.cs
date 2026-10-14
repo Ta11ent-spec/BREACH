@@ -3,8 +3,11 @@ using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<SqlStore>();
+builder.Services.AddSingleton<SquadStore>();
 // Local development only. Vite forwards /api requests, so no public CORS policy is necessary.
 var app = builder.Build();
+app.MapSquads();
+app.MapMatchReports();
 
 app.MapGet("/api/health", async (SqlStore db) =>
 {
@@ -151,6 +154,120 @@ app.MapGet("/api/players/{id}/stats", async (string id, SqlStore db) =>
         GROUP BY rp.OperatorName ORDER BY roundsPlayed DESC
         """, ("@id", id));
     return Results.Ok(new { player = players[0], operators });
+});
+
+
+// Read-only overview data for the demo-faithful real dashboard.
+// TeamSlot 0 / TeamIndex 0 are the replay's "YOUR TEAM" perspective.
+// Do not treat these as independently authenticated account/team identities.
+app.MapGet("/api/overview", async (SqlStore db) =>
+{
+    var matches = await db.ReadAsync("""
+        SELECT m.MatchId AS matchId, m.FirstRecordedAt AS playedAt,
+               m.MapName AS mapName, m.MapId AS mapId,
+               m.MatchType AS matchType, m.GameMode AS gameMode,
+               m.IsCompleteMatch AS isCompleteMatch,
+               COUNT(r.RoundId) AS roundCount,
+               SUM(CASE WHEN t.Won=1 THEN 1 ELSE 0 END) AS roundsWon,
+               SUM(CASE WHEN t.Won=0 THEN 1 ELSE 0 END) AS roundsLost,
+               SUM(CASE WHEN LOWER(t.Side)='attack' THEN 1 ELSE 0 END) AS attackRounds,
+               SUM(CASE WHEN LOWER(t.Side)='attack' AND t.Won=1 THEN 1 ELSE 0 END) AS attackWins,
+               SUM(CASE WHEN LOWER(t.Side)='defense' THEN 1 ELSE 0 END) AS defenseRounds,
+               SUM(CASE WHEN LOWER(t.Side)='defense' AND t.Won=1 THEN 1 ELSE 0 END) AS defenseWins
+        FROM dbo.Matches m
+        LEFT JOIN dbo.MatchRounds r ON r.MatchId=m.MatchId
+        LEFT JOIN dbo.RoundTeams t ON t.RoundId=r.RoundId AND t.TeamSlot=0
+        GROUP BY m.MatchId,m.FirstRecordedAt,m.MapName,m.MapId,
+                 m.MatchType,m.GameMode,m.IsCompleteMatch
+        ORDER BY m.FirstRecordedAt DESC, m.MatchId
+        """);
+
+    var rounds = await db.ReadAsync("""
+        SELECT r.MatchId AS matchId, r.RoundNumber AS roundNumber,
+               t.Side AS side, t.Won AS won
+        FROM dbo.MatchRounds r
+        LEFT JOIN dbo.RoundTeams t ON t.RoundId=r.RoundId AND t.TeamSlot=0
+        ORDER BY r.MatchId,r.RoundNumber
+        """);
+
+    var players = await db.ReadAsync("""
+        SELECT r.MatchId AS matchId, rp.PlayerId AS playerId,
+               MAX(COALESCE(p.Username,rp.UsernameSnapshot)) AS username,
+               COUNT(*) AS roundsPlayed,
+               SUM(COALESCE(rp.Kills,0)) AS kills,
+               SUM(CASE WHEN rp.Died=1 THEN 1 ELSE 0 END) AS deaths,
+               SUM(COALESCE(rp.Assists,0)) AS assists,
+               SUM(COALESCE(rp.Headshots,0)) AS headshots,
+               SUM(CASE WHEN rp.Headshots IS NOT NULL THEN COALESCE(rp.Kills,0) ELSE 0 END) AS killsWithHeadshotData,
+               SUM(CASE WHEN rp.Died IS NOT NULL THEN 1 ELSE 0 END) AS deathSampledRounds
+        FROM dbo.RoundPlayers rp
+        JOIN dbo.MatchRounds r ON r.RoundId=rp.RoundId
+        LEFT JOIN dbo.Players p ON p.PlayerId=rp.PlayerId
+        WHERE rp.TeamIndex=0
+        GROUP BY r.MatchId,rp.PlayerId
+        """);
+
+    var operators = await db.ReadAsync("""
+        SELECT r.MatchId AS matchId, rp.OperatorName AS operatorName,
+               t.Side AS side, COUNT(*) AS roundsPlayed
+        FROM dbo.RoundPlayers rp
+        JOIN dbo.MatchRounds r ON r.RoundId=rp.RoundId
+        LEFT JOIN dbo.RoundTeams t ON t.RoundId=r.RoundId AND t.TeamSlot=0
+        WHERE rp.TeamIndex=0 AND rp.OperatorName IS NOT NULL
+        GROUP BY r.MatchId,rp.OperatorName,t.Side
+        """);
+
+    return Results.Ok(new { matches, rounds, players, operators, perspective = "replay-team-slot-0" });
+});
+
+// Local development analytics feed. Both team slots are returned: no assumptions that
+// replay TeamSlot 0 represents the squad/player the user has selected.
+// The analytics feed is read-only; local squads are managed by /api/squads.
+app.MapGet("/api/overview/v3", async (SqlStore db) =>
+{
+    var matches = await db.ReadAsync("""
+        SELECT m.MatchId AS matchId, m.FirstRecordedAt AS playedAt,
+               m.MapName AS mapName, m.MapId AS mapId,
+               m.MatchType AS matchType, m.GameMode AS gameMode,
+               m.IsCompleteMatch AS isCompleteMatch,
+               m.RecordingProfileId AS recordingProfileId,
+               COUNT(r.RoundId) AS roundCount
+        FROM dbo.Matches m
+        LEFT JOIN dbo.MatchRounds r ON r.MatchId=m.MatchId
+        GROUP BY m.MatchId,m.FirstRecordedAt,m.MapName,m.MapId,
+                 m.MatchType,m.GameMode,m.IsCompleteMatch,m.RecordingProfileId
+        ORDER BY m.FirstRecordedAt DESC,m.MatchId
+        """);
+
+    var rounds = await db.ReadAsync("""
+        SELECT r.RoundId AS roundId, r.MatchId AS matchId,
+               r.RoundNumber AS roundNumber, t.TeamSlot AS teamSlot,
+               t.Side AS side, t.Won AS won
+        FROM dbo.MatchRounds r
+        JOIN dbo.RoundTeams t ON t.RoundId=r.RoundId
+        ORDER BY r.MatchId,r.RoundNumber,t.TeamSlot
+        """);
+
+    // Each row represents one participant in one round. Never sum ScoreSnapshot:
+    // replay scores may be cumulative (and sometimes wrap unsigned int32).
+    var appearances = await db.ReadAsync("""
+        SELECT r.RoundId AS roundId, r.MatchId AS matchId,
+               rp.PlayerId AS playerId, rp.TeamIndex AS teamIndex,
+               rp.Kills AS kills, rp.Died AS died, rp.Assists AS assists,
+               rp.Headshots AS headshots, rp.OperatorName AS operatorName
+        FROM dbo.RoundPlayers rp
+        JOIN dbo.MatchRounds r ON r.RoundId=rp.RoundId
+        ORDER BY r.MatchId,r.RoundNumber,rp.TeamIndex,rp.PlayerId
+        """);
+
+    var players = await db.ReadAsync("""
+        SELECT PlayerId AS playerId, ProfileId AS profileId,
+               Username AS username FROM dbo.Players
+        ORDER BY Username,PlayerId
+        """);
+
+    return Results.Ok(new { matches, rounds, appearances, players,
+        perspective = "selected-player-or-squad", rosterStorage = "sql-server" });
 });
 
 app.Run();

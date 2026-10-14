@@ -2,14 +2,16 @@
   "name": "breach-intel-website",
   "version": "0.1.0",
   "private": true,
-  "description": "BREACH / INTEL — Rainbow Six Siege analytics UI and future official website",
+  "description": "BREACH / INTEL \u2014 Rainbow Six Siege analytics UI and future official website",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:network": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:analytics": "node --test tests/overviewAccuracy.test.cjs",
+    "test:matches": "node --test tests/matchAccuracy.test.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",

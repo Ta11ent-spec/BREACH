@@ -49,3 +49,24 @@ export function mapLabel(name:string|null|undefined,id:number|null|undefined){
 }
 export function formatPlayedAt(value:string|null|undefined){return value?new Date(value).toLocaleString(): 'Date unavailable';}
 export function nullableStat(value:number|null|undefined){return value==null?'—':value.toLocaleString();}
+
+/** Read-only, replay-team-slot-0 dashboard data. No invented opponent/team identity. */
+export type ApiOverviewMatch = ApiMatch & {
+  attackRounds: number; attackWins: number; defenseRounds: number; defenseWins: number;
+};
+export type ApiOverviewRound = {
+  matchId: string; roundNumber: number; side: string | null; won: boolean | null;
+};
+export type ApiOverviewPlayer = {
+  matchId: string; playerId: string; username: string; roundsPlayed: number;
+  kills: number; deaths: number; assists: number; headshots: number;
+  killsWithHeadshotData: number; deathSampledRounds: number;
+};
+export type ApiOverviewOperator = {
+  matchId: string; operatorName: string | null; side: string | null; roundsPlayed: number;
+};
+export type ApiOverview = {
+  matches: ApiOverviewMatch[]; rounds: ApiOverviewRound[];
+  players: ApiOverviewPlayer[]; operators: ApiOverviewOperator[];
+  perspective: 'replay-team-slot-0';
+};

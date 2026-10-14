@@ -14,3 +14,8 @@
 @import './styles/settings.css';
 @import './styles/responsive.css';
 @import './styles/real.css';
+
+@import './styles/real-dashboard.css';
+
+@import './styles/squad-overview.css';
+@import './styles/real-matches.css';
