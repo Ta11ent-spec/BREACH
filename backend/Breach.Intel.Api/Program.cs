@@ -4,8 +4,10 @@ using Microsoft.Data.SqlClient;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<SqlStore>();
 builder.Services.AddSingleton<SquadStore>();
+var authConfigured=builder.AddBreachAuthentication();
 // Local development only. Vite forwards /api requests, so no public CORS policy is necessary.
 var app = builder.Build();
+app.UseBreachAuthentication(authConfigured);
 if(builder.Configuration.GetValue<bool>("inspect-review-schema"))
 {
     if(!app.Environment.IsDevelopment()) throw new InvalidOperationException("Schema inspection is available only in Development.");

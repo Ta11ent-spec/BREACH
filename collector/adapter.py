@@ -10,7 +10,7 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 MAX_BYTES = 4 * 1024 * 1024
 FORMATS = FormatChecker()
 

@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from adapter import VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -23,12 +24,22 @@ def main():
     cli.add_argument('--parser', required=True, type=Path)
     cli.add_argument('--makensis', required=True, type=Path)
     cli.add_argument('--output', type=Path, default=ROOT / '.tmp/collector-release')
+    cli.add_argument('--auth-config', type=Path, help='JSON containing public domain, clientId and audience only')
     args = cli.parse_args()
     parser = args.parser.resolve(); compiler = args.makensis.resolve(); out = args.output.resolve()
     if os.name != 'nt': raise SystemExit('Build on Windows x64')
     if not parser.is_file() or not compiler.is_file(): raise SystemExit('Parser or NSIS compiler missing')
     out.mkdir(parents=True, exist_ok=True)
     assets = out / 'staging/assets'; assets.mkdir(parents=True, exist_ok=True)
+    auth_asset = assets / 'auth0.json'
+    if args.auth_config:
+        config = json.loads(args.auth_config.read_text(encoding='utf-8'))
+        if set(config) != {'domain', 'clientId', 'audience'}: raise SystemExit('Auth0 build config must contain only public domain, clientId and audience')
+        from auth import Auth0
+        Auth0(config, out / 'config-validation')
+        auth_asset.write_text(json.dumps(config), encoding='utf-8')
+    else:
+        auth_asset.unlink(missing_ok=True)
     for name in ('collector-v1.schema.json', 'collector-v1.example.json'):
         copy_file(ROOT / 'public/contracts' / name, assets / name)
     copy_file(parser, assets / 'siege-dissect.exe')
@@ -75,11 +86,12 @@ def main():
     for folder in sorted((p for p in payload.rglob('*') if p.is_dir()), key=lambda p: len(p.parts), reverse=True):
         lines.append('RMDir "$INSTDIR\\' + str(folder.relative_to(payload)) + '"')
     uninstall = out / 'uninstall-files.nsh'; uninstall.write_text('\n'.join(lines), encoding='utf-8')
-    subprocess.run([str(compiler), '/V2', '/DPAYLOAD=' + str(payload), '/DOUTPUT=' + str(out / 'BREACH-Collector-Setup-0.1.0.exe'),
+    installer = out / f'BREACH-Collector-Setup-{VERSION}.exe'
+    subprocess.run([str(compiler), '/V2', '/DVERSION=' + VERSION, '/DPAYLOAD=' + str(payload), '/DOUTPUT=' + str(installer),
                     '/DUNINSTALL_FILES=' + str(uninstall), str(ROOT / 'collector/installer.nsi')], check=True)
-    hashes = {p.name: hashlib.file_digest(p.open('rb'), 'sha256').hexdigest() for p in [out / 'BREACH-Collector-Setup-0.1.0.exe', payload / 'BreachCollector.exe']}
+    hashes = {p.name: hashlib.file_digest(p.open('rb'), 'sha256').hexdigest() for p in [installer, payload / 'BreachCollector.exe']}
     (out / 'SHA256SUMS.json').write_text(json.dumps(hashes, indent=2), encoding='utf-8')
-    print('Built unsigned private preview:', out / 'BREACH-Collector-Setup-0.1.0.exe')
+    print('Built unsigned private preview:', installer)
 
 
 if __name__ == '__main__': main()

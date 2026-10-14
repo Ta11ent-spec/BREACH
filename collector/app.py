@@ -13,12 +13,13 @@ from tkinter import filedialog, messagebox, ttk
 from adapter import VERSION, resource, validate
 from engine import parser_manifest, scan, suggested_roots, verify_parser
 from store import Store
+from auth import Auth0, AuthError
 
 BG, PANEL, TEXT, MUTED, ACCENT = '#0b0f13', '#151b21', '#eef3ed', '#929da5', '#d0ff59'
 
 
 class Collector(tk.Tk):
-    def __init__(self, data_dir, parser=None):
+    def __init__(self, data_dir, parser=None, auth_config=None):
         super().__init__()
         self.title('BREACH / INTEL — PC Collector')
         self.geometry('1100x740'); self.minsize(820, 600); self.configure(bg=BG)
@@ -26,6 +27,11 @@ class Collector(tk.Tk):
         self.parser = parser or resource('siege-dissect.exe')
         self.messages = queue.Queue(); self.stop = threading.Event(); self.worker = None
         self.watching = False; self.closing = False; self.next_scan = 0
+        self.auth = None
+        config_path = auth_config or resource('auth0.json')
+        if config_path.exists():
+            try: self.auth = Auth0(json.loads(config_path.read_text(encoding='utf-8')), data_dir)
+            except (AuthError, ValueError, OSError): pass
         self.folder = tk.StringVar(value=self.store.get('replayFolder', ''))
         self.status = tk.StringVar(value='Ready. Select your replay folder to begin.')
         self.counts = tk.StringVar(); self.watch_label = tk.StringVar(value='START WATCHING')
@@ -51,7 +57,8 @@ class Collector(tk.Tk):
     def layout(self):
         header = tk.Frame(self, bg=PANEL, padx=28, pady=18); header.pack(fill='x')
         self.label(header, 'BREACH / INTEL', 22, ACCENT).pack(side='left')
-        self.label(header, 'PC COLLECTOR   /   LOCAL PREVIEW', 10, MUTED).pack(side='right')
+        self.account_label = tk.StringVar(value='SIGN IN' if not self.auth or not self.auth.session else 'DISCONNECT')
+        self.button(header, '', self.account_action, textvariable=self.account_label).pack(side='right')
         body = tk.Frame(self, bg=BG, padx=28, pady=18); body.pack(fill='both', expand=True)
         self.label(body, 'REPLAY COLLECTION / WINDOWS', 9, ACCENT).pack(anchor='w')
         self.label(body, 'Your matches. Ready for analysis.', 23).pack(anchor='w', pady=(5, 3))
@@ -136,6 +143,26 @@ class Collector(tk.Tk):
         else:
             self.watching = True; self.watch_label.set('STOP WATCHING'); self.start_scan()
 
+    def account_action(self):
+        if self.worker and self.worker.is_alive():
+            self.status.set('Pause collection and wait for the current operation before changing sign-in.'); return
+        if not self.auth:
+            self.status.set('Auth0 collector configuration is missing. Install the configured collector build.'); return
+        self.pause(); self.stop.clear(); self.scan_button.configure(state='disabled')
+        disconnect = bool(self.auth.session)
+        def work():
+            try:
+                if disconnect:
+                    self.auth.disconnect(); self.messages.put('Disconnected from Auth0. Local match records are retained.')
+                else:
+                    device = self.auth.start()
+                    self.messages.put(('pairing', device['user_code'], device['verification_uri_complete']))
+                    self.auth.finish(device, self.stop, self.messages.put)
+            except AuthError as exc: self.messages.put(str(exc))
+            except Exception: self.messages.put('Sign-in could not be completed. Try again.')
+            finally: self.messages.put(None)
+        self.worker = threading.Thread(target=work, daemon=False); self.worker.start()
+
     def pause(self):
         self.watching = False; self.stop.set(); self.watch_label.set('START WATCHING')
         self.status.set('Paused. Completed queue records are saved.')
@@ -150,7 +177,8 @@ class Collector(tk.Tk):
             else:
                 for q in self.store.queued(): tree.insert('', 'end', iid=q['message_id'], values=(q['match_id'], q['created_at'], q['exported_at'] or 'Not exported'))
             if old and tree.exists(old): tree.selection_set(old)
-        self.counts.set(f'{len(self.store.queued())} MATCHES READY  ·  OFFLINE')
+        self.counts.set(f'{len(self.store.queued())} MATCHES READY  ·  ' + ('SIGNED IN' if self.auth and self.auth.session else 'OFFLINE'))
+        self.account_label.set('DISCONNECT' if self.auth and self.auth.session else 'SIGN IN')
 
     def tick(self):
         import time
@@ -158,6 +186,10 @@ class Collector(tk.Tk):
             value = self.messages.get_nowait()
             if value is None:
                 self.refresh(); self.scan_button.configure(state='normal'); self.next_scan = time.monotonic() + 30
+            elif isinstance(value, tuple) and value[0] == 'pairing':
+                import webbrowser
+                self.status.set(f'Approve code {value[1]} in your browser. Pause cancels sign-in.')
+                webbrowser.open(value[2])
             else: self.status.set(value)
         alive = self.worker and self.worker.is_alive()
         if self.closing and not alive:
@@ -187,7 +219,7 @@ class Collector(tk.Tk):
             except Exception as exc: messagebox.showerror('Export failed', str(exc), parent=self)
 
     def about(self):
-        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · local preview\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nNo account, cloud upload, automatic startup or background service is enabled.', parent=self)
+        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · private preview\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Match upload, automatic startup and background service are not enabled.', parent=self)
 
     def close_app(self):
         self.pause(); self.closing = True; self.status.set('Finishing shutdown and saving queue state…')
@@ -197,6 +229,7 @@ def main():
     args = argparse.ArgumentParser()
     args.add_argument('--data-dir', type=Path)
     args.add_argument('--parser', type=Path)
+    args.add_argument('--auth-config', type=Path, help='Public Auth0 collector settings; never a client secret')
     args.add_argument('--self-test', type=Path, help='Write packaged-runtime validation to this file and exit')
     options = args.parse_args()
     if options.self_test:
@@ -206,7 +239,12 @@ def main():
             validate(json.loads(resource('collector-v1.example.json').read_text(encoding='utf-8')))
             manifest = parser_manifest(); verify_parser(options.parser or resource('siege-dissect.exe'), manifest['sha256'])
             root = tk.Tk(); root.withdraw(); root.update_idletasks(); root.destroy()
-            options.self_test.write_text(json.dumps({'ok': True, 'version': VERSION, 'sqlite': bool(installation), 'tk': True, 'schema': True, 'parserChecksum': True}), encoding='utf-8')
+            from auth import protect
+            protected = protect(b'packaged-runtime-check')
+            credential_check = protect(protected, decrypt=True) == b'packaged-runtime-check'
+            config = resource('auth0.json')
+            if config.exists(): Auth0(json.loads(config.read_text(encoding='utf-8')), Path(temp))
+            options.self_test.write_text(json.dumps({'ok': True, 'version': VERSION, 'sqlite': bool(installation), 'tk': True, 'schema': True, 'parserChecksum': True, 'windowsCredentialProtection': credential_check, 'auth0Configured': config.exists()}), encoding='utf-8')
         return
     data_dir = options.data_dir or Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'BREACH/CollectorData'
     handle = None
@@ -219,7 +257,7 @@ def main():
         if not handle or ctypes.get_last_error() == 183:
             messagebox.showinfo('BREACH collector', 'The collector is already running for this data folder.'); return
     try:
-        Collector(data_dir, options.parser).mainloop()
+        Collector(data_dir, options.parser, options.auth_config).mainloop()
     finally:
         if handle:
             kernel.CloseHandle.argtypes = [ctypes.c_void_p]; kernel.CloseHandle(handle)

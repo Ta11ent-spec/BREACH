@@ -1,5 +1,6 @@
 /** Local read-only API contracts. Null means missing or unverified, never a measured zero. */
 import { displayMapLabel } from './mapCatalog';
+import {authHeaders} from '../auth/apiAuth';
 export type ApiMatch = {
   matchId: string; mapName: string | null; mapId: number | null;
   gameVersion: string | null; matchType: string | null; gameMode: string | null;
@@ -40,7 +41,7 @@ export class ApiError extends Error {
   constructor(public readonly status: number, message: string){super(message); this.name='ApiError';}
 }
 export async function fetchApi<T>(path:string, signal?:AbortSignal):Promise<T>{
-  const response=await fetch(`/api${path}`,{signal,headers:{Accept:'application/json'}});
+  const response=await fetch(`/api${path}`,{signal,headers:{Accept:'application/json',...await authHeaders()}});
   if(!response.ok) throw new ApiError(response.status, response.status===404?'Record not found':`API request failed (${response.status})`);
   return response.json() as Promise<T>;
 }

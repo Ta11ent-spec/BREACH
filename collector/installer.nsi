@@ -8,7 +8,10 @@ Unicode True
 !ifndef PRODUCTKEY
   !define PRODUCTKEY "BREACHCollector"
 !endif
-Name "BREACH Collector 0.1.0 — Private preview"
+!ifndef VERSION
+  !define VERSION "0.2.0"
+!endif
+Name "BREACH Collector ${VERSION} — Private preview"
 OutFile "${OUTPUT}"
 InstallDir "${INSTALLROOT}"
 RequestExecutionLevel user
@@ -50,7 +53,7 @@ Section "Collector"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateShortcut "$SMPROGRAMS\${PRODUCTKEY}.lnk" "$INSTDIR\BreachCollector.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "DisplayName" "BREACH Collector (private preview)"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "DisplayVersion" "0.1.0"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "InstallLocation" "$INSTDIR"
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "NoModify" 1
