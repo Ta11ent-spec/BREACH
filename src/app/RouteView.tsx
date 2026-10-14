@@ -12,6 +12,8 @@ import { RealOperatorsPage } from '../pages/operators/RealOperatorsPage';
 import { MapIntelPage, MapDetailPage } from '../pages/maps/MapsPage';
 import { InsightsPage } from '../pages/insights/InsightsPage';
 import { ComparePage } from '../pages/compare/ComparePage';
+import { RealComparePage } from '../pages/compare/RealComparePage';
+import { RealInsightsPage } from '../pages/insights/RealInsightsPage';
 import { ManualEntryPage } from '../pages/manual/ManualEntryPage';
 import { SettingsPage } from '../pages/settings/SettingsPage';
 
@@ -28,6 +30,8 @@ export function RouteView({app}: any){
       case 'players': return <RealPlayersPage app={app} id={parts[1]}/>;
       case 'maps': return <RealMapsPage app={app} id={parts[1]}/>;
       case 'operators': return <RealOperatorsPage app={app}/>;
+      case 'compare': return <RealComparePage app={app}/>;
+      case 'insights': return <RealInsightsPage app={app}/>;
       case 'settings': return <SettingsPage app={app}/>;
       default: return <RealUnavailablePage feature={navTitle(base)}/>;
     }
