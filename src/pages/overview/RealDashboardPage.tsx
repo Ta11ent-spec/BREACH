@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icon, Pill, Progress, SectionTitle, Btn, StatCard, Monogram, OperatorIcon } from '../../components';
-import { ApiError, fetchApi } from '../../data/realApi';
+import { ApiError, fetchApi, mapLabel } from '../../data/realApi';
 import { analyzeOverview, asPercent } from '../../data/overviewAnalytics';
 import type { OverviewV3, ResolvedMatch } from '../../data/overviewAnalytics';
 import { useTrackingScope } from '../../data/useTrackingScope';
@@ -10,7 +10,7 @@ type Period='7D'|'30D'|'ALL';
 const initials=(name:string)=>name.split(/[\s_-]+/).map(part=>part.slice(0,1)).join('').slice(0,2).toUpperCase()||'??';
 function colorFor(name:string){const palette=['#a3d88d','#72c7c0','#dfbb79','#85a6e6','#da9fae'];let sum=0;for(const ch of name)sum=(sum+ch.charCodeAt(0))%palette.length;return palette[sum];}
 function labelDate(value:string|null){if(!value)return 'DATE UNKNOWN';const d=new Date(value);return Number.isFinite(d.getTime())?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase():'DATE UNKNOWN';}
-function mapName(m:ResolvedMatch){return m.mapName&&!/^Map\(\d+\)$/.test(m.mapName)?m.mapName:m.mapId!=null?`Unresolved map · ${m.mapId}`:'Unknown map';}
+function mapName(m:ResolvedMatch){return mapLabel(m.mapName,m.mapId);}
 const asRate=(n:number,d:number)=>asPercent(n,d)===null?'—':`${asPercent(n,d)}%`;
 function EmptyPanel({message}:{message:string}){return <p className="real-dashboard-empty">{message}</p>;}
 function Badge({outcome}:{outcome:ResolvedMatch['outcome']}){return <span className={'result '+(outcome==='WIN'?'win':outcome==='LOSS'?'loss':'unknown')}>{outcome}</span>;}

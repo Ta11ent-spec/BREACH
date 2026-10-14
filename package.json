@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test:analytics": "node --test tests/overviewAccuracy.test.cjs",
     "test:matches": "node --test tests/matchAccuracy.test.cjs",
-    "test:players": "node --test tests/playerAccuracy.test.cjs"
+    "test:players": "node --test tests/playerAccuracy.test.cjs",
+    "test:maps": "node --test tests/mapAccuracy.test.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -241,7 +241,7 @@ app.MapGet("/api/overview/v3", async (SqlStore db) =>
 
     var rounds = await db.ReadAsync("""
         SELECT r.RoundId AS roundId, r.MatchId AS matchId,
-               r.RoundNumber AS roundNumber, t.TeamSlot AS teamSlot,
+               r.RoundNumber AS roundNumber, r.Site AS site, t.TeamSlot AS teamSlot,
                t.Side AS side, t.Won AS won
         FROM dbo.MatchRounds r
         JOIN dbo.RoundTeams t ON t.RoundId=r.RoundId

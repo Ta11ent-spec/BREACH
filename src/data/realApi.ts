@@ -1,4 +1,5 @@
 /** Local read-only API contracts. Null means missing or unverified, never a measured zero. */
+import { displayMapLabel } from './mapCatalog';
 export type ApiMatch = {
   matchId: string; mapName: string | null; mapId: number | null;
   gameVersion: string | null; matchType: string | null; gameMode: string | null;
@@ -44,8 +45,7 @@ export async function fetchApi<T>(path:string, signal?:AbortSignal):Promise<T>{
   return response.json() as Promise<T>;
 }
 export function mapLabel(name:string|null|undefined,id:number|null|undefined){
-  if(name && !/^Map\(\d+\)$/.test(name)) return name;
-  return id!=null ? `Unresolved map · ${id}` : 'Unknown map';
+  return displayMapLabel(name,id);
 }
 export function formatPlayedAt(value:string|null|undefined){return value?new Date(value).toLocaleString(): 'Date unavailable';}
 export function nullableStat(value:number|null|undefined){return value==null?'—':value.toLocaleString();}
