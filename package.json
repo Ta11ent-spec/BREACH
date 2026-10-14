@@ -10,7 +10,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test:analytics": "node --test tests/overviewAccuracy.test.cjs"
+    "test:analytics": "node --test tests/overviewAccuracy.test.cjs",
+    "test:matches": "node --test tests/matchAccuracy.test.cjs"
   },
   "dependencies": {
     "react": "^18.3.1",

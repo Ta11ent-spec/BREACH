@@ -3,8 +3,11 @@ using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<SqlStore>();
+builder.Services.AddSingleton<SquadStore>();
 // Local development only. Vite forwards /api requests, so no public CORS policy is necessary.
 var app = builder.Build();
+app.MapSquads();
+app.MapMatchReports();
 
 app.MapGet("/api/health", async (SqlStore db) =>
 {
@@ -219,8 +222,7 @@ app.MapGet("/api/overview", async (SqlStore db) =>
 
 // Local development analytics feed. Both team slots are returned: no assumptions that
 // replay TeamSlot 0 represents the squad/player the user has selected.
-// V3 remains read-only: squad definitions are stored in this browser until user
-// accounts and authorized server-side squad ownership are implemented.
+// The analytics feed is read-only; local squads are managed by /api/squads.
 app.MapGet("/api/overview/v3", async (SqlStore db) =>
 {
     var matches = await db.ReadAsync("""
@@ -265,7 +267,7 @@ app.MapGet("/api/overview/v3", async (SqlStore db) =>
         """);
 
     return Results.Ok(new { matches, rounds, appearances, players,
-        perspective = "selected-player-or-squad", rosterStorage = "local-browser" });
+        perspective = "selected-player-or-squad", rosterStorage = "sql-server" });
 });
 
 app.Run();

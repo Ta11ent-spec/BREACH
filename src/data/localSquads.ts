@@ -1,10 +1,11 @@
 
-/** Local-only development preferences. No account ownership or cloud sync yet. */
+/** Browser preferences and legacy roster import. SQL Server stores active squads. */
 
 export type Squad = {
   id: string;
   name: string;
   members: string[];
+  version?: number;
 };
 
 const KEY = 'breach_squads_v1';
@@ -62,6 +63,13 @@ export function loadSquads():Squad[]{
 }
 export function saveSquads(squads:Squad[]):void{
   try{localStorage.setItem(KEY,JSON.stringify(cleanSquads(squads)));}catch{/* browser storage unavailable */}
+}
+export function pendingSquadImport():Squad[]{
+  try{return localStorage.getItem('breach_squads_imported_v1')==='true'?[]:loadSquads();}catch{return [];}
+}
+export function markSquadsImported():void{
+  // Keep the original browser roster as a recovery copy.
+  try{localStorage.setItem('breach_squads_imported_v1','true');}catch{/* Import is idempotent if retried. */}
 }
 export function loadPreference(key:'squad'|'mode'|'player'):string{
   const storageKey=key==='squad'?SELECTED:key==='mode'?MODE:PLAYER;

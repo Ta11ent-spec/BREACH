@@ -3,16 +3,18 @@ import { Icon } from '../../components/common/Icon';
 import { newSquad } from '../../data/localSquads';
 import type { Squad } from '../../data/localSquads';
 import type { V3Player } from '../../data/overviewAnalytics';
-export type ScopeMode = 'team'|'player';
+import type { ScopeMode } from '../../data/useTrackingScope';
+export type { ScopeMode } from '../../data/useTrackingScope';
 
 type Props = {
   mode:ScopeMode; onMode:(mode:ScopeMode)=>void;
-  squads:Squad[]; onSquads:(squads:Squad[])=>void;
+  squads:Squad[]; onSaveSquad:(squad:Squad)=>Promise<boolean>;
+  onDeleteSquad:(squad:Squad)=>Promise<boolean>; busy:boolean;
   selectedSquad:string; onSelectedSquad:(id:string)=>void;
   selectedPlayer:string; onSelectedPlayer:(id:string)=>void;
   players:V3Player[];
 };
-export function OverviewScopeBar({mode,onMode,squads,onSquads,selectedSquad,onSelectedSquad,selectedPlayer,onSelectedPlayer,players}:Props){
+export function OverviewScopeBar({mode,onMode,squads,onSaveSquad,onDeleteSquad,busy,selectedSquad,onSelectedSquad,selectedPlayer,onSelectedPlayer,players}:Props){
   const [editing,setEditing]=useState(false);
   const [newName,setNewName]=useState('');
   const [renameName,setRenameName]=useState('');
@@ -20,15 +22,14 @@ export function OverviewScopeBar({mode,onMode,squads,onSquads,selectedSquad,onSe
   const [manualId,setManualId]=useState('');
   const active=squads.find(s=>s.id===selectedSquad)??null;
   const names=new Map(players.map(p=>[p.playerId,p.username]));
-  const update=(next:Squad)=>onSquads(squads.map(s=>s.id===next.id?next:s));
-  const addMember=(id:string)=>{
+  const update=(next:Squad)=>onSaveSquad(next);
+  const addMember=async(id:string)=>{
     if(!active||!id||active.members.includes(id)||active.members.length>=5)return;
-    update({...active,members:[...active.members,id]});
-    setManualId('');setSearch('');
+    if(await update({...active,members:[...active.members,id]})){setManualId('');setSearch('');}
   };
-  const createSquad=()=>{
+  const createSquad=async()=>{
     const squad=newSquad(newName);
-    onSquads([...squads,squad]);onSelectedSquad(squad.id);onMode('team');setEditing(true);setNewName('');
+    if(await onSaveSquad(squad)){onSelectedSquad(squad.id);onMode('team');setEditing(true);setNewName('');}
   };
   const filtered=players.filter(p=>!active?.members.includes(p.playerId) &&
     (p.username.toLowerCase().includes(search.trim().toLowerCase()) || p.playerId.toLowerCase().includes(search.trim().toLowerCase()))).slice(0,7);
@@ -44,16 +45,17 @@ export function OverviewScopeBar({mode,onMode,squads,onSquads,selectedSquad,onSe
     </div>
     {mode==='team' && <>
       {active&& <div className="squad-members-strip"><span>{active.members.length}/5 SQUAD SLOTS</span>{Array.from({length:5},(_,i)=>{
-        const id=active.members[i];return <span className={'squad-member-chip '+(id?'filled':'empty')} key={i} title={id??'Open squad slot'}>{id?names.get(id)??id:'EMPTY'}</span>;
+        const id=active.members[i];return <span className={'squad-member-chip '+(id?'filled':'open-slot')} key={i} title={id??'Open squad slot'}>{id?names.get(id)??id:'EMPTY'}</span>;
       })}</div>}
-      {editing&&<div className="squad-editor">
-        <div className="squad-editor-head"><strong>SQUAD BUILDER</strong><span>Saved on this browser only · Maximum five IDs per squad</span></div>
+      {editing&&<fieldset className="squad-editor" disabled={busy} aria-busy={busy}>
+        <legend className="scope-caption">Manage squad roster</legend>
+        <div className="squad-editor-head"><strong>SQUAD BUILDER</strong><span>Saved in your database · Maximum five IDs per squad</span></div>
         <div className="squad-new"><input aria-label="New squad name" placeholder="New squad name" maxLength={50} value={newName} onChange={e=>setNewName(e.target.value)}/><button type="button" onClick={createSquad}>+ CREATE SQUAD</button></div>
         {active&&<>
-          <div className="squad-new"><input aria-label="Rename squad" placeholder={`Rename ${active.name}`} value={renameName} maxLength={50} onChange={e=>setRenameName(e.target.value)}/><button type="button" disabled={!renameName.trim()} onClick={()=>{update({...active,name:renameName.trim().slice(0,50)});setRenameName('');}}>RENAME SQUAD</button></div>
+          <div className="squad-new"><input aria-label="Rename squad" placeholder={`Rename ${active.name}`} value={renameName} maxLength={50} onChange={e=>setRenameName(e.target.value)}/><button type="button" disabled={!renameName.trim()} onClick={async()=>{if(await update({...active,name:renameName.trim().slice(0,50)}))setRenameName('');}}>RENAME SQUAD</button></div>
           <div className="squad-editor-head"><strong>{active.name} · {active.members.length}/5 players</strong><button type="button" className="scope-danger" onClick={()=>{
             if(!window.confirm(`Delete squad "${active.name}"? This only removes its saved roster.`))return;
-            const next=squads.filter(s=>s.id!==active.id);onSquads(next);onSelectedSquad(next[0]?.id??'');
+            void onDeleteSquad(active);
           }}>Delete squad</button></div>
           <div className="squad-editor-roster">{active.members.map(id=><div key={id} className="squad-editor-person"><div><strong>{names.get(id)??'Unrecorded ID'}</strong><small>{id}</small></div><button type="button" onClick={()=>update({...active,members:active.members.filter(x=>x!==id)})} aria-label={`Remove ${names.get(id)??id}`}>REMOVE</button></div>)}</div>
           {active.members.length<5&&<>
@@ -64,7 +66,7 @@ export function OverviewScopeBar({mode,onMode,squads,onSquads,selectedSquad,onSe
             <p className="scope-caption">Manually entered IDs will start contributing statistics after a matching player appears in imported replays.</p>
           </>}
         </>}
-      </div>}
+      </fieldset>}
     </>}
   </section>;
 }

@@ -2,11 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Icon, Pill, Progress, SectionTitle, Btn, StatCard, Monogram, OperatorIcon } from '../../components';
 import { ApiError, fetchApi } from '../../data/realApi';
 import { analyzeOverview, asPercent } from '../../data/overviewAnalytics';
-import type { OverviewV3, V3Player, ResolvedMatch } from '../../data/overviewAnalytics';
-import { loadPreference, loadSquads, savePreference, saveSquads } from '../../data/localSquads';
-import type { Squad } from '../../data/localSquads';
-import { OverviewScopeBar } from './OverviewScopeBar';
-import type { ScopeMode } from './OverviewScopeBar';
+import type { OverviewV3, ResolvedMatch } from '../../data/overviewAnalytics';
+import { useTrackingScope } from '../../data/useTrackingScope';
+import { TrackingScope } from '../../components/TrackingScope';
 
 type Period='7D'|'30D'|'ALL';
 const initials=(name:string)=>name.split(/[\s_-]+/).map(part=>part.slice(0,1)).join('').slice(0,2).toUpperCase()||'??';
@@ -60,10 +58,8 @@ export function RealDashboardPage({app}:{app:any}){
   const [data,setData]=useState<OverviewV3|null>(null);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState<string|null>(null);
-  const [mode,setMode]=useState<ScopeMode>(loadPreference('mode')==='team'?'team':'player');
-  const [squads,setSquads]=useState<Squad[]>(loadSquads);
-  const [selectedSquad,setSelectedSquad]=useState(()=>loadPreference('squad')||loadSquads()[0]?.id||'');
-  const [selectedPlayer,setSelectedPlayer]=useState(loadPreference('player'));
+  const scope=useTrackingScope(data?.players??[],data?.matches??[]);
+  const {mode,chosen,identity}=scope;
   const period:Period=['7D','30D','ALL'].includes(app.state.period)?app.state.period:'30D';
   useEffect(()=>{
     const controller=new AbortController();
@@ -72,21 +68,7 @@ export function RealDashboardPage({app}:{app:any}){
       .catch(e=>{if(!controller.signal.aborted){setError(e instanceof ApiError?e.message:'Unable to connect to the local API.');setLoading(false);}});
     return ()=>controller.abort();
   },[]);
-  useEffect(()=>{
-    if(!data||selectedPlayer)return;
-    const recordingIds=new Set(data.matches.map(m=>m.recordingProfileId).filter(Boolean));
-    const recorder=data.players.find(p=>p.profileId&&recordingIds.has(p.profileId));
-    if(recorder){setSelectedPlayer(recorder.playerId);savePreference('player',recorder.playerId);}
-  },[data,selectedPlayer]);
-  const onMode=(next:ScopeMode)=>{setMode(next);savePreference('mode',next);};
-  const onSquads=(next:Squad[])=>{setSquads(next);saveSquads(next);};
-  const onSelectedSquad=(id:string)=>{setSelectedSquad(id);savePreference('squad',id);};
-  const onSelectedPlayer=(id:string)=>{setSelectedPlayer(id);savePreference('player',id);};
-  const activeSquad=squads.find(s=>s.id===selectedSquad)??null;
-  const player=data?.players.find(p=>p.playerId===selectedPlayer)??null;
-  const chosen=mode==='team'?activeSquad?.members??[]:selectedPlayer?[selectedPlayer]:[];
   const view=useMemo(()=>data&&chosen.length?analyzeOverview(data,{mode,members:chosen},period):null,[data,mode,period,JSON.stringify(chosen)]);
-  const identity=mode==='team'?activeSquad?.name??'No squad selected':player?.username??'No player selected';
   const sourceNote=mode==='team'?'Squad metrics include only your selected roster members. Opponents and unselected teammates are excluded.':'Player metrics include only the selected player’s recorded rounds.';
   const roundSideKnown=view?view.attackRounds+view.defenseRounds:0;
   const knownWins=view?view.attackWins+view.defenseWins:0;
@@ -101,7 +83,7 @@ export function RealDashboardPage({app}:{app:any}){
     {loading&&<section className="panel real-dashboard-status" role="status"><Icon name="activity" size={18}/> Loading recorded player and match data...</section>}
     {error&&<section className="panel real-dashboard-status" role="alert"><strong>Dashboard unavailable.</strong><span>{error} Restart the ASP.NET Core API and refresh.</span><code>dotnet run --project .\backend\Breach.Intel.Api\Breach.Intel.Api.csproj</code></section>}
     {!loading&&!error&&data&&<>
-      <OverviewScopeBar mode={mode} onMode={onMode} squads={squads} onSquads={onSquads} selectedSquad={selectedSquad} onSelectedSquad={onSelectedSquad} selectedPlayer={selectedPlayer} onSelectedPlayer={onSelectedPlayer} players={allPlayers}/>
+      <TrackingScope scope={scope} players={allPlayers}/>
       {!view?<section className="panel squad-empty-state"><Icon name="target" size={29}/><h3>{mode==='team'?'Build your first squad':'Select a player'}</h3><p>{mode==='team'?'Choose Manage squads, create a named roster, then add up to five player IDs. You can save multiple squads and swap players at any time.':'Choose a player from your imported replay records to view personal analytics.'}</p></section>:<>
         <div className="hero-grid">
           <div className="hero-card"><div className="hero-top"><Pill tone="outline" dot>{mode==='team'?'SQUAD INTELLIGENCE':'PLAYER INTELLIGENCE'}</Pill><span className="hero-coordinates">LIVE DATABASE / LOCAL REPLAYS</span></div>
@@ -140,7 +122,7 @@ export function RealDashboardPage({app}:{app:any}){
           <section className="panel"><SectionTitle eyebrow="05 / OPERATOR INTELLIGENCE" title="Most fielded" right={<button className="text-action" onClick={()=>app.go('/matches')}>MATCH ARCHIVE <Icon name="arrow" size={14}/></button>}/><div className="operator-compact">{view.operators.length?view.operators.map(o=><div key={`${o.name}|${o.side}`} className="operator-compact-row"><OperatorIcon name={o.name} color={colorFor(o.name)}/><div><strong>{o.name}</strong><small>{o.side.toUpperCase()} · {mode==='team'?'SELECTED SQUAD':'SELECTED PLAYER'}</small></div><div className="op-right"><strong>{o.rounds}</strong><small>ROUNDS PICKED</small></div></div>):<EmptyPanel message="No recorded operator selections in this period."/>}</div></section>
         </div>
         <div className="bottom-actions"><div className="callout"><span className="callout-icon"><Icon name="bolt" size={22}/></span><div><strong>See the numbers behind every decision.</strong><p>{view.matches.length} tracked matches · {view.decided.length} verified outcomes · {identity}</p></div><Btn variant="primary" icon="arrow" onClick={()=>app.go('/matches')}>OPEN MATCHES</Btn></div></div>
-        <p className="real-dashboard-disclaimer">SOURCE: IMPORTED LOCAL REPLAYS · {sourceNote} Side and outcome attribution use player IDs and verified replay team indices. {view.ambiguousMatches?`${view.ambiguousMatches} matches excluded because selected players appeared on conflicting or unknown sides. `:''}Only completed, unambiguous matches contribute to match win rate; incomplete matches can contribute known rounds. Headshot coverage may be partial. Squad definitions are local-browser only. Existing Match Center still uses recorded replay slot 0 and is awaiting its own perspective update.</p>
+        <p className="real-dashboard-disclaimer">SOURCE: IMPORTED LOCAL REPLAYS · {sourceNote} Side and outcome attribution use player IDs and verified replay team indices. {view.ambiguousMatches?`${view.ambiguousMatches} matches excluded because selected players appeared on conflicting or unknown sides. `:''}Only completed, unambiguous matches contribute to match win rate; incomplete matches can contribute known rounds. Headshot coverage may be partial. Squads are saved in the local database. Match Center follows the same player or squad selection.</p>
       </>}
     </>}
   </div>;
