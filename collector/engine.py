@@ -127,6 +127,8 @@ def scan(store, root, parser, version, stop, notify=lambda text: None, retry=Fal
             # Young files need another automatic quiet check; other unchanged holds do not.
             if not (prior['state'] == 'held' and 'still changing' in prior['detail']):
                 continue
+        if prior and prior['signature'] == fingerprint(files) and prior['state'] in ('queued', 'duplicate'):
+            continue
         count += 1
         notify(f'Reading {folder.name}')
         state = process(store, folder, files, parser, version, stop, min_age)

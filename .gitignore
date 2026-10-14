@@ -56,3 +56,5 @@ collector/assets/*.exe
 collector/assets/parser-manifest.json
 collector/assets/auth0.json
 auth0-session.bin
+
+collector/assets/sync.json

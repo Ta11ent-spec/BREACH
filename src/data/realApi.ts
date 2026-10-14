@@ -2,7 +2,7 @@
 import { displayMapLabel } from './mapCatalog';
 import {authHeaders} from '../auth/apiAuth';
 export type ApiMatch = {
-  matchId: string; mapName: string | null; mapId: number | null;
+  matchId: string; mapName: string | null; mapId: number | string | null;
   gameVersion: string | null; matchType: string | null; gameMode: string | null;
   playedAt: string | null; roundCount: number; roundsWon: number; roundsLost: number;
   isCompleteMatch?: boolean | null;
@@ -31,7 +31,7 @@ export type ApiRoundPlayer = {
 export type ApiEvent = {
   eventSequence: number; eventType: string | null; actorUsername: string | null;
   targetUsername: string | null; timeRemainingSeconds: number | null;
-  isHeadshot: boolean | null; weaponId: number | null;
+  isHeadshot: boolean | null; weaponId: number | string | null;
 };
 export type ApiMatchDetail = {match: Omit<ApiMatch,'roundCount'|'roundsWon'|'roundsLost'>; rounds: ApiRound[]; players: ApiPlayer[]};
 export type ApiRoundDetail = {round: ApiRound; players: ApiRoundPlayer[]; events: ApiEvent[]};
@@ -45,7 +45,7 @@ export async function fetchApi<T>(path:string, signal?:AbortSignal):Promise<T>{
   if(!response.ok) throw new ApiError(response.status, response.status===404?'Record not found':`API request failed (${response.status})`);
   return response.json() as Promise<T>;
 }
-export function mapLabel(name:string|null|undefined,id:number|null|undefined){
+export function mapLabel(name:string|null|undefined,id:number|string|null|undefined){
   return displayMapLabel(name,id);
 }
 export function formatPlayedAt(value:string|null|undefined){return value?new Date(value).toLocaleString(): 'Date unavailable';}

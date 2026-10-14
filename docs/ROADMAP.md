@@ -1,6 +1,8 @@
 # BREACH development roadmap
 
-Updated October 14, 2026. BREACH has a working local replay analytics MVP. The full product includes both the website and a downloadable Windows PC collector. The remaining work is to validate the Windows collector preview on a second PC, build account/onboarding pages, connect its JSON output to account-owned website data, and prepare signed distribution.
+Updated October 14, 2026. Account workspaces, Auth0 sign-in and collector 0.3.0 authenticated uploads are now implemented and tested locally. See [workspace and sync](WORKSPACE_SYNC.md) for the current data boundaries and validation.
+
+ BREACH has a working local replay analytics MVP. The full product includes both the website and a downloadable Windows PC collector. The remaining work includes shared team invitations, verified game-account linking, hosted deployment, second-PC testing and signed distribution. Personal workspaces and the authenticated collector-to-website path are implemented.
 
 “Built” means implemented and checked in the development code. It does not mean publicly hosted or ready for production. Compare Players and Insights & Reports are on the pushed `feature/real-compare-and-insights` branch at `4d78242`; the latest remote merge state has not been reverified.
 
@@ -24,7 +26,7 @@ flowchart TD
 | Frontend foundation | Built | React, TypeScript, Vite, shared layouts and preserved demo UI |
 | Data foundation | Built for local use | ASP.NET Core API and SQL Server LocalDB with imported match, round, player and event records |
 | Replay importer | Local tooling implemented | Validation, deduplication, completion checks and optional watch mode; website now exposes committed batches and recorded warnings; older batches lack completion timestamps |
-| Downloadable PC collector | Local Windows preview built | Folder detection/browse, scan/watch/pause, bundled parser, contract adapter, durable SQLite queue, JSON export and unsigned per-user installer; pairing/uploads and second-PC testing remain |
+| Downloadable PC collector | Local Windows preview built | Folder detection/browse, scan/watch/pause, bundled parser, contract adapter, durable SQLite queue, JSON export and unsigned per-user installer; Auth0 uploads, deduplication and retries built; second-PC testing remains |
 | Command Overview | Built | Player/squad perspective, date ranges, results and analytics |
 | Squads | Built for local use | Database-backed five-player rosters, version checks and legacy import |
 | Match Center | Built | Search/filter archive, reports, scoreboards, rounds, events and exports |
@@ -35,9 +37,9 @@ flowchart TD
 | Insights & Reports | Built on latest feature branch | Selected-scope summaries, measured trends, sample checks and JSON/CSV exports |
 | Settings | Built for local use | Real database/API diagnostics, persisted density and tracking scope, match and review exports |
 | Manual Entry / Review | Built for local use | SQL-backed match/round/player annotations, separate correction proposals and withdrawal history |
-| Live Operations / Collector Setup | Built for local use | Committed import batches, warnings, contract downloads and local JSON preflight; no connected collector or live telemetry |
+| Live Operations / Collector Setup | Built for local use | Committed import batches, warnings, contract downloads and local JSON preflight; authenticated collector connections in My Workspace; no during-match telemetry |
 | Collector data contract | Implemented in local preview | Full schema and semantic validation; real six-round replay passed both collector and website preflight; future upload protocol documented |
-| Accounts and hosted access | Not built | No login, ownership, invitation or production deployment workflow |
+| Accounts and hosted access | Auth0 and personal workspaces built | Shared gameplay catalogue; private account controls and upload receipts. Team invitations and production hosting remain |
 
 The most recent browser/export checks used 15 imported matches and 98 rounds. There are 63 authored tests across seven suites, plus API integration scripts and importer tests. Updated CI installs from the lockfile, runs the tests and builds both frontend and backend. Remote CI execution remains to be verified after pushing.
 
@@ -72,7 +74,7 @@ flowchart LR
     G --> H[Website status and analytics refresh]
 ```
 
-The game replay files need to be parsed into JSON; the website cannot automatically access a player's local game folder. The current importer writes to the developer's LocalDB. The collector preview now has its own local queue; the authenticated API upload path remains to be built.
+The game replay files need to be parsed into JSON; the website cannot automatically access a player's local game folder. The current importer writes to the developer's LocalDB. The collector preview now has its own local queue; the authenticated API upload path is implemented in collector 0.3.0.
 
 ### Local collector milestone — implemented, second-PC acceptance pending
 
@@ -89,7 +91,7 @@ The private preview is implemented in [collector/](../collector/README.md). Twen
 
 Acceptance: a tester can install the collector, select their replay folder, play supported matches and obtain validated JSON with no development tooling or terminal use. Existing game/replay files remain intact.
 
-### Website pairing and sync milestone
+### Website pairing and sync milestone — personal account flow implemented
 
 - Pair the collector with an authenticated BREACH account and permitted workspace.
 - Store collector credentials using protected OS storage and support disconnect/revocation.

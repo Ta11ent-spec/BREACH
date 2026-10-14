@@ -1,3 +1,7 @@
+# Current account behavior
+
+Auth0 now provisions a personal workspace for every valid account. The old AllowedSubjects setting only assigns the legacy private workspace to its original approved owner; it is no longer a signup allowlist. Recorded gameplay is shared among signed-in users, while notes, squads, receipts and connections are private. See [workspace sync](WORKSPACE_SYNC.md). Older single-workspace descriptions below document the initial setup stage.
+
 # Auth0 integration
 
 BREACH uses Auth0 Universal Login for website accounts and the OAuth device-code flow for the Windows collector. BREACH never receives passwords. Match storage remains in the existing SQL database; Auth0 is the identity provider.

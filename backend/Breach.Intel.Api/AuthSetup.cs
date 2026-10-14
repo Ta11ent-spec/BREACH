@@ -33,16 +33,15 @@ public static class AuthSetup
         {
             if(!http.Request.Path.StartsWithSegments("/api")){await next();return;}
             if(!configured){
-                if(app.Environment.IsDevelopment()&&http.Connection.RemoteIpAddress is {} ip&&System.Net.IPAddress.IsLoopback(ip)){await next();return;}
+                if(app.Environment.IsDevelopment()&&http.Connection.RemoteIpAddress is {} ip&&System.Net.IPAddress.IsLoopback(ip)){await http.RequestServices.GetRequiredService<Workspace>().ResolveAsync(http,false);await next();return;}
                 http.Response.StatusCode=503;return;
             }
             if(http.User.Identity?.IsAuthenticated!=true){await http.ChallengeAsync();return;}
-            // Existing imported data is one private workspace. Do not expose it to every new signup.
-            if(http.Request.Path!="/api/account" && !(app.Configuration.GetSection("Auth0:AllowedSubjects").Get<string[]>()??[]).Contains(http.User.FindFirst("sub")?.Value,StringComparer.Ordinal)){
-                http.Response.StatusCode=403;await http.Response.WriteAsJsonAsync(new{message="This account has not been granted access to this private workspace."});return;
-            }
+            try { await http.RequestServices.GetRequiredService<Workspace>().ResolveAsync(http,configured); }
+            catch(UnauthorizedAccessException){await http.ChallengeAsync();return;}
+            catch {http.Response.StatusCode=503;await http.Response.WriteAsJsonAsync(new{message="Workspace storage is unavailable."});return;}
             await next();
         });
-        app.MapGet("/api/account",(HttpContext http)=>Results.Ok(new{authenticated=http.User.Identity?.IsAuthenticated==true,subject=http.User.FindFirst("sub")?.Value,workspaceAccess=(app.Configuration.GetSection("Auth0:AllowedSubjects").Get<string[]>()??[]).Contains(http.User.FindFirst("sub")?.Value,StringComparer.Ordinal)}));
+        app.MapGet("/api/account",(HttpContext http,Workspace w)=>Results.Ok(new{authenticated=http.User.Identity?.IsAuthenticated==true,workspaceId=w.Id,workspaceAccess=true}));
     }
 }

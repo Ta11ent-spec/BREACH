@@ -4,7 +4,7 @@ import { resolveMap } from './mapCatalog';
 import type { MapIdentity } from './mapCatalog';
 export type RoundRecord = { rounds: number; wins: number; losses: number; unknown: number; winRate: number | null; attackRounds: number; attackWins: number; defenseRounds: number; defenseWins: number };
 export type MapRecord = MapIdentity & RoundRecord & {
-  mapId: number | null; rawName: string | null; matches: ResolvedMatch[];
+  mapId: number | string | null; rawName: string | null; matches: ResolvedMatch[];
   matchWins: number; matchLosses: number; unverifiedMatches: number; matchWinRate: number | null;
   sites: (RoundRecord & { name: string })[];
 };

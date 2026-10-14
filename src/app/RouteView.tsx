@@ -1,3 +1,4 @@
+import {MyWorkspace} from '../pages/workspace/MyWorkspace';
 import {RealUnavailablePage} from '../pages/real/RealPages';
 import {RealPlayersPage} from '../pages/players/RealPlayersPage';
 import {RealMapsPage} from '../pages/maps/RealMapsPage';
@@ -26,6 +27,7 @@ const navTitle=(base:string)=>({'live':'Live operations','operators':'Operator i
 export function RouteView({app}: any){
   const parts = app.state.route.split('/').filter(Boolean);
   const base = parts[0] || 'overview';
+  if(base==='workspace')return <MyWorkspace app={app}/>;
   if(app.state.dataMode==='real') {
     switch(base) {
       case 'overview': return <RealDashboardPage app={app}/>;

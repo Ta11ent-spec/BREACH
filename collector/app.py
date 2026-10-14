@@ -14,6 +14,7 @@ from adapter import VERSION, resource, validate
 from engine import parser_manifest, scan, suggested_roots, verify_parser
 from store import Store
 from auth import Auth0, AuthError
+import sync
 
 BG, PANEL, TEXT, MUTED, ACCENT = '#0b0f13', '#151b21', '#eef3ed', '#929da5', '#d0ff59'
 
@@ -28,6 +29,14 @@ class Collector(tk.Tk):
         self.messages = queue.Queue(); self.stop = threading.Event(); self.worker = None
         self.watching = False; self.closing = False; self.next_scan = 0
         self.auth = None
+        self.api_url = None
+        sync_config = resource("sync.json")
+        if sync_config.exists():
+            try: self.api_url = sync.api_base(json.loads(sync_config.read_text())["apiUrl"])
+            except (ValueError, KeyError, OSError): pass
+        self.sync_enabled = self.store.get("autoSync", "false") == "true"
+        self.next_sync = 0
+        self.sync_label = tk.StringVar(value="DISABLE SYNC" if self.sync_enabled else "ENABLE SYNC")
         config_path = auth_config or resource('auth0.json')
         if config_path.exists():
             try: self.auth = Auth0(json.loads(config_path.read_text(encoding='utf-8')), data_dir)
@@ -62,7 +71,7 @@ class Collector(tk.Tk):
         body = tk.Frame(self, bg=BG, padx=28, pady=18); body.pack(fill='both', expand=True)
         self.label(body, 'REPLAY COLLECTION / WINDOWS', 9, ACCENT).pack(anchor='w')
         self.label(body, 'Your matches. Ready for analysis.', 23).pack(anchor='w', pady=(5, 3))
-        self.label(body, 'Collect finished Ranked Bomb replays and export validated JSON. Cloud sync is not connected.', 10, MUTED).pack(anchor='w')
+        self.label(body, 'Collect finished Ranked Bomb replays. Sync contributes gameplay stats to BREACH’s shared player directory.', 10, MUTED).pack(anchor='w')
         settings = tk.Frame(body, bg=PANEL, padx=16, pady=13); settings.pack(fill='x', pady=15)
         self.label(settings, '01 / REPLAY FOLDER', 9, ACCENT).pack(anchor='w')
         row = tk.Frame(settings, bg=PANEL); row.pack(fill='x', pady=(8, 0))
@@ -73,12 +82,14 @@ class Collector(tk.Tk):
         self.scan_button = self.button(actions, 'SCAN NOW', lambda: self.start_scan(True), True); self.scan_button.pack(side='left')
         self.button(actions, '', self.toggle_watch, textvariable=self.watch_label).pack(side='left', padx=8)
         self.button(actions, 'PAUSE', self.pause).pack(side='left')
+        self.button(actions, '', self.toggle_sync, textvariable=self.sync_label).pack(side='left', padx=8)
+        self.button(actions, 'RETRY UPLOADS', self.retry_uploads).pack(side='left')
         self.label(actions, size=10, color=ACCENT, textvariable=self.counts).pack(side='right')
         notebook = ttk.Notebook(body)
         jobs_frame = tk.Frame(notebook, bg=PANEL); ready_frame = tk.Frame(notebook, bg=PANEL)
-        notebook.add(jobs_frame, text='COLLECTION ACTIVITY'); notebook.add(ready_frame, text='READY TO EXPORT')
+        notebook.add(jobs_frame, text='COLLECTION ACTIVITY'); notebook.add(ready_frame, text='MATCH QUEUE')
         self.jobs = self.table(jobs_frame, ('folder', 'state', 'detail'), (250, 100, 540))
-        self.ready = self.table(ready_frame, ('match', 'created', 'exported'), (380, 190, 190))
+        self.ready = self.table(ready_frame, ('match', 'created', 'exported', 'upload'), (300, 170, 170, 240))
         footer = tk.Frame(body, bg=BG); footer.pack(side='bottom', fill='x')
         bottom = tk.Frame(footer, bg=BG); bottom.pack(fill='x')
         self.button(bottom, 'EXPORT SELECTED JSON', self.export_selected).pack(side='left')
@@ -163,9 +174,43 @@ class Collector(tk.Tk):
             finally: self.messages.put(None)
         self.worker = threading.Thread(target=work, daemon=False); self.worker.start()
 
+    def toggle_sync(self):
+        self.sync_enabled = not self.sync_enabled
+        self.store.set('autoSync', str(self.sync_enabled).lower())
+        self.sync_label.set('DISABLE SYNC' if self.sync_enabled else 'ENABLE SYNC')
+        if self.sync_enabled:
+            self.next_sync = 0
+            self.status.set('Sync enabled. Gameplay statistics are shared; account details and notes remain private.')
+        else:
+            self.stop.set()
+            self.status.set('Sync disabled. A request already accepted by the API may finish; queued files are retained.')
+
+    def retry_uploads(self):
+        if self.worker and self.worker.is_alive(): return
+        sync.retry_blocked(self.store); self.refresh(); self.next_sync = 0
+        if not self.sync_enabled: self.status.set('Retry prepared. Enable sync to upload.')
+
+    def start_sync(self):
+        import time
+        self.next_sync = time.monotonic() + 60
+        if not self.api_url:
+            self.status.set('This build has no upload server configured. Install a configured release.'); return
+        if not self.auth or not self.auth.session:
+            self.status.set('Sign in to enable authenticated uploads.'); return
+        if self.worker and self.worker.is_alive(): return
+        self.stop.clear(); self.scan_button.configure(state='disabled')
+        def work():
+            store = Store(self.store.path)
+            try: sync.run(store, self.auth, self.api_url, self.stop, self.messages.put)
+            except AuthError: self.messages.put('Sign-in needs attention. Reconnect your account before retrying uploads.')
+            except Exception: self.messages.put('Upload service unavailable. Sync will retry automatically.')
+            finally: store.close(); self.messages.put(None)
+        self.worker = threading.Thread(target=work, daemon=False); self.worker.start()
+
     def pause(self):
         self.watching = False; self.stop.set(); self.watch_label.set('START WATCHING')
-        self.status.set('Paused. Completed queue records are saved.')
+        self.sync_enabled = False; self.store.set('autoSync', 'false'); self.sync_label.set('ENABLE SYNC')
+        self.status.set('Paused collection and uploads. Queue records are saved.')
 
     def refresh(self):
         for tree in (self.jobs, self.ready):
@@ -175,7 +220,10 @@ class Collector(tk.Tk):
             if tree is self.jobs:
                 for j in self.store.jobs(): tree.insert('', 'end', iid=j['folder'], values=(Path(j['folder']).name, j['state'].upper(), j['detail']))
             else:
-                for q in self.store.queued(): tree.insert('', 'end', iid=q['message_id'], values=(q['match_id'], q['created_at'], q['exported_at'] or 'Not exported'))
+                upload_states = sync.states(self.store)
+                for q in self.store.queued():
+                    record = upload_states.get(q['message_id'], {})
+                    tree.insert('', 'end', iid=q['message_id'], values=(q['match_id'], q['created_at'], q['exported_at'] or 'Not exported', record.get('outcome') or record.get('detail') or record.get('state') or 'Not synced'))
             if old and tree.exists(old): tree.selection_set(old)
         self.counts.set(f'{len(self.store.queued())} MATCHES READY  ·  ' + ('SIGNED IN' if self.auth and self.auth.session else 'OFFLINE'))
         self.account_label.set('DISCONNECT' if self.auth and self.auth.session else 'SIGN IN')
@@ -194,6 +242,8 @@ class Collector(tk.Tk):
         alive = self.worker and self.worker.is_alive()
         if self.closing and not alive:
             self.store.close(); self.destroy(); return
+        if self.sync_enabled and not self.closing and not alive and time.monotonic() >= self.next_sync:
+            self.start_sync(); alive = self.worker and self.worker.is_alive()
         if self.watching and not alive and time.monotonic() >= self.next_scan:
             self.start_scan()
         self.after(250, self.tick)
@@ -201,11 +251,11 @@ class Collector(tk.Tk):
     def export_selected(self):
         selected = self.ready.selection()
         if not selected:
-            self.status.set('Open READY TO EXPORT and select a match first.'); return
+            self.status.set('Open MATCH QUEUE and select a match first.'); return
         path = filedialog.asksaveasfilename(parent=self, title='Export collector JSON', defaultextension='.json', initialfile=f'breach-{selected[0]}.json', filetypes=[('JSON', '*.json')])
         if path:
             try:
-                self.store.export(selected[0], path); self.refresh(); self.status.set('JSON exported. Queue record retained for future synchronization.')
+                self.store.export(selected[0], path); self.refresh(); self.status.set('JSON exported. Queue record retained. Export does not change upload status.')
             except Exception as exc: messagebox.showerror('Export failed', str(exc), parent=self)
 
     def export_diagnostics(self):
@@ -219,7 +269,7 @@ class Collector(tk.Tk):
             except Exception as exc: messagebox.showerror('Export failed', str(exc), parent=self)
 
     def about(self):
-        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · private preview\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Match upload, automatic startup and background service are not enabled.', parent=self)
+        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · private preview\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Uploads use your signed-in account. Automatic retries run while sync is enabled and this app is open. Automatic startup and background service are not enabled.', parent=self)
 
     def close_app(self):
         self.pause(); self.closing = True; self.status.set('Finishing shutdown and saving queue state…')
@@ -244,7 +294,9 @@ def main():
             credential_check = protect(protected, decrypt=True) == b'packaged-runtime-check'
             config = resource('auth0.json')
             if config.exists(): Auth0(json.loads(config.read_text(encoding='utf-8')), Path(temp))
-            options.self_test.write_text(json.dumps({'ok': True, 'version': VERSION, 'sqlite': bool(installation), 'tk': True, 'schema': True, 'parserChecksum': True, 'windowsCredentialProtection': credential_check, 'auth0Configured': config.exists()}), encoding='utf-8')
+            sync_config = resource('sync.json')
+            if sync_config.exists(): sync.api_base(json.loads(sync_config.read_text())['apiUrl'])
+            options.self_test.write_text(json.dumps({'ok': True, 'version': VERSION, 'sqlite': bool(installation), 'tk': True, 'schema': True, 'parserChecksum': True, 'windowsCredentialProtection': credential_check, 'auth0Configured': config.exists(), 'syncConfigured': sync_config.exists()}), encoding='utf-8')
         return
     data_dir = options.data_dir or Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'BREACH/CollectorData'
     handle = None

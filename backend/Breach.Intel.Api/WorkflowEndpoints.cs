@@ -15,7 +15,7 @@ public static class WorkflowEndpoints
         group.AddEndpointFilter(async (context, next) =>
         {
             var http = context.HttpContext;
-            if (!app.Environment.IsDevelopment() || http.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address)) return Results.NotFound();
+            if (http.User.Identity?.IsAuthenticated!=true && (!app.Environment.IsDevelopment() || http.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address))) return Results.NotFound();
             if (!HttpMethods.IsGet(http.Request.Method) && http.Request.Headers["X-Breach-Request"] != "workflows") return Results.BadRequest(new { message = "Missing workflow request header." });
             try { return await next(context); }
             catch (SqlException) { return Results.Problem("Workflow storage is unavailable. Check LocalDB and apply review migration 002.", statusCode: 503); }
@@ -41,11 +41,12 @@ public static class WorkflowEndpoints
                 Severity AS severity, IssueCode AS code, Message AS message
                 FROM dbo.ImportIssues ORDER BY ImportBatchId DESC,MatchId,IssueCode
                 """);
+            var devices=await db.ReadAsync("SELECT TOP(1) LastSeen AS lastSeen,Version AS version FROM dbo.CollectorConnections WHERE RevokedAt IS NULL ORDER BY LastSeen DESC");
             return Results.Ok(new { summary=summary[0], batches, issues,
-                collector=new { state="not_connected", lastSeen=(string?)null, version=(string?)null,
-                    ingestionAvailable=false, contractVersion="1.0.0" },
+                collector=new { state=devices.Count>0?"connected":"not_connected", lastSeen=devices.FirstOrDefault()?.GetValueOrDefault("lastSeen"), version=devices.FirstOrDefault()?.GetValueOrDefault("version"),
+                    ingestionAvailable=true, contractVersion="1.0.0" },
                 checkedAt=DateTimeOffset.UtcNow,
-                capabilities=new { postMatchReplay=true, liveTelemetry=false, authenticatedSync=false,
+                capabilities=new { postMatchReplay=true, liveTelemetry=false, authenticatedSync=true,
                     heldJobsVisible=false, noteStorage="sql-server" } });
         });
         group.MapGet("/notes", async (SqlStore db) => Results.Ok(await db.ReadAsync($"SELECT TOP(500) {NoteColumns} FROM dbo.ReviewNotes ORDER BY CreatedAt DESC,NoteId")));
@@ -76,7 +77,7 @@ public static class WorkflowEndpoints
                   inserted.PlayerId AS playerId,inserted.Category AS category,inserted.Value AS value,
                   inserted.ReviewSource AS source,inserted.Notes AS notes,inserted.AuthorLabel AS author,
                   inserted.CreatedAt AS createdAt,inserted.RetractedAt AS retractedAt
-                VALUES(@id,@match,@round,@player,@category,@value,@source,@notes,N'Local reviewer')
+                VALUES(@id,@match,@round,@player,@category,@value,@source,@notes,N'Workspace member')
                 """,("@id",id),("@match",matchId),("@round",input.RoundNumber),("@player",input.PlayerId),
                 ("@category",input.Category),("@value",input.Value.Trim()),("@source",input.Source),("@notes",input.Notes.Trim()));
             return Results.Created($"/api/workflows/notes/{id}",saved[0]);

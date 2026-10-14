@@ -6,7 +6,7 @@ export type WorkflowStatus = {
   summary:{databaseName:string;matches:number;rounds:number;players:number;events:number;issues:number;lastSuccessfulImport:string|null};
   batches:{id:number;importerVersion:string;status:string;finishedAt:string|null;notes:string|null}[];
   issues:{batchId:number|null;matchId:string|null;severity:string;code:string;message:string}[];
-  collector:{state:'not_connected';lastSeen:null;version:null;ingestionAvailable:false;contractVersion:string};
+  collector:{state:'not_connected'|'connected';lastSeen:string|null;version:string|null;ingestionAvailable:boolean;contractVersion:string};
   checkedAt:string;capabilities:{postMatchReplay:boolean;liveTelemetry:boolean;authenticatedSync:boolean;heldJobsVisible:boolean;noteStorage:string};
 };
 export const getWorkflowStatus = (signal?:AbortSignal) => fetchApi<WorkflowStatus>('/workflows/status',signal);

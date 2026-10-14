@@ -15,7 +15,7 @@ export function Topbar({app}:any){
     <div className="top-actions">
       <div className="real-mode-switch" role="group" aria-label="Data source">
         <button className={app.state.dataMode==='real'?'active':''} onClick={()=>app.setDataMode('real')}>REAL DATA</button>
-        <button className={app.state.dataMode==='demo'?'active':''} onClick={()=>app.setDataMode('demo')}>DEMO</button>
+        <button className={app.state.dataMode==='demo'?'active':''} onClick={()=>{app.setDataMode('demo');if(app.state.route==='/workspace')app.go('/overview');}}>DEMO</button>
       </div>
       {app.state.dataMode==='demo' && <div className="global-search">
         <Icon name="search" size={16}/><input ref={(el:any)=>app.searchInput=el} aria-label="Search players and matches" placeholder="Search players, matches..." value={app.state.query} onChange={(e:any)=>app.setState({query:e.target.value,showSearch:true})} onFocus={()=>app.setState({showSearch:true})}/><kbd>⌘ K</kbd>

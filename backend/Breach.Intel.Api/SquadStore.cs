@@ -7,7 +7,7 @@ public sealed record SquadRecord(string Id, string Name, string[] Members, int? 
 public sealed class SquadConflictException : Exception;
 
 /// <summary>Single local workspace rosters. Each write is atomic and version checked.</summary>
-public sealed class SquadStore(IConfiguration config)
+public sealed class SquadStore(IConfiguration config, Workspace workspace)
 {
     private async Task<SqlConnection> OpenAsync()
     {
@@ -16,10 +16,10 @@ public sealed class SquadStore(IConfiguration config)
         catch { await connection.DisposeAsync(); throw; }
     }
 
-    private static SqlCommand Command(SqlConnection connection, SqlTransaction? transaction,
+    private SqlCommand Command(SqlConnection connection, SqlTransaction? transaction,
         string sql, params (string Name, object? Value)[] parameters)
     {
-        var command = new SqlCommand(sql, connection, transaction) { CommandTimeout = 15 };
+        var command = new SqlCommand(workspace.Scope(sql), connection, transaction) { CommandTimeout = 15 };
         foreach (var (name, value) in parameters)
         {
             var parameter = command.Parameters.AddWithValue(name, value ?? DBNull.Value);
@@ -48,14 +48,14 @@ public sealed class SquadStore(IConfiguration config)
         return result;
     }
 
-    private static async Task<int?> VersionAsync(SqlConnection connection, SqlTransaction transaction, string id)
+    private async Task<int?> VersionAsync(SqlConnection connection, SqlTransaction transaction, string id)
     {
         await using var command = Command(connection, transaction,
             "SELECT Version FROM dbo.Squads WITH (UPDLOCK,HOLDLOCK) WHERE SquadId=@id", ("@id", id));
         return (int?)await command.ExecuteScalarAsync();
     }
 
-    private static async Task WriteAsync(SqlConnection connection, SqlTransaction transaction, SquadRecord squad, int? current)
+    private async Task WriteAsync(SqlConnection connection, SqlTransaction transaction, SquadRecord squad, int? current)
     {
         await using var command = Command(connection, transaction, current is null
             ? "INSERT dbo.Squads (SquadId,Name) VALUES (@id,@name)"

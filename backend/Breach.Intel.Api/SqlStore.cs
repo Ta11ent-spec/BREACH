@@ -7,7 +7,7 @@ namespace Breach.Intel.Api;
 /// Small parameterized read-only SQL adapter for the existing v0.1 schema.
 /// The SQL queries are fixed at compile time; user values are SQL parameters.
 /// </summary>
-public sealed class SqlStore(IConfiguration config)
+public sealed class SqlStore(IConfiguration config, Workspace workspace)
 {
     private string ConnectionString => config.GetConnectionString("BreachDatabase")
         ?? throw new InvalidOperationException("BreachDatabase connection string missing");
@@ -17,7 +17,7 @@ public sealed class SqlStore(IConfiguration config)
     {
         await using var connection = new SqlConnection(ConnectionString);
         await connection.OpenAsync();
-        await using var command = new SqlCommand(sql, connection) { CommandTimeout = 15 };
+        await using var command = new SqlCommand(workspace.Scope(sql), connection) { CommandTimeout = 15 };
         foreach (var (name, value) in parameters)
         {
             var parameter = command.Parameters.AddWithValue(name, value ?? DBNull.Value);
@@ -30,7 +30,14 @@ public sealed class SqlStore(IConfiguration config)
         {
             var row = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
             for (var i = 0; i < reader.FieldCount; i++)
-                row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
+                {
+                var name=reader.GetName(i);
+                var value=await reader.IsDBNullAsync(i)?null:reader.GetValue(i);
+                // Game IDs are decimal strings on the wire: JavaScript numbers lose
+                // precision above 2^53. Measurements retain their numeric types.
+                row[name]=value is decimal id && new[]{"mapId","operatorId","weaponId"}.Contains(name,StringComparer.OrdinalIgnoreCase)
+                    ? id.ToString(System.Globalization.CultureInfo.InvariantCulture):value;
+            }
             rows.Add(row);
         }
         return rows;

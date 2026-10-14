@@ -25,12 +25,18 @@ def main():
     cli.add_argument('--makensis', required=True, type=Path)
     cli.add_argument('--output', type=Path, default=ROOT / '.tmp/collector-release')
     cli.add_argument('--auth-config', type=Path, help='JSON containing public domain, clientId and audience only')
+    cli.add_argument('--api-url', help='HTTPS API origin (HTTP allowed only for loopback development)')
     args = cli.parse_args()
     parser = args.parser.resolve(); compiler = args.makensis.resolve(); out = args.output.resolve()
     if os.name != 'nt': raise SystemExit('Build on Windows x64')
     if not parser.is_file() or not compiler.is_file(): raise SystemExit('Parser or NSIS compiler missing')
     out.mkdir(parents=True, exist_ok=True)
     assets = out / 'staging/assets'; assets.mkdir(parents=True, exist_ok=True)
+    sync_asset = assets / 'sync.json'
+    if args.api_url:
+        from sync import api_base
+        sync_asset.write_text(json.dumps({'apiUrl': api_base(args.api_url)}))
+    else: sync_asset.unlink(missing_ok=True)
     auth_asset = assets / 'auth0.json'
     if args.auth_config:
         config = json.loads(args.auth_config.read_text(encoding='utf-8'))

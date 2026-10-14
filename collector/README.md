@@ -1,3 +1,7 @@
+# Collector 0.3.0 sync update
+
+Sign in, then Enable Sync to upload queued matches. Start Watching collects new completed replays. Temporary failures retry automatically while the app is open; receipts survive restart. My Workspace shows acknowledgements. Gameplay statistics are shared; account details and notes stay private. See [workspace sync](../docs/WORKSPACE_SYNC.md) for current behavior and build arguments. The older preview notes below describe the original export-only stage.
+
 # BREACH Windows collector — private preview 0.2.0
 
 The collector watches PC replay folders, invokes the bundled siege-dissect parser, converts completed Ranked Bomb matches into contract v1 JSON and keeps a durable local SQLite queue. Configured builds include Auth0 browser sign-in and Windows-protected token storage. End users do not need Python, a terminal or SQL Server. Match upload is not implemented yet; signing in does not upload the queue. See [Auth0 setup](../docs/AUTH0_SETUP.md).

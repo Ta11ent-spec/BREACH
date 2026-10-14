@@ -23,7 +23,7 @@ const siteInferred: Record<string, { name: string; evidence: string }> = {
   '436375283234': { name: 'Coastline', evidence: '2F Hookah Lounge / Billiards Room and 2F Penthouse / Theater in the imported replay.' },
 };
 export type MapIdentity = { key: string; name: string; label: string; source: 'replay' | 'catalog' | 'inferred' | 'unknown'; evidence: string | null };
-export function resolveMap(name: string | null | undefined, id: number | null | undefined): MapIdentity {
+export function resolveMap(name: string | null | undefined, id: number | string | null | undefined): MapIdentity {
   const raw = name?.trim() ?? '';
   const key = id != null ? String(id) : raw && !/^Map\(\d+\)$/.test(raw) ? `name:${raw}` : 'unknown';
   if (raw && !/^Map\(\d+\)$/.test(raw)) {
@@ -38,4 +38,4 @@ export function resolveMap(name: string | null | undefined, id: number | null | 
   const label = id != null ? `Unresolved map · ${id}` : 'Unknown map';
   return { key, name: label, label, source: 'unknown', evidence: null };
 }
-export const displayMapLabel = (name: string | null | undefined, id: number | null | undefined) => resolveMap(name, id).label;
+export const displayMapLabel = (name: string | null | undefined, id: number | string | null | undefined) => resolveMap(name, id).label;

@@ -2,7 +2,7 @@ import {fetchApi} from './realApi';
 
 /** Raw round-level replay data. A null field means it was not recorded. */
 export type ReportMatch = {
-  matchId: string; mapId: number | null; mapName: string | null;
+  matchId: string; mapId: number | string | null; mapName: string | null;
   gameVersion: string | null; codeVersion: string | null;
   matchType: string | null; gameMode: string | null;
   recordingProfileId: string | null; playedAt: string | null;
@@ -25,7 +25,7 @@ export type ReportTeam = {
 export type ReportAppearance = {
   roundId: string; matchId: string; roundNumber: number;
   playerId: string; username: string | null; teamIndex: number | null;
-  operatorId: number | null; operatorName: string | null; spawn: string | null;
+  operatorId: number | string | null; operatorName: string | null; spawn: string | null;
   scoreSnapshot: number | null; kills: number | null; died: boolean | null;
   assists: number | null; headshots: number | null; headshotPercentage: number | null;
   damageDealt: number | null; damageTaken: number | null;
@@ -42,7 +42,7 @@ export type ReportEvent = {
   actorUsername: string | null; targetUsername: string | null;
   actorPlayerId: string | null; targetPlayerId: string | null;
   timeRemainingSeconds: number | null; isHeadshot: boolean | null;
-  weaponId: number | null;
+  weaponId: number | string | null;
 };
 
 export type MatchReport = {
