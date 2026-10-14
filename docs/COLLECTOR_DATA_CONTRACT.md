@@ -1,6 +1,6 @@
 # BREACH collector data contract 1.0.0
 
-Status: draft for collector implementation. The website provides downloadable JSON Schema, a synthetic example and local preflight validation. No collector installer, account pairing or upload endpoint is implemented in this stage.
+Status: v1 is implemented by the local Windows collector preview. The website provides downloadable JSON Schema, a synthetic example and local preflight validation. The collector validates the full schema plus referential invariants before queueing. Account pairing and upload endpoints remain future work; see [collector setup and build instructions](../collector/README.md).
 
 ## Product flow
 
@@ -49,8 +49,8 @@ The current status API reads committed database import batches and warnings. Exi
 
 ## Implementation gates
 
-1. Implement a converter from current parser/normalizer output to this envelope and reconcile identity/hash conventions against existing records.
-2. Cross-check the schema with a full JSON Schema implementation on the collector/server; local preflight covers only this schema's bundled subset.
+1. Implemented: replay-to-envelope converter preserves existing identity conventions and hashes original replay bytes.
+2. Implemented locally: full JSON Schema validation and semantic checks, with a real six-round replay also checked against website preflight. Server-side validation remains necessary.
 3. Implement account/workspace authorization, paired installation storage, authenticated ingestion and receipts.
 4. Test interrupted uploads, duplicate replay delivery, conflicting sources, offline recovery, parser updates and unsupported versions.
 5. Package and sign the Windows installer and implement a trusted update channel after end-to-end tests pass.

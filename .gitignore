@@ -49,3 +49,8 @@ output/
 __pycache__/
 *.pyc
 .venv/
+
+# Local Windows collector distributions and developer assets
+releases/
+collector/assets/*.exe
+collector/assets/parser-manifest.json

@@ -1,6 +1,6 @@
 # Real settings, review and collection activity
 
-Real Data mode now has implementations for Settings (`/settings`), Manual Entry/Review (`/entry`), Live Operations as post-match collection activity (`/live`) and Collector Setup (`/collector`). Demo mode preserves its existing screens. These local development workflows do not implement hosted accounts or distribute the future PC collector.
+Real Data mode now has implementations for Settings (`/settings`), Manual Entry/Review (`/entry`), Live Operations as post-match collection activity (`/live`) and Collector Setup (`/collector`). Demo mode preserves its existing screens. These local development workflows do not implement hosted accounts or distribute the PC collector. The separate [Windows collector preview](../collector/README.md) provides local collection/export; pairing and cloud sync remain unavailable.
 
 ## Database migration and startup
 

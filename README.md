@@ -4,7 +4,7 @@
 
 React + TypeScript + Vite frontend with an ASP.NET Core API and SQL Server LocalDB. Real Data mode provides recorded match/player/map/operator analytics, squads, comparisons, insights, persistent reviews, diagnostics and exports. Demo mode preserves the original fictional preview.
 
-> **Local development:** Real Data uses imported replay records. Account authentication, hosted ownership, downloadable collector and live telemetry are not implemented. See [local workflows and review migration](docs/REAL_WORKFLOWS.md), [collector contract](docs/COLLECTOR_DATA_CONTRACT.md) and [development roadmap](docs/ROADMAP.md). The frontend needs the local backend to use Real Data.
+> **Local development:** Real Data uses imported replay records. A [Windows collector private preview](collector/README.md) now provides local collection and JSON export. Account authentication, hosted ownership, collector uploads and live telemetry are not implemented. See [local workflows and review migration](docs/REAL_WORKFLOWS.md), [collector contract](docs/COLLECTOR_DATA_CONTRACT.md) and [development roadmap](docs/ROADMAP.md). The frontend needs the local backend to use Real Data.
 
 ## Run in VS Code (Windows)
 
