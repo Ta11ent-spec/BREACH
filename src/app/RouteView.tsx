@@ -8,6 +8,7 @@ import { LivePage } from '../pages/live/LivePage';
 import { MatchCenterPage, MatchDetailPage, RoundDetailPage } from '../pages/matches/MatchesPage';
 import { PlayerDirectoryPage, PlayerDetailPage } from '../pages/players/PlayersPage';
 import { OperatorsPage } from '../pages/operators/OperatorsPage';
+import { RealOperatorsPage } from '../pages/operators/RealOperatorsPage';
 import { MapIntelPage, MapDetailPage } from '../pages/maps/MapsPage';
 import { InsightsPage } from '../pages/insights/InsightsPage';
 import { ComparePage } from '../pages/compare/ComparePage';
@@ -26,6 +27,7 @@ export function RouteView({app}: any){
       case 'matches': return <RealMatchCenter app={app} id={parts[1]} number={parts[2]==='round'?Number(parts[3]):undefined}/>;
       case 'players': return <RealPlayersPage app={app} id={parts[1]}/>;
       case 'maps': return <RealMapsPage app={app} id={parts[1]}/>;
+      case 'operators': return <RealOperatorsPage app={app}/>;
       case 'settings': return <SettingsPage app={app}/>;
       default: return <RealUnavailablePage feature={navTitle(base)}/>;
     }
