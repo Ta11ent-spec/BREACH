@@ -1,4 +1,5 @@
-import {RealPlayersPage,RealPlayerPage,RealUnavailablePage} from '../pages/real/RealPages';
+import {RealUnavailablePage} from '../pages/real/RealPages';
+import {RealPlayersPage} from '../pages/players/RealPlayersPage';
 import { RealMatchCenter } from '../pages/matches/RealMatchCenter';
 import { OverviewPage } from '../pages/overview/OverviewPage';
 import { RealDashboardPage } from '../pages/overview/RealDashboardPage';
@@ -22,7 +23,7 @@ export function RouteView({app}: any){
     switch(base) {
       case 'overview': return <RealDashboardPage app={app}/>;
       case 'matches': return <RealMatchCenter app={app} id={parts[1]} number={parts[2]==='round'?Number(parts[3]):undefined}/>;
-      case 'players': return parts[1] ? <RealPlayerPage id={parts[1]}/> : <RealPlayersPage/>;
+      case 'players': return <RealPlayersPage app={app} id={parts[1]}/>;
       case 'settings': return <SettingsPage app={app}/>;
       default: return <RealUnavailablePage feature={navTitle(base)}/>;
     }
