@@ -63,12 +63,14 @@ export function insightsCsv(report: InsightReport): string {
   const rows: unknown[][] = [['Section', 'ID', 'Label', 'Metric', 'Value', 'Sample size']];
   const add = (section: string, id: string, label: string, metric: string, value: unknown, samples: number) => rows.push([section, id, label, metric, value, samples]);
   add('Scope', report.perspective.members.join('|'), report.perspective.mode, 'Date range', report.period, report.overview.matches.length);
+  add('Source', '', 'Manual / unverified', 'Matches', report.overview.matches.filter(m=>m.source==='manual').length, report.overview.matches.length);
+  add('Source', '', 'Replay', 'Matches', report.overview.matches.filter(m=>m.source!=='manual').length, report.overview.matches.length);
   add('Summary', '', 'Selected players', 'Kills', report.totals.kills, report.coverage.samples);
   add('Summary', '', 'Selected players', 'Deaths', report.totals.deaths, report.coverage.samples);
   add('Summary', '', 'Selected players', 'K/D', report.totals.kd, report.coverage.samples);
   add('Summary', '', 'Selected side', 'Match win rate %', asPercent(report.overview.wins, report.overview.decided.length), report.overview.decided.length);
   add('Coverage', '', 'Kill/death/assist/headshot completeness', 'Complete rows %', report.coverage.completeCoverage, report.coverage.samples);
-  for (const m of report.maps) add('Maps', m.key, m.label, 'Verified match win rate %', m.matchWinRate, m.matchWins + m.matchLosses);
+  for (const m of report.maps) add('Maps', m.key, m.label, 'Recorded match win rate %', m.matchWinRate, m.matchWins + m.matchLosses);
   for (const p of report.participants) {
     add('Players', p.playerId, p.username, 'Kills', p.kills, p.rounds);
     add('Players', p.playerId, p.username, 'K/D', p.kd, p.rounds);

@@ -24,6 +24,7 @@ function PlayerTable({ players, open }: { players: PlayerProfile[]; open: (id: s
 }
 
 export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
+  try{id=id?decodeURIComponent(id):undefined;}catch{/* invalid IDs use the not-found view */}
   const [includeManual,setIncludeManual]=useManualInclusion();
   const sourceToggle=<ManualDataToggle included={includeManual} onChange={setIncludeManual}/>;
   const [data, setData] = useState<OverviewV3 | null>(null);
@@ -57,7 +58,6 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
   const profile = profiles.find(p => p.playerId === id);
   const followMatch = (matchId?: string) => {
     if (!profile) return;
-    if(matchId?.startsWith('manual:')){sessionStorage.setItem('breach-open-manual',matchId.slice(7));app.go('/entry');return;}
     scope.onMode('player'); scope.onSelectedPlayer(profile.playerId);
     app.go(matchId ? '/matches/' + encodeURIComponent(matchId) : '/matches');
   };
@@ -73,8 +73,8 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
     return <div className="page real-players">{sourceToggle}<div className="player-back-row"><button className="back-link" onClick={() => app.go('/players')}><Icon name="arrowleft" size={15}/> ALL PLAYERS</button>{periodControl}</div>
       <div className="profile-hero"><div className="profile-id"><Monogram player={avatar(profile.username)} size="xl"/><div><div className="eyebrow">IMPORTED REPLAY / PLAYER DOSSIER</div><h1>{profile.username}<span className="period">.</span></h1><p className="player-full-id">{profile.playerId}</p><Pill tone="success" dot>RECORDED PLAYER</Pill></div></div>
         <div className="profile-mini"><div><span>MOST PLAYED OPERATOR</span><strong>{profile.operators[0]?.name ?? '—'}</strong></div><div><span>MATCHES</span><strong>{profile.matchCount}</strong></div><div><span>ROUNDS</span><strong>{profile.rounds}</strong></div></div></div>
-      <div className="player-profile-actions"><span>{period === 'ALL' ? 'All imported matches' : `Last ${period === '7D' ? '7' : '30'} days`} · Individual statistics · {profile.unverified} unverified results</span><Btn icon="arrow" onClick={() => followMatch()}>VIEW PLAYER MATCHES</Btn></div>
-      <div className="stats-grid"><StatCard label="K/D RATIO" value={value(profile.kd)} icon="crosshair" delta={`${value(profile.kills)} KILLS`} sub={`${value(profile.deaths)} deaths`}/><StatCard label="MATCH WIN RATE" value={percent(profile.winRate)} icon="target" delta={`${profile.wins} W / ${profile.losses} L`} sub="verified match results"/><StatCard label="HEADSHOT RATE" value={percent(profile.hs)} icon="bolt" delta={`${value(profile.headshots)} HEADSHOTS`} sub="of recorded eliminations"/><StatCard label="ROUND SURVIVAL" value={percent(profile.survival)} icon="shield" delta={`${profile.rounds} ROUNDS`} sub="with recorded participation"/></div>
+      <div className="player-profile-actions"><span>{period === 'ALL' ? 'All imported matches' : `Last ${period === '7D' ? '7' : '30'} days`} · Individual statistics · {profile.unverified} unknown results</span><Btn icon="arrow" onClick={() => followMatch()}>VIEW PLAYER MATCHES</Btn></div>
+      <div className="stats-grid"><StatCard label="K/D RATIO" value={value(profile.kd)} icon="crosshair" delta={`${value(profile.kills)} KILLS`} sub={`${value(profile.deaths)} deaths`}/><StatCard label="MATCH WIN RATE" value={percent(profile.winRate)} icon="target" delta={`${profile.wins} W / ${profile.losses} L`} sub="completed match results"/><StatCard label="HEADSHOT RATE" value={percent(profile.hs)} icon="bolt" delta={`${value(profile.headshots)} HEADSHOTS`} sub="of recorded eliminations"/><StatCard label="ROUND SURVIVAL" value={percent(profile.survival)} icon="shield" delta={`${profile.rounds} ROUNDS`} sub="with recorded participation"/></div>
       <div className="tabbar" role="tablist" aria-label="Player profile sections">{(['overview', 'history', 'operators'] as const).map(t => <button role="tab" aria-selected={tab === t} key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>{t === 'overview' ? 'PERFORMANCE' : t === 'history' ? 'MATCH HISTORY' : 'OPERATOR POOL'}</button>)}</div>
       {profile.rounds === 0 && <section className="panel"><Empty title="No rounds in this date range" sub="Choose ALL to see this player's imported history."/></section>}
       {tab === 'overview' && profile.rounds > 0 && <div className="two-grid"><section className="panel"><SectionTitle eyebrow="01 / PERSONAL TELEMETRY" title="Elimination trend" right={<Pill tone="quiet">LATEST {latest.length} MATCHES</Pill>}/><div className="chart-header"><div><strong>{value(profile.kills)}</strong><span>KILLS IN SELECTED RANGE</span></div></div>

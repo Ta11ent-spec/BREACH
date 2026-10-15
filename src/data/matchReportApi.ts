@@ -2,6 +2,7 @@ import {fetchApi} from './realApi';
 
 /** Raw round-level replay data. A null field means it was not recorded. */
 export type ReportMatch = {
+  source?: 'replay'|'manual';
   matchId: string; mapId: number | string | null; mapName: string | null;
   gameVersion: string | null; codeVersion: string | null;
   matchType: string | null; gameMode: string | null;

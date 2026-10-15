@@ -1,3 +1,7 @@
+import {ManualDataToggle,useManualInclusion} from '../../components/ManualDataToggle';
+import {useRecordedOverview} from '../../data/useRecordedOverview';
+import {loadReportResource} from '../../data/analyticsReportApi';
+import {sourceLabel} from '../../data/analyticsSources';
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Btn, Empty, Icon, Monogram, OperatorIcon, Pill, SectionTitle } from '../../components';
@@ -32,7 +36,7 @@ function useResource<T>(path: string | null) {
   useEffect(() => {
     const controller = new AbortController();
     setData(null); setError(null); setLoading(Boolean(path));
-    if (path) fetchApi<T>(path, controller.signal).then(next => {
+    if (path) loadReportResource<T>(path, controller.signal).then(next => {
       if (!controller.signal.aborted) { setData(next); setLoading(false); }
     }).catch(e => {
       if (!controller.signal.aborted) {
@@ -75,7 +79,7 @@ function Scoreboard({ rows, title, onPlayer, round = false }: { rows: PlayerStat
 }
 
 function EventFeed({ events, report, view }: { events: ReportEvent[]; report: MatchReport; view: ReportView }) {
-  if (!events.length) return <Empty title="No recorded events" sub="This replay contains no event records for this selection." />;
+  if (!events.length) return <Empty title="No recorded events" sub="No event telemetry was recorded for this selection. Manual entries do not contain a kill-by-kill timeline." />;
   return <div className="timeline-scroll tall recorded-events">{events.map(event => {
     const actor = report.appearances.find(player => player.roundId === event.roundId && player.playerId === event.actorPlayerId);
     const relation = actor && view.resolved ? actor.teamIndex === view.resolved.slot ? 'friendly' : actor.teamIndex === 1 - view.resolved.slot ? 'hostile' : 'neutral' : 'neutral';
@@ -90,8 +94,12 @@ function EventFeed({ events, report, view }: { events: ReportEvent[]; report: Ma
 }
 
 export function RealMatchCenter({ app, id, number }: { app: any; id?: string; number?: number }) {
-  const overview = useResource<OverviewV3>('/overview/v3');
-  const report = useResource<MatchReport>(id ? `/matches/${encodeURIComponent(id)}/report` : null);
+  try{id=id?decodeURIComponent(id):undefined;}catch{/* retain invalid ID for not-found feedback */}
+  const [includeManual,setIncludeManual]=useManualInclusion();
+  const resource=useRecordedOverview(includeManual);
+  const overview={...resource,loading:!resource.data&&!resource.error};
+  const excluded=id?(id.startsWith('manual:')?includeManual==='replay':includeManual==='manual'):false;
+  const report = useResource<MatchReport>(id && !excluded ? `/matches/${encodeURIComponent(id)}/report` : null);
   const scope = useTrackingScope(overview.data?.players ?? emptyPlayers, overview.data?.matches);
   const period: Period = ['7D', '30D', 'ALL'].includes(app.state.period) ? app.state.period : '30D';
   const perspective = useMemo(() => ({ mode: scope.mode, members: scope.chosen }), [scope.mode, JSON.stringify(scope.chosen)]);
@@ -121,7 +129,7 @@ export function RealMatchCenter({ app, id, number }: { app: any; id?: string; nu
   const exportReport = () => { if (report.data) { saveFile(`breach-match-${id}.json`, JSON.stringify({ perspective, identity: scope.identity, report: report.data }, null, 2), 'application/json'); app.toast('Recorded match report exported'); } };
   const onPlayer = (playerId: string) => app.go(`/players/${encodeURIComponent(playerId)}`);
   const scopeBar = <TrackingScope scope={scope} players={overview.data?.players ?? emptyPlayers} />;
-  return <div className="page real-match-center">
+  return <div className="page real-match-center"><ManualDataToggle included={includeManual} onChange={setIncludeManual}/>{excluded&&<Notice>This match is excluded by the selected source. Choose Combined to open it.</Notice>}{id?.startsWith('manual:')&&!excluded&&<Notice><strong>MANUAL / UNVERIFIED</strong> · Self-reported performance for one player. Opponent scores come from entered round results; event telemetry and unentered measurements are unavailable.</Notice>}
     {!id ? <>
       {app.headline(`MATCH ARCHIVE / ${analysis?.matches.length ?? 0} ENGAGEMENTS`, 'Match center.', 'Every engagement, preserved down to the last recorded round.', <Btn icon="download" disabled={!filtered.length} onClick={exportArchive}>EXPORT MATCHES</Btn>)}
       <div className="match-period"><span className="eyebrow">TRACKED MATCH HISTORY</span><div className="period-switch" aria-label="Match time range">{(['7D', '30D', 'ALL'] as Period[]).map(value => <button key={value} className={period === value ? 'active' : ''} onClick={() => app.setState({ period: value })}>{value}</button>)}</div></div>
@@ -131,9 +139,9 @@ export function RealMatchCenter({ app, id, number }: { app: any; id?: string; nu
     {overview.data && scopeBar}
     {overview.data && !hasSelection && <Notice>Choose a player or a squad with members to see their match history.</Notice>}
     {overview.data && !id && hasSelection && <>
-      <div className="match-summary"><div><small>MATCH RECORD</small><strong>{summary?.wins ?? 0}<i> — </i>{summary?.losses ?? 0}</strong><span>VERIFIED WINS / LOSSES</span></div>
+      <div className="match-summary"><div><small>MATCH RECORD</small><strong>{summary?.wins ?? 0}<i> — </i>{summary?.losses ?? 0}</strong><span>RECORDED WINS / LOSSES</span></div>
         <div><small>ROUNDS TRACKED</small><strong>{summary?.rounds ?? 0}</strong><span>ACROSS {filtered.length} MATCHES</span></div>
-        <div><small>MATCH WIN RATE</small><strong className="accent">{rate(summary?.wins ?? 0, summary?.decided.length ?? 0)}</strong><span>{summary?.decided.length ?? 0} VERIFIED RESULTS</span></div>
+        <div><small>MATCH WIN RATE</small><strong className="accent">{rate(summary?.wins ?? 0, summary?.decided.length ?? 0)}</strong><span>{summary?.decided.length ?? 0} RECORDED RESULTS</span></div>
         <div><small>{scope.mode === 'team' ? 'SQUAD' : 'PLAYER'} K/D</small><strong>{summary?.kd ?? '—'}</strong><span>{scope.identity.toUpperCase()}</span></div></div>
       <section className="panel match-list-panel"><div className="list-head"><div><div className="eyebrow">01 / BATTLE RECORDS</div><h3>Engagement history <span className="title-count">{filtered.length}</span></h3></div>
         <div className="list-filters"><div className="filter-search"><Icon name="search" size={15} /><input aria-label="Filter matches" placeholder="Map, mode, match ID" value={query} onChange={event => setQuery(event.target.value)} /></div>
@@ -159,7 +167,7 @@ export function RealMatchCenter({ app, id, number }: { app: any; id?: string; nu
               <div className="match-big-score"><div><small>{scope.identity}</small><strong className="accent">{view.resolved ? view.resolved.wins : '—'}</strong></div><span>:</span><div><small>OPPONENT</small><strong>{view.resolved ? view.resolved.losses : '—'}</strong></div></div></div>
             <div className="match-detail-bottom"><div><span>ATTACK WIN RATE</span><strong>{rate(view.metrics.attackWins, view.metrics.attackRounds)}</strong></div><div><span>DEFENSE WIN RATE</span><strong>{rate(view.metrics.defenseWins, view.metrics.defenseRounds)}</strong></div>
               <div><span>TRACKED KILLS</span><strong>{stat(view.metrics.kills)}</strong></div><div><span>TRACKED K/D</span><strong>{view.metrics.kd ?? '—'}</strong></div></div></div>
-          <div className="recorded-report-actions"><span>{report.data.match.isCompleteMatch === true ? 'COMPLETE IMPORT' : 'PARTIAL / UNVERIFIED IMPORT'} · GAME {report.data.match.gameVersion ?? 'VERSION UNKNOWN'}</span><Btn icon="download" onClick={exportReport}>EXPORT REPORT</Btn></div>
+          <div className="recorded-report-actions"><span>{sourceLabel(report.data.match)} · {report.data.match.isCompleteMatch === true ? 'COMPLETE RECORD' : 'PARTIAL RECORD'} · GAME {report.data.match.gameVersion ?? 'VERSION UNKNOWN'}</span><Btn icon="download" onClick={exportReport}>EXPORT REPORT</Btn></div>
           <div className="tabbar" role="group" aria-label="Match report section">{['scoreboard', 'rounds', 'timeline'].map(value => <button key={value} className={tab === value ? 'active' : ''} aria-pressed={tab === value} onClick={() => setTab(value)}>{value === 'scoreboard' ? 'PLAYER SCOREBOARD' : value === 'rounds' ? 'ROUND BREAKDOWN' : 'EVENT TIMELINE'}</button>)}</div>
           {tab === 'scoreboard' && <>
             <Scoreboard rows={view.selectedStats} title={scope.mode === 'team' ? `${scope.identity} scoreboard` : 'Tracked player scoreboard'} onPlayer={onPlayer} />
@@ -189,7 +197,7 @@ function RecordedMatchRow({ match, data, identity, onOpen }: { match: ResolvedMa
   const rounds = data.rounds.filter(round => round.matchId === match.matchId && round.teamSlot === match.slot).sort((a, b) => a.roundNumber - b.roundNumber);
   return <button className="match-row" onClick={onOpen} aria-label={`Open ${mapLabel(match.mapName, match.mapId)}, ${shortDate(match.playedAt)}, ${match.outcome}, ${match.wins} to ${match.losses}`}>
     <span className={`match-status ${match.outcome.toLowerCase()}`}><Icon name={match.outcome === 'WIN' ? 'check' : match.outcome === 'LOSS' ? 'close' : 'info'} size={17} /></span>
-    <span className="match-main"><strong>{mapLabel(match.mapName, match.mapId)}</strong><span>{match.matchType ?? 'Mode unknown'} <i>•</i> {match.gameMode ?? 'Unknown'} <i>•</i> #{match.matchId.slice(0, 8)}</span><span>{identity} · {match.present} TRACKED {match.present === 1 ? 'PLAYER' : 'PLAYERS'}{match.outcome === 'UNKNOWN' ? ' · UNVERIFIED RESULT' : ''}</span></span>
+    <span className="match-main"><strong>{mapLabel(match.mapName, match.mapId)}</strong><span>{match.matchType ?? 'Mode unknown'} <i>•</i> {match.gameMode ?? 'Unknown'} <i>•</i> #{match.matchId.slice(0, 8)}</span><span>{sourceLabel(match)} · {identity} · {match.present} TRACKED {match.present === 1 ? 'PLAYER' : 'PLAYERS'}{match.outcome === 'UNKNOWN' ? ' · UNVERIFIED RESULT' : ''}</span></span>
     <span className="match-rounds-mini"><span>{rounds.map(round => <i key={round.roundId} className={round.won === true ? 'win' : round.won === false ? 'loss' : 'unknown'} title={`Round ${round.roundNumber}: ${round.won === true ? 'won' : round.won === false ? 'lost' : 'unknown'}`} />)}</span></span>
     <span className="match-score"><span className={match.outcome === 'WIN' ? 'accent' : ''}>{match.wins}</span><span>:</span><span>{match.losses}</span></span><span className="match-date">{shortDate(match.playedAt)}</span><Icon name="chevron" size={14} />
   </button>;

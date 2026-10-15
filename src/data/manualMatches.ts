@@ -24,7 +24,7 @@ export function manualErrors(p:ManualMatch):string[]{
  if(!ended)errors.push('Record all rounds through a match-ending score.');
  return errors;
 }
-/** Manual data is private and opt-in. Never promote a self-report to a verified replay result. */
+/** Completion is independent of provenance: submitted manual results remain self-reported. */
 export function withManualMatches(base:OverviewV3,records:ManualRecord[]):OverviewV3{
  const data:OverviewV3={...base,matches:[...base.matches],rounds:[...base.rounds],appearances:[...base.appearances],players:[...base.players]};
  for(const {id,status,payload:p}of records){
@@ -32,7 +32,7 @@ export function withManualMatches(base:OverviewV3,records:ManualRecord[]):Overvi
   const matchId='manual:'+id;
   if(data.matches.some(m=>m.matchId===matchId))continue;
   if(!data.players.some(x=>x.playerId===p.playerId))data.players.push({playerId:p.playerId,profileId:null,username:p.username});
-  data.matches.push({matchId,playedAt:p.playedAt,mapName:p.map,mapId:null,matchType:p.mode,gameMode:'Bomb',recordingProfileId:null,isCompleteMatch:false,roundCount:p.rounds.length});
+  data.matches.push({matchId,playedAt:p.playedAt,mapName:p.map,mapId:null,matchType:p.mode,gameMode:'Bomb',recordingProfileId:null,isCompleteMatch:true,source:'manual',roundCount:p.rounds.length});
   p.rounds.forEach((round,i)=>{
    const roundId=matchId+':'+(i+1);
    data.rounds.push({roundId,matchId,roundNumber:i+1,teamSlot:0,side:round.side,won:round.won,site:round.site||null});

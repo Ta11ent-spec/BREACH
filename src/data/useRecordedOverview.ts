@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import type {AnalyticsSource} from './analyticsSources';
 import {loadOverview} from './manualOverview';
 import type { OverviewV3 } from './overviewAnalytics';
 
 /** Shared read-only source and retry handling for comparison/reporting screens. */
-export function useRecordedOverview(includeManual=false) {
+export function useRecordedOverview(includeManual:AnalyticsSource|boolean=false) {
   const [data, setData] = useState<OverviewV3 | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);

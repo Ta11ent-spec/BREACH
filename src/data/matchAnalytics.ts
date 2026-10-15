@@ -156,8 +156,8 @@ export function matchCsv(matches:ResolvedMatch[]):string{
     const safe=/^[=+\-@\t\r]/.test(text)?"'"+text:text;
     return '"'+safe.replace(/"/g,'""')+'"';
   };
-  const header=['Match ID','Played at','Map','Map ID','Match type','Game mode','Result','Recorded round wins','Recorded round losses','Recorded rounds','Selected players present','Resolved replay team index'];
+  const header=['Match ID','Played at','Map','Map ID','Match type','Game mode','Result','Recorded round wins','Recorded round losses','Recorded rounds','Selected players present','Resolved team index','Data source'];
   const rows=matches.map(match=>[match.matchId,match.playedAt,match.mapName,match.mapId,match.matchType,match.gameMode,
-    match.outcome,match.wins,match.losses,match.roundCount,match.present,match.slot]);
+    match.outcome,match.wins,match.losses,match.roundCount,match.present,match.slot,match.source==='manual'?'manual / unverified':'replay']);
   return [header,...rows].map(row=>row.map(cell).join(',')).join('\r\n');
 }

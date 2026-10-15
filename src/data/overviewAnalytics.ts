@@ -1,6 +1,7 @@
 /** Deterministic, unit-testable V3 analytics. No replay slot-0 assumption. */
 import { displayMapLabel } from './mapCatalog';
 export type V3Match = {
+  source?: 'replay'|'manual';
   matchId: string; playedAt: string | null; mapName: string | null; mapId: number | string | null;
   matchType: string | null; gameMode: string | null;
   recordingProfileId: string | null; isCompleteMatch: boolean | null; roundCount: number;
