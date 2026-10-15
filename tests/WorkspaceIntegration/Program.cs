@@ -70,6 +70,35 @@ try{
  Assert(failed&&(await ad.ReadAsync("SELECT * FROM dbo.Matches")).Count==1,"mid-import storage failure rolls back every match write");
  await Sql("DROP TRIGGER dbo.TestUploadFailure");
  var unresolved=NewWorkspace("unused");rejected=false;try{unresolved.Scope("SELECT * FROM dbo.Players");}catch(InvalidOperationException){rejected=true;}Assert(rejected,"unresolved workspace fails closed");
+ // Manual entry remains account-owned and never changes shared replay facts.
+ var manualId=Guid.NewGuid();
+ var manualPlayer="manual-player:"+Guid.NewGuid();
+ var blank=new ManualRound("Attack","","",null,null,null,null,null,"");
+ var manual=new ManualMatch(manualPlayer,"Console player","Xbox","Clubhouse","Ranked Bomb",4,DateTimeOffset.UtcNow,"",[blank]);
+ var draft=new ManualWrite(0,"draft",manual);
+ Assert(await ManualEndpoints.Save(manualId,draft,a,default) is IStatusCodeHttpResult{StatusCode:200},"incomplete manual draft saves");
+ Assert((await bd.ReadAsync("SELECT * FROM dbo.ManualMatches")).Count==0,"manual drafts are private across accounts");
+ Assert(await ManualEndpoints.Save(manualId,draft,a,default) is IStatusCodeHttpResult{StatusCode:200},"lost save acknowledgement can be retried idempotently");
+ var stale=draft with{Payload=manual with{Map="Bank"}};
+ Assert(await ManualEndpoints.Save(manualId,stale,a,default) is IStatusCodeHttpResult{StatusCode:409},"stale manual edits cannot overwrite newer revisions");
+ Assert(ManualEndpoints.Validate(draft with{Status="submitted"}) is not null,"incomplete match cannot submit");
+ var completed=manual with{Rounds=Enumerable.Range(0,4).Select(_=>blank with{Won=true,Kills=1,Died=false}).ToArray()};
+ Assert(ManualEndpoints.Validate(new(1,"submitted",completed)) is null,"complete ranked sweep validates with optional stats unknown");
+ Assert(ManualEndpoints.Validate(new(1,"submitted",completed with{Rounds=[..completed.Rounds,blank with{Won=false}]})) is not null,"rounds after a terminal score rejected");
+ Assert(ManualEndpoints.Validate(new(1,"draft",manual with{Rounds=[blank with{Kills=1,Headshots=2}]})) is not null,"impossible headshots rejected even in drafts");
+ var ot=manual with{Rounds=new[]{true,false,true,false,true,false,true,false,true}.Select(win=>blank with{Won=win}).ToArray()};
+ Assert(ManualEndpoints.Validate(new(1,"submitted",ot)) is null,"ranked 5-4 overtime validates");
+ var forged=manual with{PlayerId="missing-shared-player"};
+ Assert(await ManualEndpoints.Save(Guid.NewGuid(),new(0,"draft",forged),a,default) is IStatusCodeHttpResult{StatusCode:400},"unknown shared player association rejected");
+ Assert(await ManualEndpoints.Save(manualId,new(1,"submitted",completed),a,default) is IStatusCodeHttpResult{StatusCode:200},"complete manual match submitted");
+ Assert(await ManualEndpoints.Save(manualId,new(2,"draft",completed),a,default) is IStatusCodeHttpResult{StatusCode:409},"submitted manual records are immutable");
+ Assert((await ad.ReadAsync("SELECT * FROM dbo.Matches")).Count==1,"manual submission does not pollute shared replay catalogue");
+ var savedManual=JsonSerializer.Deserialize<ManualMatch>((string)(await ad.ReadAsync("SELECT Payload FROM dbo.ManualMatches"))[0]["Payload"]!,ManualEndpoints.Json)!;
+ Assert(savedManual.Rounds[0].Assists is null,"unknown manual statistics remain null through SQL persistence");
+ Assert(await ManualEndpoints.Save(manualId,new(2,"draft",manual),b,default) is IStatusCodeHttpResult{StatusCode:404},"another account cannot update an owner's draft ID");
+ var simultaneous=Guid.NewGuid();
+ var results=await Task.WhenAll(ManualEndpoints.Save(simultaneous,new(0,"draft",manual),a,default),ManualEndpoints.Save(simultaneous,new(0,"draft",manual with{Map="Bank"}),a,default));
+ Assert(results.Count(x=>x is IStatusCodeHttpResult{StatusCode:200})==1&&results.Count(x=>x is IStatusCodeHttpResult{StatusCode:409})==1,"concurrent draft creation retains one version without silent overwrite");
  Console.WriteLine($"{checks} integration checks passed against isolated SQL database.");
 }finally{SqlConnection.ClearAllPools();await Sql($"ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{database}]",true);}
 

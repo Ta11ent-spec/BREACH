@@ -1,5 +1,7 @@
 # BREACH development roadmap
 
+October 15 update: round-by-round manual match entry, account-owned autosaved drafts, final review/submission, and opt-in private manual statistics in Player Directory/Compare are implemented. See [manual match entry](MANUAL_MATCHES.md) for scope and limitations.
+
 Updated October 14, 2026. Account workspaces, Auth0 sign-in and collector 0.3.0 authenticated uploads are now implemented and tested locally. See [workspace and sync](WORKSPACE_SYNC.md) for the current data boundaries and validation.
 
  BREACH has a working local replay analytics MVP. The full product includes both the website and a downloadable Windows PC collector. The remaining work includes shared team invitations, verified game-account linking, hosted deployment, second-PC testing and signed distribution. Personal workspaces and the authenticated collector-to-website path are implemented.
@@ -36,7 +38,7 @@ flowchart TD
 | Compare Players | Built on latest feature branch | Two-player comparison, shared-match filtering, operator usage and JSON export |
 | Insights & Reports | Built on latest feature branch | Selected-scope summaries, measured trends, sample checks and JSON/CSV exports |
 | Settings | Built for local use | Real database/API diagnostics, persisted density and tracking scope, match and review exports |
-| Manual Entry / Review | Built for local use | SQL-backed match/round/player annotations, separate correction proposals and withdrawal history |
+| Manual Entry / Review | Built for local use | Round-by-round personal match drafts/submissions plus existing replay review notes; private unverified stats can be explicitly included in player comparisons |
 | Live Operations / Collector Setup | Built for local use | Committed import batches, warnings, contract downloads and local JSON preflight; authenticated collector connections in My Workspace; no during-match telemetry |
 | Collector data contract | Implemented in local preview | Full schema and semantic validation; real six-round replay passed both collector and website preflight; future upload protocol documented |
 | Accounts and hosted access | Auth0 and personal workspaces built | Shared gameplay catalogue; private account controls and upload receipts. Team invitations and production hosting remain |

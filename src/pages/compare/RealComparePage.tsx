@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import {ManualDataToggle,useManualInclusion} from '../../components/ManualDataToggle';
 import { Btn, Empty, Icon, Monogram, OperatorIcon, Pill, Progress, SectionTitle } from '../../components';
 import { useRecordedOverview } from '../../data/useRecordedOverview';
 import { analyzePlayers } from '../../data/playerAnalytics';
@@ -11,7 +12,8 @@ const percent = (n: number | null) => n == null ? '—' : `${n}%`;
 const avatar = (name: string, color: string) => ({ initials: name.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase() || '?', color });
 const shades = ['#c9fa62', '#85a6e6'];
 export function RealComparePage({ app }: { app: any }) {
-  const resource = useRecordedOverview();
+  const [includeManual,setIncludeManual]=useManualInclusion();
+  const resource = useRecordedOverview(includeManual);
   const [commonOnly, setCommonOnly] = useState(false);
   const period: '7D' | '30D' | 'ALL' = app.state.period ?? 'ALL';
   const profiles = useMemo(() => resource.data ? analyzePlayers(resource.data, period).sort((a, b) => b.rounds - a.rounds || a.username.localeCompare(b.username)) : [], [resource.data, period]);
@@ -19,9 +21,9 @@ export function RealComparePage({ app }: { app: any }) {
   const aId = profiles.some(p => p.playerId === app.state.compareA) ? app.state.compareA : profiles.find(p => p.playerId === storedPlayer)?.playerId ?? profiles[0]?.playerId ?? '';
   const bId = profiles.some(p => p.playerId === app.state.compareB) ? app.state.compareB : profiles.find(p => p.playerId !== aId)?.playerId ?? '';
   const comparison = useMemo(() => resource.data ? comparePlayers(resource.data, aId, bId, period, commonOnly) : null, [resource.data, aId, bId, period, commonOnly]);
-  const heading = app.headline('PLAYER SCIENCE / RECORDED HEAD-TO-HEAD', 'Player comparison.', 'Compare two imported players with visible samples and the same reporting range.');
+  const heading = <>{app.headline('PLAYER SCIENCE / RECORDED HEAD-TO-HEAD', 'Player comparison.', 'Compare player histories with visible samples and the same reporting range.')}<ManualDataToggle included={includeManual} onChange={setIncludeManual}/></>;
   if (!resource.data || resource.error) return <div className="page real-compare">{heading}<section className="panel real-notice" role="status"><h3>{resource.error ? 'Comparison data unavailable' : 'Loading player comparison'}</h3><p>{resource.error ?? 'Reading your recorded player histories…'}</p>{resource.error && <Btn onClick={resource.reload}>RETRY</Btn>}</section></div>;
-  if (profiles.length < 2) return <div className="page real-compare">{heading}<section className="panel"><Empty title="Two imported players are needed" sub="Import replay records containing at least two players to compare their performance."/></section></div>;
+  if (profiles.length < 2) return <div className="page real-compare">{heading}<section className="panel"><Empty title="Two players are needed" sub="Choose a wider date range or include your submitted manual matches to compare more players."/></section></div>;
   const a = comparison?.a ?? profiles.find(p => p.playerId === aId)!;
   const b = comparison?.b ?? profiles.find(p => p.playerId === bId)!;
   const metrics = [
@@ -38,7 +40,7 @@ export function RealComparePage({ app }: { app: any }) {
     <div className="compare-selects">{[a, b].map((p, index) => <div className={`compare-player ${index ? 'right' : ''}`} key={index}><Monogram player={avatar(p.username, shades[index])} size="lg"/><div><small>PLAYER {index ? '02' : '01'}</small><select aria-label={`Comparison player ${index ? 'two' : 'one'}`} value={index ? bId : aId} onChange={e => app.setState(index ? { compareB: e.target.value } : { compareA: e.target.value })}>{profiles.map(option => <option key={option.playerId} value={option.playerId} disabled={option.playerId === (index ? aId : bId)}>{option.username} · {option.playerId.slice(0, 8)}</option>)}</select><span>{p.matchCount} MATCHES · {p.rounds} ROUNDS</span></div></div>)}<button className="versus compare-swap" aria-label="Swap comparison players" onClick={() => app.setState({ compareA: bId, compareB: aId })}>VS<small>SWAP</small></button></div>
     {!comparison ? <section className="panel"><Empty title="Choose two different players" sub="A player cannot be compared against themselves."/></section> : commonOnly && !comparison.sharedMatches ? <section className="panel"><Empty title="No shared matches in this range" sub="Choose ALL MATCHES IN RANGE or widen the date range."/></section> : <>
       <div className="comparison-sample-note"><Icon name="info" size={16}/><span>{comparison.sharedMatches} shared matches in this date range. {commonOnly ? 'Both profiles use those matches; their played rounds can still differ.' : 'Each profile uses its own match history in the same date range.'} Same matches may contain teammates or opponents.</span></div>
-      <section className="panel"><SectionTitle eyebrow="01 / METRIC-BY-METRIC" title="Comparative performance" right={<Btn small icon="download" onClick={() => saveFile('breach-player-comparison.json', JSON.stringify({ generatedAt: new Date().toISOString(), ...comparison }, null, 2), 'application/json')}>EXPORT COMPARISON</Btn>}/><div className="compare-metrics">{metrics.map(metric => {
+      <section className="panel"><SectionTitle eyebrow="01 / METRIC-BY-METRIC" title="Comparative performance" right={<Btn small icon="download" onClick={() => saveFile('breach-player-comparison.json', JSON.stringify({ generatedAt: new Date().toISOString(), includesPrivateManualMatches:includeManual, ...comparison }, null, 2), 'application/json')}>EXPORT COMPARISON</Btn>}/><div className="compare-metrics">{metrics.map(metric => {
         const winner = metric.ranked ? compareRate(metric.a, metric.b) : 'equal';
         const max = Math.max(metric.a ?? 0, metric.b ?? 0, 1);
         const width = (n: number | null) => n == null ? 0 : n === Infinity ? 100 : max === Infinity ? 0 : 100 * n / max;

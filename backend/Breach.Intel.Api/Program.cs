@@ -13,6 +13,7 @@ app.MapUploads();
 app.MapSquads();
 app.MapMatchReports();
 app.MapWorkflows();
+app.MapManualMatches();
 
 app.MapGet("/api/health", async (SqlStore db) =>
 {

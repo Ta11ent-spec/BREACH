@@ -14,7 +14,7 @@ public sealed class Workspace(IConfiguration config, IWebHostEnvironment env)
         if (Schema.Length == 0) throw new InvalidOperationException("Workspace has not been resolved.");
         // Gameplay tables are the shared authenticated player catalogue. Account material
         // stays in the caller's schema. Keep this allowlist explicit and fail closed above.
-        foreach(var table in new[]{"Squads","SquadMembers","ReviewNotes","ImportBatches","ImportIssues","UploadReceipts","UploadSources","CollectorConnections","WorkspaceLibrary"})
+        foreach(var table in new[]{"Squads","SquadMembers","ReviewNotes","ImportBatches","ImportIssues","UploadReceipts","UploadSources","CollectorConnections","WorkspaceLibrary","ManualMatches"})
             sql=System.Text.RegularExpressions.Regex.Replace(sql,@"\bdbo\."+table+@"\b",$"[{Schema}].[{table}]");
         return sql;
     }
@@ -53,6 +53,7 @@ public sealed class Workspace(IConfiguration config, IWebHostEnvironment env)
             if(legacy)await Run("INSERT dbo.WorkspaceLibrary(MatchId) SELECT MatchId FROM dbo.Matches;");
             await Run("INSERT dbo.WorkspaceAccounts(AccountKey,SchemaName) VALUES(@id,@schema)",("@id",Id),("@schema",Schema));
         }
+        await Run(Scope(File.ReadAllText(Path.Combine(env.ContentRootPath,"Sql","006_manual_matches.sql"))));
         await tx.CommitAsync(http.RequestAborted);
     }
 }
