@@ -39,6 +39,7 @@ public static class ManualEndpoints
             try{return await next(context);}catch(SqlException){return Results.Problem("Manual match storage is unavailable. Your unsaved draft can be retried.",statusCode:503);}
         });
         group.MapGet("",async(SqlStore db)=>Results.Ok(await db.ReadAsync("SELECT Id AS id,Revision AS revision,Status AS status,Payload AS payload,UpdatedAt AS updatedAt FROM dbo.ManualMatches ORDER BY UpdatedAt DESC")));
+        group.MapDelete("/{id:guid}",async(Guid id,int revision,Workspace w,HttpContext h)=>await Delete(id,revision,w,h.RequestAborted));
         group.MapPut("/{id:guid}",async(Guid id,Workspace w,HttpContext h)=>{
             if(!h.Request.HasJsonContentType())return Results.StatusCode(415);
             using var body=new MemoryStream();var buffer=new byte[8192];int count;
@@ -52,6 +53,16 @@ public static class ManualEndpoints
                 return await Save(id,input,w,h.RequestAborted);
             }catch(JsonException){return Results.BadRequest(new{message="Invalid manual match JSON. Use the match form and numeric whole-number stats."});}
         });
+    }
+    public static async Task<IResult> Delete(Guid id,int revision,Workspace w,CancellationToken ct)
+    {
+        if(revision<1)return Results.BadRequest();
+        await using var db=w.Connection();await db.OpenAsync(ct);
+        await using var command=new SqlCommand(w.Scope("DELETE FROM dbo.ManualMatches WHERE Id=@id AND Revision=@revision AND Status='draft'"),db);
+        command.Parameters.AddWithValue("@id",id);command.Parameters.AddWithValue("@revision",revision);
+        if(await command.ExecuteNonQueryAsync(ct)==1)return Results.NoContent();
+        await using var exists=new SqlCommand(w.Scope("SELECT COUNT(*) FROM dbo.ManualMatches WHERE Id=@id"),db);exists.Parameters.AddWithValue("@id",id);
+        return (int)(await exists.ExecuteScalarAsync(ct))! ==0?Results.NotFound():Results.Conflict(new{message="The draft changed or was submitted. Reload saved matches before deleting."});
     }
     public static async Task<IResult> Save(Guid id,ManualWrite input,Workspace w,CancellationToken ct)
     {

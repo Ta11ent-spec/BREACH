@@ -99,6 +99,27 @@ try{
  var simultaneous=Guid.NewGuid();
  var results=await Task.WhenAll(ManualEndpoints.Save(simultaneous,new(0,"draft",manual),a,default),ManualEndpoints.Save(simultaneous,new(0,"draft",manual with{Map="Bank"}),a,default));
  Assert(results.Count(x=>x is IStatusCodeHttpResult{StatusCode:200})==1&&results.Count(x=>x is IStatusCodeHttpResult{StatusCode:409})==1,"concurrent draft creation retains one version without silent overwrite");
+ Assert(await ManualEndpoints.Delete(simultaneous,1,b,default) is IStatusCodeHttpResult{StatusCode:404},"another account cannot delete an owner's draft");
+ Assert(await ManualEndpoints.Delete(simultaneous,99,a,default) is IStatusCodeHttpResult{StatusCode:409},"stale revision cannot delete a newer draft");
+ Assert(await ManualEndpoints.Delete(manualId,2,a,default) is IStatusCodeHttpResult{StatusCode:409},"submitted records cannot be deleted as drafts");
+ Assert(await ManualEndpoints.Delete(simultaneous,1,a,default) is IStatusCodeHttpResult{StatusCode:204},"owner can delete a saved draft");
+ Assert(await ManualEndpoints.Delete(simultaneous,1,a,default) is IStatusCodeHttpResult{StatusCode:404},"repeated delete does not affect another record");
+ Assert(await ManualEndpoints.Save(simultaneous,new(1,"draft",manual),a,default) is IStatusCodeHttpResult{StatusCode:404},"stale autosave cannot restore a deleted draft");
+ var profile=new AccountProfile(0,"Test member","Console teammate","");
+ Assert(await ProfileEndpoints.Save(profile,a,default) is IStatusCodeHttpResult{StatusCode:200},"profile saved to owner workspace");
+ Assert((await bd.ReadAsync("SELECT * FROM dbo.AccountProfile")).Count==0,"new account cannot see owner's private profile");
+ Assert(await ProfileEndpoints.Save(profile with{DisplayName="Overwrite"},a,default) is IStatusCodeHttpResult{StatusCode:409},"stale profile edits rejected");
+ Assert(await ProfileEndpoints.Save(profile with{DisplayName="Second member"},b,default) is IStatusCodeHttpResult{StatusCode:200},"second account can customize its own profile");
+ Assert((string)(await ad.ReadAsync("SELECT DisplayName FROM dbo.AccountProfile"))[0]["DisplayName"]! == "Test member","second profile cannot overwrite first account");
+ Assert(ProfileEndpoints.Validate(profile with{Avatar="https://example.com/tracker.png"}) is not null,"remote tracking image URLs rejected");
+ Assert(ProfileEndpoints.Validate(profile with{Avatar="data:image/svg+xml;base64,PHN2Zz4="}) is not null,"SVG profile images rejected");
+ Assert(ProfileEndpoints.Validate(profile with{DisplayName=" "}) is not null,"empty display names rejected");
+ Assert(ProfileEndpoints.Validate(profile with{Bio=new string('x',501)}) is not null,"oversized biography rejected");
+ var png="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aZuoAAAAASUVORK5CYII=";
+ Assert(await ProfileEndpoints.Save(profile with{Revision=1,Avatar=png},a,default) is IStatusCodeHttpResult{StatusCode:200},"PNG avatar persists with profile");
+ Assert((string)(await ad.ReadAsync("SELECT Avatar FROM dbo.AccountProfile"))[0]["Avatar"]! == png,"avatar survives database roundtrip");
+ Assert(await ProfileEndpoints.Save(profile with{Revision=2,Avatar=""},a,default) is IStatusCodeHttpResult{StatusCode:200},"profile picture can be removed");
+ Assert((string)(await ad.ReadAsync("SELECT Avatar FROM dbo.AccountProfile"))[0]["Avatar"]! == "","picture removal persists");
  Console.WriteLine($"{checks} integration checks passed against isolated SQL database.");
 }finally{SqlConnection.ClearAllPools();await Sql($"ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{database}]",true);}
 

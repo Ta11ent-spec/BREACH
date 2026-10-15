@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Btn,Pill,SectionTitle,Icon} from '../../components';
 import {useRecordedOverview} from '../../data/useRecordedOverview';
-import {listManualMatches,saveManualMatch} from '../../data/manualApi';
+import {listManualMatches,saveManualMatch,deleteManualDraft} from '../../data/manualApi';
 import {manualErrors,manualTotals,newRound} from '../../data/manualMatches';
 import type {ManualMatch,ManualRecord,ManualRound} from '../../data/manualMatches';
 import {ReviewNotesPage} from './ReviewNotesPage';
@@ -35,6 +35,18 @@ export function RealManualPage({app}:{app:any}){
  }
  useEffect(()=>{if(!dirty||busy||error||!active)return;const t=setTimeout(()=>void persist(),1000);return()=>clearTimeout(t);},[active,dirty,busy,error]);
  function select(record:ManualRecord){setActive(record);current.current=record;setRoundIndex(0);setReview(record.status==='submitted');setDirty(false);setError('');setStatus(record.status==='submitted'?'Submitted · read-only':'All changes saved to your workspace');}
+ async function removeDraft(){
+  const record=current.current;
+  if(!record||record.status!=='draft'||lock.current||!window.confirm('Delete this draft and its entered rounds? This cannot be undone.'))return;
+  lock.current=true;setBusy(true);
+  try{
+   if(record.revision>0)await deleteManualDraft(record);
+   // Clear only this draft's recovery copy, never another unfinished match.
+   try{const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');if(cached?.id===record.id)localStorage.removeItem(cacheKey);}catch{}
+   setRecords(rows=>rows.filter(r=>r.id!==record.id));setRecovery(r=>r?.id===record.id?null:r);
+   current.current=null;setActive(null);setDirty(false);setReview(false);setError('');setStatus('Draft deleted');app.toast('Draft deleted');
+  }catch(e){setError(e instanceof Error?e.message:'Deletion failed');}finally{lock.current=false;setBusy(false);}
+ }
  function start(){const record:ManualRecord={id:crypto.randomUUID(),revision:0,status:'draft',payload:{playerId:'',username:'',platform:'PC',map:'',mode:'Ranked Bomb',target:4,playedAt:new Date().toISOString(),notes:'',rounds:[newRound()]}};select(record);cache(record);setDirty(true);setStatus('Saving new draft…');}
  const p=active?.payload,round=p?.rounds[roundIndex],totals=p?manualTotals(p):null,errors=p?manualErrors(p):[];
  const readonly=active?.status==='submitted',blocked=busy||dirty;
@@ -59,7 +71,7 @@ export function RealManualPage({app}:{app:any}){
  <div className="manual-stat-fields">{(['kills','assists','headshots'] as const).map(key=><label key={key}>{key.toUpperCase()}<input type="number" min={0} max={5} step={1} placeholder="Unknown" value={round[key]??''} onChange={e=>patchRound({[key]:e.target.value===''?null:Number(e.target.value)})}/></label>)}<label>DEATH<select value={round.died==null?'':String(round.died)} onChange={e=>patchRound({died:e.target.value===''?null:e.target.value==='true'})}><option value="">Unknown</option><option value="false">Survived (0)</option><option value="true">Died (1)</option></select></label></div><label>ROUND NOTES<textarea rows={2} maxLength={2000} value={round.notes} onChange={e=>patchRound({notes:e.target.value})} placeholder="Optional context…"/></label></fieldset>}
  {!readonly&&<div className="manual-actions"><Btn disabled={busy||p.rounds.length>=(p.mode==='Ranked Bomb'?9:2*p.target-1)} onClick={()=>{change({...p,rounds:[...p.rounds,newRound(round?.side)]});setRoundIndex(p.rounds.length);}}>ADD NEXT ROUND</Btn><Btn disabled={busy||p.rounds.length<2||roundIndex!==p.rounds.length-1} onClick={()=>{if(window.confirm('Remove the last round and its entered stats?')){change({...p,rounds:p.rounds.slice(0,-1)});setRoundIndex(Math.max(0,roundIndex-1));}}}>REMOVE LAST ROUND</Btn></div>}
  <fieldset disabled={readonly||busy}><label>MATCH NOTES<textarea maxLength={4000} rows={2} value={p.notes} onChange={e=>change({...p,notes:e.target.value})}/></label></fieldset>
- <div className="manual-actions">{!readonly&&<><Btn disabled={busy||!dirty} onClick={()=>void persist()}>SAVE DRAFT</Btn><Btn variant="primary" disabled={busy} onClick={()=>setReview(true)}>REVIEW & FINISH</Btn></>}<Btn icon="download" onClick={()=>saveFile('breach-manual-'+active!.id+'.json',JSON.stringify(active,null,2),'application/json')}>EXPORT RECORD</Btn></div>
+ <div className="manual-actions">{!readonly&&<><Btn disabled={busy||!dirty} onClick={()=>void persist()}>SAVE DRAFT</Btn><Btn disabled={busy} onClick={()=>void removeDraft()}>DELETE DRAFT</Btn><Btn variant="primary" disabled={busy} onClick={()=>setReview(true)}>REVIEW & FINISH</Btn></>}<Btn icon="download" onClick={()=>saveFile('breach-manual-'+active!.id+'.json',JSON.stringify(active,null,2),'application/json')}>EXPORT RECORD</Btn></div>
  {review&&<section className="manual-review"><h3>{readonly?'Match record':'Review before submitting'}</h3><p>{p.username||'No player'} · {p.platform} · {p.map||'No map'} · {p.mode}</p><p>Score {totals?.wins}–{totals?.losses} · K / D / A {shown(totals!.kills)} / {shown(totals!.deaths)} / {shown(totals!.assists)} · Headshots {shown(totals!.headshots)}</p><p>Blank statistics remain unknown. Submitted records are read-only, private to your workspace and labeled manual / unverified. They are excluded from replay analytics by default.</p>{!readonly&&(errors.length?<ul className="workflow-validation-errors">{errors.map((e,i)=><li key={i}>{e}</li>)}</ul>:<Btn variant="primary" disabled={busy||dirty} onClick={()=>void persist(true)}>SUBMIT COMPLETE MATCH</Btn>)}</section>}
  </>}
  </section><aside className="panel entry-side"><SectionTitle eyebrow="02 / YOUR COLLECTION" title="Saved matches"/><div className="manual-intro"><Icon name="shield" size={18}/><span>Only your signed-in account can access these drafts and records. Linking a player does not claim their Ubisoft account.</span></div><p className="manual-hint">Drafts save after a short pause. Wait for “All changes saved” before leaving. A browser recovery copy protects unsaved edits on this device.</p><div className="manual-history">{records.length?records.map(r=><button disabled={blocked} className={active?.id===r.id?'active':''} key={r.id} onClick={()=>select(r)}><strong>{r.payload.map||'Untitled match'}</strong><span>{r.payload.username||'Choose a player'} · {r.payload.rounds.length} rounds</span><small>{r.status==='draft'?'DRAFT · RESUME':'MANUAL / UNVERIFIED'} · {new Date(r.payload.playedAt).toLocaleDateString()}</small></button>):<p>{ready?'No saved matches yet.':'Loading saved matches…'}</p>}</div><Btn disabled={blocked} onClick={()=>app.go('/compare')}>OPEN COMPARE</Btn></aside></div></div>;

@@ -11,7 +11,7 @@ This is **not** a replacement project. Apply the update to your existing BREACH 
 
 ## 1. Create a feature branch
 
-In VS Code's terminal, from your existing `C:\Users\conno\breach-intel-website` folder:
+In VS Code's terminal, from your existing `C:\projects\breach-intel-website` folder:
 
 ```powershell
 git status

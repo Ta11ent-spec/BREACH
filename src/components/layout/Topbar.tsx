@@ -1,8 +1,10 @@
+import {useAccountProfile} from '../../data/useAccountProfile';
 import { navHeaders } from '../../app/navigation';
 import { matches, players } from '../../data/demoData';
 import { Icon } from '../common/Icon';
 
 export function Topbar({app}:any){
+  const profile=useAccountProfile(app.state.dataMode==='real');
   const path=app.state.route;
   const base='/'+path.split('/')[1];
   const labels=navHeaders[base]||['OPERATIONS',''];
@@ -15,7 +17,7 @@ export function Topbar({app}:any){
     <div className="top-actions">
       <div className="real-mode-switch" role="group" aria-label="Data source">
         <button className={app.state.dataMode==='real'?'active':''} onClick={()=>app.setDataMode('real')}>REAL DATA</button>
-        <button className={app.state.dataMode==='demo'?'active':''} onClick={()=>{app.setDataMode('demo');if(app.state.route==='/workspace')app.go('/overview');}}>DEMO</button>
+        <button className={app.state.dataMode==='demo'?'active':''} onClick={()=>{app.setDataMode('demo');if(['/workspace','/account'].includes(app.state.route))app.go('/overview');}}>DEMO</button>
       </div>
       {app.state.dataMode==='demo' && <div className="global-search">
         <Icon name="search" size={16}/><input ref={(el:any)=>app.searchInput=el} aria-label="Search players and matches" placeholder="Search players, matches..." value={app.state.query} onChange={(e:any)=>app.setState({query:e.target.value,showSearch:true})} onFocus={()=>app.setState({showSearch:true})}/><kbd>⌘ K</kbd>
@@ -24,7 +26,7 @@ export function Topbar({app}:any){
       <div className="top-sep"/>
       <div className="season-chip"><Icon name="calendar" size={16}/><span>{app.state.dataMode==='real'?'LOCAL DB':'Y10S4'}</span></div>
       <button className="top-alert" title="View system status" onClick={()=>app.state.dataMode==='real'?app.go('/live'):app.toast('Demo systems are simulated')}><Icon name="activity" size={18}/>{app.state.dataMode==='demo'&&<i/>}</button>
-      <div className="top-avatar">{app.state.dataMode==='real'?'LR':'AD'}</div>
+      <a className="top-avatar" href="#/account" aria-label="Edit my account profile">{app.state.dataMode==='real'&&profile?.avatar?<img src={profile.avatar} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'inherit'}}/>:app.state.dataMode==='real'?(profile?.displayName.trim().slice(0,2).toUpperCase()||'BR'):'AD'}</a>
     </div>
   </header>;
 }

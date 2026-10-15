@@ -27,3 +27,11 @@ Manual-only mode can load without fetching the replay overview. Combined mode fa
 npm test includes score/unknown-stat/provenance aggregation tests. The WorkspaceIntegration runner uses a disposable LocalDB database to exercise private account separation, optimistic concurrency, retries, immutable submissions, unknown measurements and unchanged shared replay tables. Existing replay integration checks run with it.
 
 The current implementation intentionally does not deduplicate a manually recorded match against a later replay or another user's submission. Opt-in comparisons can double-count if the same game is represented in both sources. Keep the toggle off for replay-only results; source reconciliation is future work.
+
+## Draft deletion and account customization
+
+Manual Entry offers DELETE DRAFT for the selected draft, with confirmation. The API requires authentication, the manual request header, a matching revision and draft status. Submitted records cannot be deleted with this action. Cross-account IDs are inaccessible; stale saves cannot recreate a deleted saved draft. Successful deletion clears only that draft's browser recovery copy. My Workspace refreshes the manual summary along with its collection and connection data.
+
+The separate My Account page (`#/account`), reached only through the bottom-left account section or top-bar profile icon in the navigation UI, includes a private account profile: display name (80 characters), optional bio (500), and optional picture. PNG/JPEG/WebP uploads up to 5 MB are decoded, center-cropped and redrawn to 128px PNG in the browser, removing original metadata. The API accepts only bounded PNG data URLs, not external image URLs or SVG. Picture removal and profile updates persist in the caller's AccountProfile table (migration 007). Optimistic revision checks reject conflicting tabs. Sidebar and top-bar account links show the saved name/initials or picture.
+
+Profile editing does not change Auth0 credentials, recorded player names or Ubisoft ownership. Profiles are private for now; public user pages, account deletion and Ubisoft linking are separate future stages. Tests cover private profile isolation, avatar roundtrips/removal, validation and draft deletion conflicts in a disposable database.
