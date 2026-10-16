@@ -2,10 +2,10 @@ import release from '../../public/downloads/collector-release.json';
 
 export function CollectorDownload({compact=false}:{compact?:boolean}){
  return <section className="panel collector-download">
-  <div className="eyebrow">WINDOWS x64 / BETA {release.version}</div>
+  <div className="eyebrow">LATEST COLLECTOR / WINDOWS x64 / BETA {release.version}</div>
   <h3>Bring your matches into BREACH.</h3>
   <p>Install the collector, sign into your BREACH account, and enable sync. No Python or SQL Server needed.</p>
-  <a className="btn primary" href={'/downloads/'+release.file} download>DOWNLOAD FOR WINDOWS — BETA</a>
+  <a className="btn primary" href={'/downloads/'+release.file} download>DOWNLOAD LATEST COLLECTOR — v{release.version}</a>
   <p className="workspace-muted">v{release.version} · {(release.bytes/1048576).toFixed(1)} MB · Unsigned beta. Windows may show an unrecognized-app warning. Testing on a second PC is still pending.</p>
   {compact?<a href="#/collector">Setup instructions &amp; release notes →</a>:<>
    <ol><li>Download and install on a 64-bit Windows PC where you play Siege.</li><li>Open BREACH Collector and sign in with the same account you use here.</li><li>Use Detect or Browse to select your Siege MatchReplay folder.</li><li>Enable Sync, then Start Watching. Keep the collector open while you want uploads to run.</li><li>After a completed Ranked Bomb match, check My Workspace for the upload acknowledgement. New replay files must settle for two minutes before collection.</li></ol>
