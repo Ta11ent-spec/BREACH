@@ -71,3 +71,8 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 
 - Moved 7D / 30D / ALL into the Playlist and Replay / Manual / Combined bar across Overview, Match Center, Players, Maps, Operators, Compare and Insights.
 - Date selection and filtering behavior are unchanged; controls wrap on narrow screens.
+
+## V0.1.17 — Squad reload in the filter bar
+
+- Moved Reload squads beside playlist, source and date controls on squad-tracking statistics pages. Player Comparison has no squad reload control.
+- Preserved loading/saving disabled states, roster status, errors and import controls. Settings retains its existing reload control.
