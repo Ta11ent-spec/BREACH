@@ -1,3 +1,4 @@
+import {CollectorDownload} from '../../components/CollectorDownload';
 import {useEffect,useState} from 'react';
 import {ManualWorkspaceSummary} from '../manual/ManualWorkspaceSummary';
 import {fetchApi} from '../../data/realApi';
@@ -13,6 +14,7 @@ export function MyWorkspace({app}:{app:any}){
  async function connection(id:string,enable:boolean){setBusy(true);try{const r=await fetch(`/api/workspace/collectors/${encodeURIComponent(id)}${enable?'/enable':''}`,{method:enable?'POST':'DELETE',headers:await authHeaders()});if(!r.ok)throw Error();setRefresh(n=>n+1);}catch{setError('Connection could not be updated. Try again.');}finally{setBusy(false);}}
  return <div className="page workspace-page">
   {app.headline('PERSONAL CONTROL CENTER','My workspace.','Your collection. Your connections. One place to manage it all.',<Btn icon="refresh" onClick={()=>setRefresh(n=>n+1)}>REFRESH</Btn>)}
+  <CollectorDownload compact/>
   <div className="scope-toggle workspace-tabs" role="navigation" aria-label="Workspace perspective"><button className="active" aria-current="page"><Icon name="grid" size={15}/> MY WORKSPACE</button><button onClick={()=>{app.setDataMode('real');app.go('/overview');}}>TEAM / PLAYER ANALYTICS <Icon name="arrow" size={15}/></button></div>
   {error&&<div className="panel workspace-message" role="alert">{error}</div>}
   {!data&&!error&&<div className="panel workspace-message" role="status">Loading your workspace…</div>}

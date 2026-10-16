@@ -23,3 +23,11 @@ Validation: 77 isolated SQL integration checks, existing analytics regression su
 - Team perspectives now include only matches where all selected teammates appeared on the same side. Personal perspectives remain unchanged. Round metrics within eligible matches still count observed participation.
 - Linking map/site identities does not deduplicate a manually entered match against a later replay of that same game.
 - Validation: 80 frontend checks and 83 isolated SQL integration checks; synthetic browser verification of mapping controls.
+
+## V1.1.2 — Collector beta download
+
+- My Workspace and Collector Setup offer the Windows x64 v0.3.1 beta installer with setup steps, release notes and SHA-256 metadata.
+- Packaging checks the installer hash and size before copying only the executable into wwwroot/downloads. Build intermediates, private sessions, local queues and developer settings are not distributed.
+- Installer and collector messaging now describe hosted synchronization accurately. Website footer and sidebar use one version constant.
+- Verified 38 collector tests, packaged runtime self-test, hosted Auth0 login, an existing real replay acknowledgement, lost-response duplicate retry and restart receipt retention. The existing replay's original gameplay stats were preserved.
+- Unsigned beta: fresh-match insertion on the hosted service and second-PC installation remain unverified. New-match transactions are covered by isolated API integration checks.

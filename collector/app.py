@@ -269,7 +269,7 @@ class Collector(tk.Tk):
             except Exception as exc: messagebox.showerror('Export failed', str(exc), parent=self)
 
     def about(self):
-        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · private preview\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Uploads use your signed-in account. Automatic retries run while sync is enabled and this app is open. Automatic startup and background service are not enabled.', parent=self)
+        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · beta\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Uploads use your signed-in account. Automatic retries run while sync is enabled and this app is open. Automatic startup and background service are not enabled.', parent=self)
 
     def close_app(self):
         self.pause(); self.closing = True; self.status.set('Finishing shutdown and saving queue state…')

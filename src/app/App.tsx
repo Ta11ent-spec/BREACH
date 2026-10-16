@@ -2,6 +2,7 @@
 const accountKey=(key:string)=>{try{return (sessionStorage.getItem('breach_workspace')||'local')+':'+key;}catch{return 'local:'+key;}};
 // @ts-nocheck — Legacy prototype state controller. Pages now live in separate files.
 import React from 'react';
+import {VERSION} from '../components/layout/ReleaseControls';
 import { matches } from '../data/demoData';
 import { csvEscape } from '../lib/format';
 import { saveFile } from '../lib/download';
@@ -42,7 +43,7 @@ export class App extends React.Component<any,any>{
             <RouteView app={this}/>
             <footer className="main-footer">
               <span><span className="footer-cross">+</span> BREACH / INTEL <i>·</i> INDEPENDENT CONCEPT UI</span>
-              <span>{this.state.dataMode==='real'?'SHARED MATCH INTELLIGENCE':'FICTIONAL DATA · NO LIVE GAME CONNECTION'} <i>·</i> V1.1.0</span>
+              <span>{this.state.dataMode==='real'?'SHARED MATCH INTELLIGENCE':'FICTIONAL DATA · NO LIVE GAME CONNECTION'} <i>·</i> V{VERSION}</span>
             </footer>
           </main>
         </div>

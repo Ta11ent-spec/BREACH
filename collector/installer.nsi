@@ -11,13 +11,13 @@ Unicode True
 !ifndef VERSION
   !define VERSION "0.2.0"
 !endif
-Name "BREACH Collector ${VERSION} — Private preview"
+Name "BREACH Collector ${VERSION} — Beta"
 OutFile "${OUTPUT}"
 InstallDir "${INSTALLROOT}"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TEXT "Collect replay files and export match JSON locally.$\r$\n$\r$\nThis private preview includes its runtime and replay parser. No Python, SQL Server or administrator access is required.$\r$\n$\r$\nCloud synchronization is not connected. Uninstall preserves the separate local queue and original replays."
+!define MUI_WELCOMEPAGE_TEXT "Collect completed Ranked Bomb replays and sync them to BREACH.$\r$\n$\r$\nThis beta includes its runtime and replay parser. No Python, SQL Server or administrator access is required.$\r$\n$\r$\nSign in to BREACH, then enable sync to upload. This beta is unsigned; second-PC compatibility testing is ongoing. Uninstall preserves the separate local queue and original replays."
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -52,7 +52,7 @@ Section "Collector"
   WriteINIStr "$INSTDIR\breach-install.ini" "BREACH" "Product" "${PRODUCTKEY}"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateShortcut "$SMPROGRAMS\${PRODUCTKEY}.lnk" "$INSTDIR\BreachCollector.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "DisplayName" "BREACH Collector (private preview)"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "DisplayName" "BREACH Collector (beta)"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "InstallLocation" "$INSTDIR"

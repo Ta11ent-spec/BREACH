@@ -23,3 +23,5 @@
 .match-score .accent{color:var(--win)}
 
 .map-linking{padding:18px;margin-bottom:18px}.map-linking summary{cursor:pointer;color:var(--accent);font-weight:700}.map-linking fieldset{border:0;padding:0;display:grid;gap:12px}.map-linking label{display:grid;gap:6px}.map-linking select,.map-linking input{background:var(--surface2);color:var(--text);border:1px solid var(--line);padding:10px;width:100%;max-width:600px}.map-linking p{overflow-wrap:anywhere;color:var(--muted);line-height:1.6}.map-linking button{width:fit-content}.map-linking h3{margin-top:18px}
+
+.collector-download{padding:24px;margin-bottom:20px}.collector-download h3{font-size:26px;margin:8px 0}.collector-download p,.collector-download li{line-height:1.7;max-width:900px}.collector-download .btn{margin:12px 0}.collector-download a,.collector-download summary{cursor:pointer;color:var(--accent)}.collector-download a.primary{color:var(--bg)}.collector-download code{overflow-wrap:anywhere}.collector-download summary{padding:12px 0}
