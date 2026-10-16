@@ -53,3 +53,7 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 
 ## V0.1.7 â€” collector instructions
 - Updated download notes, Collector Setup and My Workspace to explain that uploads run in the system tray with Sync enabled and the PC awake. Closing the window requires background mode enabled; Pause or Quit stops uploads. Collector binary remains v0.3.3.
+
+## V0.1.9 — automatic map identification
+- Unresolved collector IDs use unique recorded bombsite-pair evidence across the shared replay dataset. Conflicting or ambiguous evidence stays unresolved. Known maps and explicit admin links take priority; raw stats stay unchanged. Identified maps group with manual and known replay maps.
+- Admin map linking defaults to unresolved IDs, with Show all for review/override. Owner/Admin editing permissions unchanged.

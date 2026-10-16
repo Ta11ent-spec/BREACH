@@ -1,5 +1,5 @@
 /** Local read-only API contracts. Null means missing or unverified, never a measured zero. */
-import { displayMapLabel, setMapLinks } from './mapCatalog';
+import { displayMapLabel, setMapLinks, setMapEvidence } from './mapCatalog';
 import {authHeaders} from '../auth/apiAuth';
 export type ApiMatch = {
   matchId: string; mapName: string | null; mapId: number | string | null;
@@ -47,7 +47,10 @@ async function ensureCatalog(){
  if(!catalogLoad)catalogLoad=(async()=>{
   const response=await fetch('/api/catalog-links',{headers:{Accept:'application/json',...await authHeaders()}});
   if(!response.ok)throw new ApiError(response.status,'Map links could not be loaded. Please retry.');
-  setMapLinks(await response.json());catalogLoadedAt=Date.now();
+  setMapLinks(await response.json());
+  const evidence=await fetch('/api/overview/v3',{headers:{Accept:'application/json',...await authHeaders()}});
+  if(!evidence.ok)throw new ApiError(evidence.status,'Map evidence could not be loaded. Please retry.');
+  setMapEvidence(await evidence.json());catalogLoadedAt=Date.now();
  })().finally(()=>{catalogLoad=undefined;});
  await catalogLoad;
 }

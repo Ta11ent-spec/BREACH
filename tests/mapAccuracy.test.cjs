@@ -12,7 +12,7 @@ function loadTs(file){
   return module.exports;
 }
 const {analyzeMaps}=loadTs('src/data/mapAnalytics.ts');
-const {resolveMap,displayMapLabel}=loadTs('src/data/mapCatalog.ts');
+const {resolveMap,displayMapLabel,setMapEvidence,setMapLinks}=loadTs('src/data/mapCatalog.ts');
 const now=Date.parse('2026-10-14T12:00:00Z');
 function fixture(){
   const match={matchId:'m',playedAt:'2026-10-12T12:00:00Z',mapName:'ClubHouseY10',mapId:407193663917,roundCount:3,isCompleteMatch:true};
@@ -64,8 +64,29 @@ test('known parser names are readable and catalog IDs resolve missing names',()=
   assert.equal(displayMapLabel('Map(407193663917)',407193663917),'Club House');
   assert.equal(resolveMap(null,413779563590).source,'catalog');assert.equal(displayMapLabel('Future Map',999),'Future Map');
 });
-test('site-derived names stay labeled as inference and unknown IDs remain explicit',()=>{
-  const villa=resolveMap('Map(409325881472)',409325881472);assert.equal(villa.name,'Villa');assert.equal(villa.source,'inferred');assert.match(villa.evidence,/Aviator/);
-  assert.match(displayMapLabel(null,436375283234),/Coastline.*site-inferred/);assert.equal(resolveMap(null,999).source,'unknown');
-  assert.notEqual(resolveMap(null,999).key,resolveMap(null,998).key);assert.equal(displayMapLabel(null,null),'Unknown map');
+test('bombsite evidence resolves unknown IDs into the same canonical map as manual entries',()=>{
+  setMapEvidence({matches:[{matchId:'a',mapId:999}],rounds:[{matchId:'a',site:'2F Aviator Room, 2F Games Room'}]});
+  const villa=resolveMap(null,999);assert.equal(villa.name,'Villa');assert.equal(villa.source,'inferred');assert.match(villa.evidence,/Aviator/);
+  assert.equal(villa.key,resolveMap('Villa',null).key);
+  assert.equal(resolveMap(null,998).source,'unknown');
+  setMapEvidence({matches:[],rounds:[]});
+});
+test('missing, partial, or conflicting evidence does not guess a map',()=>{
+  const matches=[{matchId:'a',mapId:999},{matchId:'b',mapId:999},{matchId:'c',mapId:998}];
+  setMapEvidence({matches,rounds:[{matchId:'a',site:'2F Aviator Room / Games Room'},{matchId:'b',site:'2F Hookah Lounge / Billiards Room'},{matchId:'c',site:'Kitchen'}]});
+  assert.equal(resolveMap(null,999).source,'unknown');assert.equal(resolveMap(null,998).source,'unknown');
+  setMapEvidence({matches:[],rounds:[]});
+});
+test('manual corrections and known IDs win over automatic evidence; removing override restores inference',()=>{
+  const data={matches:[{matchId:'a',mapId:999},{matchId:'b',mapId:407193663917}],rounds:[{matchId:'a',site:'2F Games Room / 2F Aviator Room'},{matchId:'b',site:'2F Games Room / 2F Aviator Room'}]};
+  setMapEvidence(data);assert.equal(resolveMap(null,407193663917).name,'Club House');
+  setMapLinks({revision:1,maps:[{collectorId:'999',map:'Chalet'}],sites:[]});assert.equal(resolveMap(null,999).name,'Chalet');assert.equal(resolveMap(null,999).source,'linked');
+  setMapLinks({revision:2,maps:[],sites:[]});setMapEvidence(data);assert.equal(resolveMap(null,999).name,'Villa');
+  setMapEvidence({matches:[],rounds:[]});
+});
+test('ambiguous approved aliases stay unresolved and evidence refresh removes stale inference',()=>{
+  setMapLinks({revision:1,maps:[],sites:[{map:'Villa',alias:'Shared A / Shared B',site:'A'},{map:'Coastline',alias:'Shared A / Shared B',site:'B'}]});
+  const matches=[{matchId:'a',mapId:999}];setMapEvidence({matches,rounds:[{matchId:'a',site:'Shared A / Shared B'}]});assert.equal(resolveMap(null,999).source,'unknown');
+  setMapLinks({revision:2,maps:[],sites:[]});setMapEvidence({matches,rounds:[{matchId:'a',site:'2F Aviator Room / Games Room'}]});assert.equal(resolveMap(null,999).source,'inferred');
+  setMapEvidence({matches,rounds:[]});assert.equal(resolveMap(null,999).source,'unknown');
 });

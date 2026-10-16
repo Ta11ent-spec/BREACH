@@ -33,3 +33,11 @@ test('team view requires the complete roster on one side, including scoreboard-o
  const team=analyzeOverview(data,{mode:'team',members:['a','b']},'ALL');assert.deepEqual(team.matches.map(m=>m.matchId),['full']);assert.equal(team.totalKills,4);
  assert.equal(analyzeOverview(data,{mode:'player',members:['a']},'ALL').matches.length,3);
 });
+test('automatic evidence combines manual and replay histories without changing any recorded stats',()=>{
+ const load=modules(),c=load('src/data/mapCatalog.ts'),{analyzeMaps}=load('src/data/mapAnalytics.ts'),{analyzeOverview}=load('src/data/overviewAnalytics.ts');
+ const data={matches:[{matchId:'r',mapId:'999',mapName:null,roundCount:1,isCompleteMatch:true},{matchId:'m',mapId:null,mapName:'Bank',roundCount:1,isCompleteMatch:true}],rounds:['r','m'].map(id=>({matchId:id,roundId:id,teamSlot:0,roundNumber:1,won:true,side:'Attack',site:id==='r'?'B Lockers, B CCTV Room':'B Lockers / B CCTV Room'})),appearances:['r','m'].map(id=>({matchId:id,roundId:id,playerId:'a',teamIndex:0,kills:2,died:false,headshots:1})),players:[{playerId:'a',username:'A'}]};
+ const snapshot=JSON.stringify(data),scope={mode:'player',members:['a']};
+ const before=analyzeOverview(data,scope,'ALL');c.setMapEvidence(data);
+ const result=analyzeMaps(data,scope,'ALL');assert.equal(result.maps.length,1);assert.equal(result.maps[0].matches.length,2);assert.equal(result.maps[0].wins,2);assert.equal(result.maps[0].sites.length,1);assert.equal(result.maps[0].sites[0].rounds,2);
+ assert.equal(analyzeOverview(data,scope,'ALL').totalKills,before.totalKills);assert.equal(JSON.stringify(data),snapshot);
+});
