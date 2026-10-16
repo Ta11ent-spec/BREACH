@@ -31,3 +31,13 @@
 .manual-source-toggle{align-items:center}
 .manual-source-toggle .period-switch{margin:0;flex-shrink:0}
 .manual-source-toggle .manual-source-description{flex-basis:100%;line-height:1.5}
+
+.advanced-settings{position:relative}
+.advanced-settings-trigger{background:#328349;color:#fff;border:1px solid #409d5b;border-radius:5px;padding:11px 13px;font:700 10px var(--mono);cursor:pointer}
+.advanced-settings-trigger:hover,.advanced-settings-trigger[aria-expanded=true]{background:#256938}
+.advanced-settings-trigger:focus-visible{outline:2px solid var(--text);outline-offset:3px}
+.advanced-settings-popout{position:absolute;right:0;top:calc(100% + 10px);z-index:35;width:min(650px,calc(100vw - 60px));background:var(--bg);color:var(--text);border:1px solid var(--lineSoft);border-radius:8px;box-shadow:0 15px 40px #0006;padding:18px;max-height:70vh;overflow:auto}
+.advanced-settings-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.advanced-settings-heading button{background:transparent;color:var(--text);border:0;font-size:24px;cursor:pointer}
+.advanced-settings-popout .manual-source-toggle{margin:12px 0 0;padding:0;border:0}
+@media(max-width:780px){.advanced-settings{margin-left:auto}.advanced-settings-popout{width:min(580px,calc(100vw - 60px))}}

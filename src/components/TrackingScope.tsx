@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import type { V3Player } from '../data/overviewAnalytics';
 import type { TrackingScopeState } from '../data/useTrackingScope';
 import { OverviewScopeBar } from '../pages/overview/OverviewScopeBar';
@@ -7,7 +8,7 @@ export function ReloadSquads({scope}:{scope:Pick<TrackingScopeState,'squadBusy'|
 }
 
 /** Database status and the same perspective picker across real-data pages. */
-export function TrackingScope({ scope, players, hideReload=false }: { scope: TrackingScopeState; players: V3Player[]; hideReload?:boolean }) {
+export function TrackingScope({ scope, players, hideReload=false, advancedSettings }: { scope: TrackingScopeState; players: V3Player[]; hideReload?:boolean; advancedSettings?:ReactNode }) {
   return <>
     {scope.mode==='team'&&<p className="workspace-muted">Team view includes only matches where every selected teammate played on the same side.</p>}
     <div className="squad-storage-status" aria-live="polite">
@@ -16,7 +17,7 @@ export function TrackingScope({ scope, players, hideReload=false }: { scope: Tra
       {scope.squadError && <p role="alert">{scope.squadError} Your last loaded roster is still shown.</p>}
       {scope.legacySquads.length > 0 && <div><span>{scope.legacySquads.length} browser-saved squad{scope.legacySquads.length === 1 ? '' : 's'} available to import. Existing database squads will be kept.</span><button className="scope-edit" disabled={!scope.squadReady || scope.squadBusy || scope.squadLoading} onClick={() => void scope.onImportSquads()}>Import browser squads</button></div>}
     </div>
-    <OverviewScopeBar mode={scope.mode} onMode={scope.onMode} squads={scope.squads}
+    <OverviewScopeBar advancedSettings={advancedSettings} mode={scope.mode} onMode={scope.onMode} squads={scope.squads}
       onSaveSquad={scope.onSaveSquad} onDeleteSquad={scope.onDeleteSquad}
       busy={scope.squadBusy || scope.squadLoading || !scope.squadReady}
       selectedSquad={scope.selectedSquad} onSelectedSquad={scope.onSelectedSquad}

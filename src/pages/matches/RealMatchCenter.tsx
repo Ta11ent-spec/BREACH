@@ -139,15 +139,13 @@ export function RealMatchCenter({ app, id, number }: { app: any; id?: string; nu
   const exportArchive = () => { saveFile('breach-intel-matches.csv', matchCsv(filtered), 'text/csv;charset=utf-8'); app.toast(`${filtered.length} recorded matches exported`); };
   const exportReport = () => { if (report.data) { saveFile(`breach-match-${id}.json`, JSON.stringify({ perspective, identity: scope.identity, report: report.data }, null, 2), 'application/json'); app.toast('Recorded match report exported'); } };
   const onPlayer = (playerId: string) => app.go(`/players/${encodeURIComponent(playerId)}`);
-  const scopeBar = <TrackingScope hideReload scope={scope} players={overview.data?.players ?? emptyPlayers} />;
-  return <div className="page real-match-center"><ManualDataToggle squadScope={scope} included={includeManual} onChange={setIncludeManual} period={period} onPeriodChange={period=>app.setState({period})}/>{excluded&&<Notice>This match is excluded by the selected source. Choose Combined to open it.</Notice>}{id?.startsWith('manual:')&&!excluded&&<Notice><strong>MANUAL / UNVERIFIED</strong> · Self-reported player statistics. Scores come from the submitted match; event telemetry and unentered measurements are unavailable.</Notice>}
+  return <div className="page real-match-center"><TrackingScope hideReload scope={scope} players={overview.data?.players??emptyPlayers} advancedSettings={<ManualDataToggle squadScope={scope} included={includeManual} onChange={setIncludeManual} period={period} onPeriodChange={period=>app.setState({period})}/>}/>{excluded&&<Notice>This match is excluded by the selected source. Choose Combined to open it.</Notice>}{id?.startsWith('manual:')&&!excluded&&<Notice><strong>MANUAL / UNVERIFIED</strong> · Self-reported player statistics. Scores come from the submitted match; event telemetry and unentered measurements are unavailable.</Notice>}
     {!id ? <>
       {app.headline(`MATCH ARCHIVE / ${analysis?.matches.length ?? 0} ENGAGEMENTS`, 'Match center.', 'Every engagement, preserved down to the last recorded round.', <Btn icon="download" disabled={!filtered.length} onClick={exportArchive}>EXPORT MATCHES</Btn>)}
       <div className="match-period"><span className="eyebrow">TRACKED MATCH HISTORY</span></div>
     </> : <button className="back-link" onClick={() => app.go(isRound ? matchUrl(id) : '/matches')}><Icon name="arrowleft" size={15} />{isRound ? 'BACK TO MATCH REPORT' : 'ALL MATCHES'}</button>}
     {overview.loading && <Notice>Loading recorded matches and players…</Notice>}
     {overview.error && <Notice error>{overview.error} <button className="text-action" onClick={overview.reload}>RETRY</button></Notice>}
-    {overview.data && scopeBar}
     {overview.data && !hasSelection && <Notice>Choose a player or a squad with members to see their match history.</Notice>}
     {overview.data && !id && hasSelection && <>
       <div className="match-summary"><div><small>MATCH RECORD</small><strong>{summary?.wins ?? 0}<i> — </i>{summary?.losses ?? 0}</strong><span>RECORDED WINS / LOSSES</span></div>

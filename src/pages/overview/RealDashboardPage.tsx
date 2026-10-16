@@ -80,15 +80,13 @@ export function RealDashboardPage({app}:{app:any}){
   const knownWins=view?view.attackWins+view.defenseWins:0;
   const latest=view?.latest??null;
   const latestRounds=latest?latest.scopedRounds:[];
-  const allPlayers=data?.players??[];
-  return <div className="page real-dashboard"><ManualDataToggle squadScope={scope} included={includeManual} onChange={setIncludeManual} period={period} onPeriodChange={period=>app.setState({period})}/>
+  return <div className="page real-dashboard"><TrackingScope hideReload scope={scope} players={data?.players??[]} advancedSettings={<ManualDataToggle squadScope={scope} included={includeManual} onChange={setIncludeManual} period={period} onPeriodChange={period=>app.setState({period})}/>}/>
     <div className="dashboard-head">
       {app.headline('REPLAY INTELLIGENCE / PERFORMANCE CENTER','Command overview.','Every round. Every decision. Your selected data sources.')}
     </div>
     {loading&&<section className="panel real-dashboard-status" role="status"><Icon name="activity" size={18}/> Loading recorded player and match data...</section>}
     {error&&<section className="panel real-dashboard-status" role="alert"><strong>Dashboard unavailable.</strong><span>{error} Restart the ASP.NET Core API and refresh.</span><code>dotnet run --project .\backend\Breach.Intel.Api\Breach.Intel.Api.csproj</code></section>}
     {!loading&&!error&&data&&<>
-      <TrackingScope hideReload scope={scope} players={allPlayers}/>
       {!view?<section className="panel squad-empty-state"><Icon name="target" size={29}/><h3>{mode==='team'?'Build your first squad':'Select a player'}</h3><p>{mode==='team'?'Choose Manage squads, create a named roster, then add up to five player IDs. You can save multiple squads and swap players at any time.':'Choose a player from your imported replay records to view personal analytics.'}</p></section>:<>
         <div className="hero-grid">
           <div className="hero-card"><div className="hero-top"><Pill tone="outline" dot>{mode==='team'?'SQUAD INTELLIGENCE':'PLAYER INTELLIGENCE'}</Pill><span className="hero-coordinates">LIVE DATABASE / LOCAL REPLAYS</span></div>

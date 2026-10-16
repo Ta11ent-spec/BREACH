@@ -1,3 +1,5 @@
+import type {ReactNode} from 'react';
+import {AdvancedSettings} from '../../components/AdvancedSettings';
 import { useState } from 'react';
 import { Icon } from '../../components/common/Icon';
 import { newSquad } from '../../data/localSquads';
@@ -12,9 +14,9 @@ type Props = {
   onDeleteSquad:(squad:Squad)=>Promise<boolean>; busy:boolean;
   selectedSquad:string; onSelectedSquad:(id:string)=>void;
   selectedPlayer:string; onSelectedPlayer:(id:string)=>void;
-  players:V3Player[];
+  players:V3Player[]; advancedSettings?:ReactNode;
 };
-export function OverviewScopeBar({mode,onMode,squads,onSaveSquad,onDeleteSquad,busy,selectedSquad,onSelectedSquad,selectedPlayer,onSelectedPlayer,players}:Props){
+export function OverviewScopeBar({mode,onMode,squads,onSaveSquad,onDeleteSquad,busy,selectedSquad,onSelectedSquad,selectedPlayer,onSelectedPlayer,players,advancedSettings}:Props){
   const [editing,setEditing]=useState(false);
   const [newName,setNewName]=useState('');
   const [renameName,setRenameName]=useState('');
@@ -43,6 +45,7 @@ export function OverviewScopeBar({mode,onMode,squads,onSaveSquad,onDeleteSquad,b
       </div>
       {mode==='team'? <div className="scope-selection"><label htmlFor="squad-select">Selected squad</label><select id="squad-select" value={active?.id??''} onChange={e=>onSelectedSquad(e.target.value)}><option value="">Choose a squad...</option>{squads.map(s=><option key={s.id} value={s.id}>{s.name} ({s.members.length}/5)</option>)}</select><button className="scope-edit" onClick={()=>setEditing(!editing)} aria-expanded={editing}><Icon name="settings" size={14}/>{editing?'Close editor':'Manage squads'}</button></div>
       : <div className="scope-selection"><label htmlFor="player-select">Selected player</label><select id="player-select" value={selectedPlayer} onChange={e=>onSelectedPlayer(e.target.value)}><option value="">Choose a player...</option>{players.map(p=><option key={p.playerId} value={p.playerId}>{p.username} · {p.playerId.slice(-8)}</option>)}</select></div>}
+      {advancedSettings&&<AdvancedSettings>{advancedSettings}</AdvancedSettings>}
     </div>
     {mode==='team' && <>
       {active&& <div className="squad-members-strip"><span>{active.members.length}/5 SQUAD SLOTS</span>{Array.from({length:5},(_,i)=>{

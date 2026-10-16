@@ -76,3 +76,8 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 
 - Moved Reload squads beside playlist, source and date controls on squad-tracking statistics pages. Player Comparison has no squad reload control.
 - Preserved loading/saving disabled states, roster status, errors and import controls. Settings retains its existing reload control.
+
+## V0.1.19 — Advanced statistics settings
+
+- Moved playlist, source, date and squad reload controls into a popout opened by a green Advanced settings button beside the player/squad selector.
+- Player Comparison retains its existing filter bar. Popout closes on outside click, Escape or its close button; selections remain in existing page state.
