@@ -21,3 +21,5 @@
 .round-chip.won,.match-rounds-mini i.win{background:var(--win-fill);color:var(--win-ink);border-color:var(--win-fill)}
 .round-chip.won:hover,.round-chip.won.selected{outline-color:var(--win)}
 .match-score .accent{color:var(--win)}
+
+.map-linking{padding:18px;margin-bottom:18px}.map-linking summary{cursor:pointer;color:var(--accent);font-weight:700}.map-linking fieldset{border:0;padding:0;display:grid;gap:12px}.map-linking label{display:grid;gap:6px}.map-linking select,.map-linking input{background:var(--surface2);color:var(--text);border:1px solid var(--line);padding:10px;width:100%;max-width:600px}.map-linking p{overflow-wrap:anywhere;color:var(--muted);line-height:1.6}.map-linking button{width:fit-content}.map-linking h3{margin-top:18px}

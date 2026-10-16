@@ -52,12 +52,12 @@ test('ambiguous squads and missing roster members produce no misleading map samp
   assert.equal(analyzeMaps(fixture(),{mode:'team',members:['a','enemy']},'ALL',now).ambiguousMatches,1);
   assert.equal(analyzeMaps(fixture(),{mode:'team',members:['missing']},'ALL',now).maps.length,0);
 });
-test('date range and replay map versions preserve separate samples',()=>{
+test('map versions share overall totals while preserving original IDs',()=>{
   const data=fixture();data.matches.push({...data.matches[0],matchId:'old',mapId:837214085,playedAt:'2026-09-01T12:00:00Z'});
   data.rounds.push(...data.rounds.map(r=>({...r,matchId:'old',roundId:'old'+r.roundId})));
   data.appearances.push(...data.appearances.map(a=>({...a,matchId:'old',roundId:'old'+a.roundId})));
   assert.equal(analyzeMaps(data,player,'7D',now).maps.length,1);
-  const maps=analyzeMaps(data,player,'ALL',now).maps;assert.equal(maps.length,2);assert.equal(maps[0].name,maps[1].name);assert.notEqual(maps[0].key,maps[1].key);
+  const maps=analyzeMaps(data,player,'ALL',now).maps;assert.equal(maps.length,1);assert.equal(maps[0].matches.length,2);assert.deepEqual(new Set(maps[0].matches.map(m=>m.mapId)),new Set([407193663917,837214085]));
 });
 test('known parser names are readable and catalog IDs resolve missing names',()=>{
   assert.equal(displayMapLabel('KafeDostoyevskyY10',413845419788),'Kafe Dostoyevsky');

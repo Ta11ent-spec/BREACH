@@ -1,3 +1,4 @@
+import {resolveMap,resolveSite} from './mapCatalog';
 import {fetchApi} from './realApi';
 
 /** Raw round-level replay data. A null field means it was not recorded. */
@@ -55,6 +56,8 @@ export type MatchReport = {
 
 export type ApiMatchReport = MatchReport;
 
-export function fetchMatchReport(id: string, signal?: AbortSignal): Promise<MatchReport> {
-  return fetchApi<MatchReport>(`/matches/${encodeURIComponent(id)}/report`, signal);
+export async function fetchMatchReport(id: string, signal?: AbortSignal): Promise<MatchReport> {
+  const data=await fetchApi<MatchReport>(`/matches/${encodeURIComponent(id)}/report`, signal);
+  const map=resolveMap(data.match.mapName,data.match.mapId);
+  return {...data,rounds:data.rounds.map(r=>({...r,site:resolveSite(map.name,r.site)}))};
 }

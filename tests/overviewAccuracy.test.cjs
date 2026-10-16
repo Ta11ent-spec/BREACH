@@ -40,19 +40,12 @@ test('player perspective follows teamIndex 1 and 0 without counting opponents',(
   assert.equal(actual.attackWins,3);
   assert.equal(actual.defenseRounds,2);
 });
-test('squad excludes ambiguous matches with selected members on opposing sides',()=>{
+test('squad excludes partial rosters and selected members on opposing sides',()=>{
   const actual=analyzeOverview(data,{mode:'team',members:['A','B']},'ALL');
   assert.equal(actual.ambiguousMatches,1);
-  assert.equal(actual.matches.length,2);
-  assert.equal(actual.wins,1);
-  assert.equal(actual.losses,0); // m1 was a 1-1 tie, not a decided loss
-  assert.equal(actual.totalKills,4);
-  assert.equal(actual.rounds,4);
-  assert.equal(actual.attackWins,2);
-  assert.equal(actual.attackRounds,2);
-  assert.equal(actual.defenseWins,1);
-  assert.equal(actual.defenseRounds,2);
-  assert.equal(asPercent(actual.attackWins+actual.defenseWins,actual.attackRounds+actual.defenseRounds),75);
+  assert.equal(actual.matches.length,0);
+  assert.equal(actual.totalKills,0);
+  assert.equal(actual.rounds,0);
 });
 test('incomplete results are not decided matches',()=>{
   const copy={...data,matches:data.matches.map(m=>({...m,isCompleteMatch:false}))};

@@ -55,6 +55,7 @@ public sealed class Workspace(IConfiguration config, IWebHostEnvironment env)
         }
         await Run(Scope(File.ReadAllText(Path.Combine(env.ContentRootPath,"Sql","006_manual_matches.sql"))));
         await Run(Scope(File.ReadAllText(Path.Combine(env.ContentRootPath,"Sql","007_account_profile.sql"))));
+        await Run("IF OBJECT_ID('dbo.CatalogLinks','U') IS NULL CREATE TABLE dbo.CatalogLinks(Id int NOT NULL PRIMARY KEY CHECK(Id=1),Revision int NOT NULL,Payload nvarchar(max) NOT NULL,UpdatedBy char(64) NOT NULL,UpdatedAt datetime2 NOT NULL DEFAULT SYSUTCDATETIME());");
         await tx.CommitAsync(http.RequestAborted);
     }
 }

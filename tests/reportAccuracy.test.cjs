@@ -58,7 +58,7 @@ test('map review threshold requires verified matches and preserves small samples
 });
 test('ambiguous squad matches are excluded consistently from all report sections',()=>{
   const report=buildInsights(fixture(),{mode:'team',members:['a','b']},'ALL',1,now);
-  assert.equal(report.overview.ambiguousMatches,1);assert.equal(report.roundCount,2);assert.equal(report.totals.kills,7);assert.equal(report.coverage.samples,2);
+  assert.equal(report.overview.ambiguousMatches,1);assert.equal(report.roundCount,0);assert.equal(report.totals.kills,null);assert.equal(report.coverage.samples,0);
 });
 test('trend compares latest five verified results against previous five without unverified rows',()=>{
   const data=fixture();data.matches=[];data.rounds=[];data.appearances=[];

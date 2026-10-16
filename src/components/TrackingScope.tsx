@@ -5,6 +5,7 @@ import { OverviewScopeBar } from '../pages/overview/OverviewScopeBar';
 /** Database status and the same perspective picker across real-data pages. */
 export function TrackingScope({ scope, players }: { scope: TrackingScopeState; players: V3Player[] }) {
   return <>
+    {scope.mode==='team'&&<p className="workspace-muted">Team view includes only matches where every selected teammate played on the same side.</p>}
     <div className="squad-storage-status" aria-live="polite">
       <span>{scope.squadLoading ? 'Loading saved squads…' : scope.squadBusy ? 'Saving squad…' : scope.squadReady ? 'Squads saved in your database' : 'Squad storage unavailable'}</span>
       <button className="scope-edit" disabled={scope.squadBusy || scope.squadLoading} onClick={() => void scope.reloadSquads()}>Reload squads</button>

@@ -1,5 +1,5 @@
 /** Deterministic, unit-testable V3 analytics. No replay slot-0 assumption. */
-import { displayMapLabel } from './mapCatalog';
+import { displayMapLabel, resolveMap } from './mapCatalog';
 export type V3Match = {
   summaryScore?: {wins:number;losses:number};
   source?: 'replay'|'manual';
@@ -71,6 +71,7 @@ export function analyzeOverview(data: OverviewV3, perspective: Perspective, peri
   for (const match of data.matches.filter(m=>percentRange(m.playedAt,period,now))) {
     const joined = (appearancesByMatch.get(match.matchId) ?? []).filter(a=>chosen.has(a.playerId));
     if (!joined.length) continue;
+    if(perspective.mode==='team' && new Set(joined.map(a=>a.playerId)).size!==chosen.size)continue;
     const slots = new Set(joined.map(a=>a.teamIndex));
     const slot = joined[0].teamIndex;
     if (slots.size !== 1 || !isSlot(slot)) {ambiguousMatches++; continue;}
@@ -126,7 +127,7 @@ export function analyzeOverview(data: OverviewV3, perspective: Perspective, peri
   const maps=new Map<string,MapStat>();
   for(const m of decided){
     const label = displayMapLabel(m.mapName,m.mapId);
-    const key=m.mapId!=null?String(m.mapId):label;
+    const key=resolveMap(m.mapName,m.mapId).key;
     const x=maps.get(key)??{key,label,played:0,wins:0};
     x.played++; if(m.outcome==='WIN') x.wins++; maps.set(key,x);
   }

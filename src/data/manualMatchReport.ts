@@ -1,3 +1,4 @@
+import {resolveSite} from './mapCatalog';
 import {withManualMatches} from './manualMatches';
 import type {ManualRecord} from './manualMatches';
 import type {MatchReport} from './matchReportApi';
@@ -14,7 +15,7 @@ export function manualMatchReport(record:ManualRecord):MatchReport{
  let wins=0,losses=0;
  p.rounds.forEach((r,i)=>{
   const roundId=matchId+':'+(i+1);
-  report.rounds.push({roundId,matchId,roundNumber:i+1,site:r.site||null,recordedAt:null});
+  report.rounds.push({roundId,matchId,roundNumber:i+1,site:r.site?resolveSite(p.map,r.site):null,recordedAt:null});
   report.teams.push({roundId,teamSlot:0,sourceLabel:p.roster?'Team A':'Manual player team',side:r.side,won:r.won,scoreBefore:wins,scoreAfter:wins+(r.won===true?1:0),winCondition:null});
   report.teams.push({roundId,teamSlot:1,sourceLabel:p.roster?'Team B':'Opponent (score only)',side:r.side==='Attack'?'Defense':'Attack',won:r.won==null?null:!r.won,scoreBefore:losses,scoreAfter:losses+(r.won===false?1:0),winCondition:null});
   if(r.won===true)wins++;if(r.won===false)losses++;

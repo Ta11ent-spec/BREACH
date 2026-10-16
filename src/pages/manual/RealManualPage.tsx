@@ -1,5 +1,6 @@
+import {canonicalMaps,linkedSites,resolveSite} from '../../data/mapCatalog';
 import {ManualRoster,ManualRoundPlayers,ManualScoreboard,ManualFinalScoreboard} from './ManualRoster';
-import {manualSites,manualMapNames} from '../../data/manualSites';
+import {manualSites} from '../../data/manualSites';
 import {displayMapLabel} from '../../data/mapCatalog';
 import {useEffect,useRef,useState} from 'react';
 import {Btn,Pill,SectionTitle,Icon} from '../../components';
@@ -55,9 +56,9 @@ export function RealManualPage({app}:{app:any}){
  const readonly=active?.status==='submitted',blocked=busy||dirty;
  const manualPlayers=[...new Map(records.filter(r=>r.payload.playerId.startsWith('manual-player:')).map(r=>[r.payload.playerId,{playerId:r.payload.playerId,username:r.payload.username}])).values()];
  const players=[...new Map([...(resource.data?.players??[]),...manualPlayers,...records.flatMap(r=>r.payload.roster??[])].filter(p=>p.username).map(p=>[p.playerId,p])).values()];
- const maps=[...new Set([...manualMapNames,...(resource.data?.matches??[]).map(m=>displayMapLabel(m.mapName,m.mapId)).filter(m=>!m.startsWith('Unresolved')&&m!=='Unknown map'),...(p?.map?[p.map]:[])])].sort();
+ const maps=[...new Set([...canonicalMaps,...(resource.data?.matches??[]).map(m=>displayMapLabel(m.mapName,m.mapId)).filter(m=>!m.startsWith('Unresolved')&&m!=='Unknown map'),...(p?.map?[p.map]:[])])].sort();
  const matchIds=new Set(resource.data?.matches.filter(m=>displayMapLabel(m.mapName,m.mapId)===p?.map).map(m=>m.matchId));
- const sites=[...new Set([...(manualSites[p?.map??'']??[]),...(resource.data?.rounds??[]).filter(r=>matchIds.has(r.matchId)).map(r=>r.site).filter((s):s is string=>Boolean(s)),...(round?.site?[round.site]:[])])].sort();
+ const sites=[...new Set([...(manualSites[p?.map??'']??[]),...linkedSites(p?.map??''),...(resource.data?.rounds??[]).filter(r=>matchIds.has(r.matchId)).map(r=>r.site?resolveSite(p?.map??'',r.site):null).filter((s):s is string=>Boolean(s)),...(round?.site?[round.site]:[])])].sort();
  function patchRound(patch:Partial<ManualRound>){if(p)change({...p,rounds:p.rounds.map((r,i)=>i===roundIndex?{...r,...patch}:r)});}
  const tabs=<div className="segmented manual-tabs"><button className={tab==='match'?'active':''} disabled={blocked} onClick={()=>setTab('match')}>RECORD A MATCH</button><button className={tab==='notes'?'active':''} disabled={blocked} onClick={()=>setTab('notes')}>REPLAY REVIEW NOTES</button></div>;
  if(tab==='notes')return <>{tabs}<ReviewNotesPage app={app}/></>;

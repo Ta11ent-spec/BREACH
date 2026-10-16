@@ -1,6 +1,6 @@
 import { analyzeOverview, asPercent } from './overviewAnalytics';
 import type { OverviewV3, Perspective, ResolvedMatch, V3Round } from './overviewAnalytics';
-import { resolveMap } from './mapCatalog';
+import { resolveMap, resolveSite } from './mapCatalog';
 import type { MapIdentity } from './mapCatalog';
 export type RoundRecord = { rounds: number; wins: number; losses: number; unknown: number; winRate: number | null; attackRounds: number; attackWins: number; defenseRounds: number; defenseWins: number };
 export type MapRecord = MapIdentity & RoundRecord & {
@@ -45,7 +45,7 @@ export function analyzeMaps(data: OverviewV3, perspective: Perspective, period: 
     const losses = group.matches.filter(m => m.outcome === 'LOSS').length;
     const sites = new Map<string, V3Round[]>();
     for (const r of group.rounds) {
-      const name = r.site?.trim() || 'Site not recorded';
+      const name = resolveSite(group.identity.name,r.site);
       const rounds = sites.get(name) ?? []; rounds.push(r); sites.set(name, rounds);
     }
     const summary=summarizeMapRounds(group.rounds);

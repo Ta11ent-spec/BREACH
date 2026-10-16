@@ -1,5 +1,5 @@
 /** Local read-only API contracts. Null means missing or unverified, never a measured zero. */
-import { displayMapLabel } from './mapCatalog';
+import { displayMapLabel, setMapLinks } from './mapCatalog';
 import {authHeaders} from '../auth/apiAuth';
 export type ApiMatch = {
   matchId: string; mapName: string | null; mapId: number | string | null;
@@ -40,7 +40,19 @@ export type ApiPlayerDetail = {player: ApiPlayer; operators: Array<{operatorName
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string){super(message); this.name='ApiError';}
 }
+let catalogLoad:Promise<void>|undefined;
+let catalogLoadedAt=0;
+async function ensureCatalog(){
+ if(Date.now()-catalogLoadedAt<10000)return;
+ if(!catalogLoad)catalogLoad=(async()=>{
+  const response=await fetch('/api/catalog-links',{headers:{Accept:'application/json',...await authHeaders()}});
+  if(!response.ok)throw new ApiError(response.status,'Map links could not be loaded. Please retry.');
+  setMapLinks(await response.json());catalogLoadedAt=Date.now();
+ })().finally(()=>{catalogLoad=undefined;});
+ await catalogLoad;
+}
 export async function fetchApi<T>(path:string, signal?:AbortSignal):Promise<T>{
+  if(path!=='/catalog-links')await ensureCatalog();
   const response=await fetch(`/api${path}`,{signal,headers:{Accept:'application/json',...await authHeaders()}});
   if(!response.ok) throw new ApiError(response.status, response.status===404?'Record not found':`API request failed (${response.status})`);
   return response.json() as Promise<T>;

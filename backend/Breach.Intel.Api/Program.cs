@@ -18,6 +18,7 @@ app.MapMatchReports();
 app.MapWorkflows();
 app.MapManualMatches();
 app.MapAccountProfile();
+app.MapCatalogLinks();
 
 app.MapGet("/api/health", async (SqlStore db) =>
 {

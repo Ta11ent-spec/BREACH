@@ -25,6 +25,13 @@ try{
  var a=await Resolve("synthetic-owner");var b=await Resolve("synthetic-console-player");
  Assert(a.Schema=="dbo"&&b.Schema!="dbo","new accounts provision separately from legacy owner");
  Assert(a.Scope("SELECT * FROM dbo.Players")==b.Scope("SELECT * FROM dbo.Players"),"player catalogue is shared");
+ var links=new CatalogLinks(0,[new MapLink("999","Bank")],[new SiteLink("Bank","Old site label","B Lockers / B CCTV Room")]);
+ Assert(await CatalogEndpoints.Save(links,b,default) is IStatusCodeHttpResult{StatusCode:403},"non-owner cannot edit shared map links");
+ Assert(await CatalogEndpoints.Save(links,a,default) is IStatusCodeHttpResult{StatusCode:200},"owner can save shared map and bombsite links");
+ Assert(await CatalogEndpoints.Save(links,a,default) is IStatusCodeHttpResult{StatusCode:409},"stale catalog revision cannot overwrite another edit");
+ Assert(CatalogEndpoints.Validate(links with{Maps=[new MapLink("999","Not a map")]})!=null,"map links reject unknown destinations");
+ Assert(CatalogEndpoints.Validate(links with{Maps=[new MapLink("999","Bank"),new MapLink("999","Chalet")]})!=null,"map links reject duplicate IDs");
+ Assert(await CatalogEndpoints.Save(new CatalogLinks(1,[],[]),a,default) is IStatusCodeHttpResult{StatusCode:200},"owner can undo links without touching gameplay");
  var conf=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"ConnectionStrings:BreachDatabase",connection}}).Build();
  var ad=new SqlStore(conf,a);var bd=new SqlStore(conf,b);
  var squads=new SquadStore(conf,a);
