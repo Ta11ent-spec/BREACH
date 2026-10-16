@@ -10,6 +10,7 @@ public sealed record ManualRound(string Side, string Operator, string Site, bool
 public sealed record ManualMatch(string PlayerId, string Username, string Platform, string Map, string Mode, int Target, DateTimeOffset PlayedAt, string Notes, ManualRound[] Rounds);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ManualWrite(int Revision, string Status, ManualMatch Payload);
+public sealed record SharedManualRecord(string Id, int Revision, string Status, string Payload, DateTime UpdatedAt);
 
 public static class ManualEndpoints
 {
@@ -39,6 +40,7 @@ public static class ManualEndpoints
             try{return await next(context);}catch(SqlException){return Results.Problem("Manual match storage is unavailable. Your unsaved draft can be retried.",statusCode:503);}
         });
         group.MapGet("",async(SqlStore db)=>Results.Ok(await db.ReadAsync("SELECT Id AS id,Revision AS revision,Status AS status,Payload AS payload,UpdatedAt AS updatedAt FROM dbo.ManualMatches ORDER BY UpdatedAt DESC")));
+        group.MapGet("/shared",async(Workspace w,HttpContext h)=>Results.Ok(await ReadShared(w,h.RequestAborted)));
         group.MapDelete("/{id:guid}",async(Guid id,int revision,Workspace w,HttpContext h)=>await Delete(id,revision,w,h.RequestAborted));
         group.MapPut("/{id:guid}",async(Guid id,Workspace w,HttpContext h)=>{
             if(!h.Request.HasJsonContentType())return Results.StatusCode(415);
@@ -53,6 +55,37 @@ public static class ManualEndpoints
                 return await Save(id,input,w,h.RequestAborted);
             }catch(JsonException){return Results.BadRequest(new{message="Invalid manual match JSON. Use the match form and numeric whole-number stats."});}
         });
+    }
+    // Read the registered workspaces only. The editing API remains owner-scoped.
+    // Existing submissions are included without copying records or changing ownership.
+    public static async Task<List<SharedManualRecord>> ReadShared(Workspace w,CancellationToken ct)
+    {
+        if(string.IsNullOrEmpty(w.Id))throw new UnauthorizedAccessException();
+        await using var db=w.Connection();await db.OpenAsync(ct);
+        var sources=new List<(string Key,string Schema)>();
+        await using(var registry=new SqlCommand("SELECT AccountKey,SchemaName FROM dbo.WorkspaceAccounts WHERE OBJECT_ID(QUOTENAME(SchemaName)+'.ManualMatches','U') IS NOT NULL",db))
+        await using(var reader=await registry.ExecuteReaderAsync(ct))
+            while(await reader.ReadAsync(ct)){
+                var key=reader.GetString(0);var schema=reader.GetString(1);
+                if(!System.Text.RegularExpressions.Regex.IsMatch(key,"\\A[a-f0-9]{64}\\z") ||
+                   (schema!="dbo" && schema!="w_"+key))throw new InvalidOperationException("Invalid workspace registry.");
+                sources.Add((key,schema));
+            }
+        var rows=new List<SharedManualRecord>();
+        if(sources.Count==0)return rows;
+        await using var query=new SqlCommand(){Connection=db,CommandTimeout=60};
+        query.CommandText=string.Join(" UNION ALL ",sources.Select((source,i)=>{
+            query.Parameters.AddWithValue("@owner"+i,source.Key);
+            return $"SELECT @owner{i}+':'+CONVERT(varchar(36),Id) AS Id,Revision,Payload,UpdatedAt FROM [{source.Schema}].ManualMatches WHERE Status='submitted'";
+        }))+" ORDER BY UpdatedAt DESC,Id";
+        await using var data=await query.ExecuteReaderAsync(ct);
+        while(await data.ReadAsync(ct)){
+            var payload=JsonSerializer.Deserialize<ManualMatch>(data.GetString(2),Json) ?? throw new InvalidOperationException("Invalid manual record.");
+            // Match and round notes are private even after the stats are submitted.
+            payload=payload with{Notes="",Rounds=payload.Rounds.Select(r=>r with{Notes=""}).ToArray()};
+            rows.Add(new(data.GetString(0),data.GetInt32(1),"submitted",JsonSerializer.Serialize(payload,Json),data.GetDateTime(3)));
+        }
+        return rows;
     }
     public static async Task<IResult> Delete(Guid id,int revision,Workspace w,CancellationToken ct)
     {

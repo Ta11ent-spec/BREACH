@@ -27,3 +27,20 @@ test('three source modes isolate drafts and do not mutate shared records',()=>{c
 test('combined sources update overview, players, maps, operators and insights consistently',()=>{const data=selectSources(fixture(),[record],'combined');const view=analyzeOverview(data,perspective,'ALL');assert.equal(view.wins,1);assert.equal(view.losses,1);assert.equal(view.totalKills,9);assert.equal(view.rounds,5);const player=analyzePlayers(data,'ALL')[0];assert.equal(player.kills,9);assert.equal(player.winRate,50);const maps=analyzeMaps(data,perspective,'ALL').maps;assert.equal(maps.length,1);assert.equal(maps[0].matchWinRate,50);assert.equal(maps[0].attackRounds,4);const ops=analyzeOperators(data,perspective,'ALL').operators;assert.equal(ops.find(o=>o.name==='Ash').picks,4);const insights=buildInsights(data,perspective,'ALL',1);assert.equal(insights.totals.kills,9);assert.match(insightsCsv(insights),/Manual \/ unverified/);assert.match(matchCsv(view.matches),/manual \/ unverified/);});
 test('manual reports resolve scores and round stats without inventing events or damage',()=>{const report=manualMatchReport(record);const view=resolveMatchReport(report,perspective);assert.equal(view.resolved.outcome,'WIN');assert.equal(view.resolved.source,'manual');assert.equal(view.metrics.kills,8);assert.equal(view.rounds.length,4);assert.equal(report.events.length,0);assert.equal(report.appearances[0].damageDealt,null);assert.equal(report.teams.at(-2).scoreAfter,4);assert.equal(report.teams.at(-1).scoreAfter,0);assert.throws(()=>manualMatchReport({...record,status:'draft'}));});
 test('missing manual stats remain unknown when combined with measured replay stats',()=>{const incomplete={...record,payload:{...record.payload,rounds:record.payload.rounds.map(r=>({...r,kills:null,headshots:null}))}};const player=analyzePlayers(selectSources(fixture(),[incomplete],'combined'),'ALL')[0];assert.equal(player.kills,null);assert.equal(player.kd,null);assert.equal(player.headshots,null);});
+
+
+test('cross-account shared IDs remain distinct in Combined lists and Match Center reports',()=>{
+ const a={...record,id:'owner-a:same-local-id'};
+ const b={...record,id:'owner-b:same-local-id',payload:{...record.payload,playerId:'friend',username:'Friend'}};
+ const data=selectSources(fixture(),[a,b],'combined');
+ assert.deepEqual(new Set(data.matches.map(m=>m.matchId)),new Set(['replay','manual:owner-a:same-local-id','manual:owner-b:same-local-id']));
+ const friend=analyzePlayers(data,'ALL').find(p=>p.playerId==='friend');
+ assert.equal(friend.kills,8);
+ const view=analyzeOverview(data,{mode:'player',members:['friend']},'ALL');
+ assert.equal(view.matches.length,1);
+ assert.equal(view.matches[0].matchId,'manual:owner-b:same-local-id');
+ const report=manualMatchReport(b);
+ assert.equal(report.match.matchId,view.matches[0].matchId);
+ assert.equal(resolveMatchReport(report,{mode:'player',members:['friend']}).metrics.kills,8);
+ assert.equal(selectSources(fixture(),[a,b],'replay').matches.length,1);
+});

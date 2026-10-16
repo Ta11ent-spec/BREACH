@@ -8,6 +8,9 @@ builder.Services.AddScoped<SquadStore>();
 var authConfigured=builder.AddBreachAuthentication();
 // Local development only. Vite forwards /api requests, so no public CORS policy is necessary.
 var app = builder.Build();
+// Published Vite assets share the API origin; local development still uses Vite.
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseBreachAuthentication(authConfigured);
 app.MapUploads();
 app.MapSquads();

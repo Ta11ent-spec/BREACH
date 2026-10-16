@@ -4,6 +4,7 @@ import type {ManualRecord} from './manualMatches';
 type Wire=Omit<ManualRecord,'payload'>&{payload:string};
 const decode=(r:Wire):ManualRecord=>({...r,payload:JSON.parse(r.payload)});
 export async function listManualMatches(signal?:AbortSignal){return (await fetchApi<Wire[]>('/manual-matches',signal)).map(decode);}
+export async function listSharedManualMatches(signal?:AbortSignal){return (await fetchApi<Wire[]>('/manual-matches/shared',signal)).map(decode);}
 export async function deleteManualDraft(record:ManualRecord){
  const response=await fetch('/api/manual-matches/'+encodeURIComponent(record.id)+'?revision='+record.revision,{method:'DELETE',headers:{'X-Breach-Request':'manual',...await authHeaders()}});
  if(!response.ok&&response.status!==404){const e=await response.json().catch(()=>null);throw new Error(e?.message??'Draft could not be deleted. Please reload and try again.');}

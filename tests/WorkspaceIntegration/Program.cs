@@ -96,6 +96,22 @@ try{
  var savedManual=JsonSerializer.Deserialize<ManualMatch>((string)(await ad.ReadAsync("SELECT Payload FROM dbo.ManualMatches"))[0]["Payload"]!,ManualEndpoints.Json)!;
  Assert(savedManual.Rounds[0].Assists is null,"unknown manual statistics remain null through SQL persistence");
  Assert(await ManualEndpoints.Save(manualId,new(2,"draft",manual),b,default) is IStatusCodeHttpResult{StatusCode:404},"another account cannot update an owner's draft ID");
+ // Shared analytics includes existing submissions from other accounts, never drafts or notes.
+ Assert((await ManualEndpoints.ReadShared(b,default)).Count==1,"another account reads existing submitted manual stats");
+ var privateDraftId=Guid.NewGuid();
+ await ManualEndpoints.Save(privateDraftId,new(0,"draft",manual with{Notes="private draft"}),b,default);
+ var sharedInput=completed with{Notes="private match note",Rounds=completed.Rounds.Select(r=>r with{Notes="private round note"}).ToArray()};
+ Assert(await ManualEndpoints.Save(manualId,new(0,"submitted",sharedInput),b,default) is IStatusCodeHttpResult{StatusCode:200},"same local record ID may exist in another workspace");
+ var sharedA=await ManualEndpoints.ReadShared(a,default);var sharedB=await ManualEndpoints.ReadShared(b,default);
+ Assert(sharedA.Count==2&&sharedB.Count==2,"all accounts see submissions but not drafts");
+ Assert(sharedA.Select(r=>r.Id).Distinct().Count()==2,"shared IDs prevent collisions across owners");
+ Assert(sharedA.SequenceEqual(sharedB),"owner and other account receive identical shared stats");
+ Assert(sharedA.All(r=>!r.Payload.Contains("private")),"shared payload excludes private match and round notes");
+ var sharedPayload=JsonSerializer.Deserialize<ManualMatch>(sharedA[0].Payload,ManualEndpoints.Json)!;
+ Assert(sharedPayload.Rounds.Sum(r=>r.Kills)==4&&sharedPayload.Rounds[0].Assists is null,"shared payload retains stats and unknown values");
+ var ownerPayload=(string)(await bd.ReadAsync("SELECT Payload FROM dbo.ManualMatches WHERE Id=@id",("@id",manualId)))[0]["Payload"]!;
+ Assert(ownerPayload.Contains("private match note")&&ownerPayload.Contains("private round note"),"sharing does not remove owner's private notes");
+ Assert(await ManualEndpoints.Delete(manualId,1,b,default) is IStatusCodeHttpResult{StatusCode:409},"shared submissions remain immutable");
  var simultaneous=Guid.NewGuid();
  var results=await Task.WhenAll(ManualEndpoints.Save(simultaneous,new(0,"draft",manual),a,default),ManualEndpoints.Save(simultaneous,new(0,"draft",manual with{Map="Bank"}),a,default));
  Assert(results.Count(x=>x is IStatusCodeHttpResult{StatusCode:200})==1&&results.Count(x=>x is IStatusCodeHttpResult{StatusCode:409})==1,"concurrent draft creation retains one version without silent overwrite");

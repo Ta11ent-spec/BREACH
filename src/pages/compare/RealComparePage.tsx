@@ -23,7 +23,7 @@ export function RealComparePage({ app }: { app: any }) {
   const comparison = useMemo(() => resource.data ? comparePlayers(resource.data, aId, bId, period, commonOnly) : null, [resource.data, aId, bId, period, commonOnly]);
   const heading = <>{app.headline('PLAYER SCIENCE / RECORDED HEAD-TO-HEAD', 'Player comparison.', 'Compare player histories with visible samples and the same reporting range.')}<ManualDataToggle included={includeManual} onChange={setIncludeManual}/></>;
   if (!resource.data || resource.error) return <div className="page real-compare">{heading}<section className="panel real-notice" role="status"><h3>{resource.error ? 'Comparison data unavailable' : 'Loading player comparison'}</h3><p>{resource.error ?? 'Reading your recorded player histories…'}</p>{resource.error && <Btn onClick={resource.reload}>RETRY</Btn>}</section></div>;
-  if (profiles.length < 2) return <div className="page real-compare">{heading}<section className="panel"><Empty title="Two players are needed" sub="Choose a wider date range or include your submitted manual matches to compare more players."/></section></div>;
+  if (profiles.length < 2) return <div className="page real-compare">{heading}<section className="panel"><Empty title="Two players are needed" sub="Choose a wider date range or include shared submitted manual matches to compare more players."/></section></div>;
   const a = comparison?.a ?? profiles.find(p => p.playerId === aId)!;
   const b = comparison?.b ?? profiles.find(p => p.playerId === bId)!;
   const metrics = [

@@ -24,7 +24,7 @@ export function Topbar({app}:any){
         {app.state.showSearch&&app.state.query&&<div className="search-results">{results.length?results.map((r:any,i:number)=><button key={i} onClick={()=>{app.go(r.route);app.setState({query:'',showSearch:false})}}><Icon name="search" size={14}/><span><strong>{r.name}</strong><small>{r.meta}</small></span><Icon name="chevron" size={14}/></button>):<div className="search-empty">No matching records</div>}</div>}
       </div>}
       <div className="top-sep"/>
-      <div className="season-chip"><Icon name="calendar" size={16}/><span>{app.state.dataMode==='real'?'LOCAL DB':'Y10S4'}</span></div>
+      <div className="season-chip"><Icon name="calendar" size={16}/><span>{app.state.dataMode==='real'?'MATCH DATA':'Y10S4'}</span></div>
       <button className="top-alert" title="View system status" onClick={()=>app.state.dataMode==='real'?app.go('/live'):app.toast('Demo systems are simulated')}><Icon name="activity" size={18}/>{app.state.dataMode==='demo'&&<i/>}</button>
       <a className="top-avatar" href="#/account" aria-label="Edit my account profile">{app.state.dataMode==='real'&&profile?.avatar?<img src={profile.avatar} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'inherit'}}/>:app.state.dataMode==='real'?(profile?.displayName.trim().slice(0,2).toUpperCase()||'BR'):'AD'}</a>
     </div>
