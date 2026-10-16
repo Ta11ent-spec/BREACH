@@ -42,12 +42,12 @@ export class App extends React.Component<any,any>{
             <RouteView app={this}/>
             <footer className="main-footer">
               <span><span className="footer-cross">+</span> BREACH / INTEL <i>·</i> INDEPENDENT CONCEPT UI</span>
-              <span>{this.state.dataMode==='real'?'LOCAL SQL SERVER · REAL REPLAY RECORDS':'FICTIONAL DATA · NO LIVE GAME CONNECTION'} <i>·</i> BUILD 02.00</span>
+              <span>{this.state.dataMode==='real'?'SHARED MATCH INTELLIGENCE':'FICTIONAL DATA · NO LIVE GAME CONNECTION'} <i>·</i> V1.1.0</span>
             </footer>
           </main>
         </div>
         {this.state.mobileOpen&&<div className="mobile-backdrop" onClick={()=>this.setState({mobileOpen:false})}/>}
-        <div className="demo-label"><span className="live-bullet"/> {this.state.dataMode==='real'?'REAL DATA · LOCAL SQL':'INTERACTIVE DEMO · SAMPLE DATA'}</div>
+        <div className="demo-label"><span className="live-bullet"/> {this.state.dataMode==='real'?'REAL MATCH DATA':'INTERACTIVE DEMO · SAMPLE DATA'}</div>
         {this.state.toast&&<div className="toast"><Icon name="check" size={17}/>{this.state.toast}</div>}
       </div>
     );

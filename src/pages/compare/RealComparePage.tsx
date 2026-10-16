@@ -10,7 +10,7 @@ import { saveFile } from '../../lib/download';
 const number = (n: number | null | undefined) => n == null ? '—' : n.toLocaleString();
 const percent = (n: number | null) => n == null ? '—' : `${n}%`;
 const avatar = (name: string, color: string) => ({ initials: name.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase() || '?', color });
-const shades = ['#c9fa62', '#85a6e6'];
+const shades = ['#fa9062', '#85a6e6'];
 export function RealComparePage({ app }: { app: any }) {
   const [includeManual,setIncludeManual]=useManualInclusion();
   const resource = useRecordedOverview(includeManual);

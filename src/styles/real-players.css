@@ -1,9 +1,9 @@
 .real-players .player-card-person h2{font-size:clamp(24px,2.6vw,38px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.12}
 .real-players .player-card-person .avatar{flex-shrink:0}
-.real-players .selected-player-card{border-color:#768f48}
+.real-players .selected-player-card{border-color:var(--accent)}
 .player-directory-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
 .player-directory-toolbar .period-switch{margin:0 0 0 auto}
-.player-directory-toolbar select{padding:9px 12px;background:#192329;border:1px solid #39454a;border-radius:4px;color:var(--text);font:10px var(--mono)}
+.player-directory-toolbar select{padding:9px 12px;background:var(--fixed-192329);border:1px solid var(--fixed-39454a);border-radius:4px;color:var(--text);font:10px var(--mono)}
 .player-directory-caption{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font:10px var(--mono);color:var(--muted);margin:20px 0 15px}
 .player-pagination{display:flex;align-items:center;justify-content:center;gap:20px;margin:15px 0 24px;font:10px var(--mono);color:var(--muted)}
 .player-table-name{display:flex;gap:12px;align-items:center;text-align:left;background:none;border:0;color:var(--text);padding:5px 0}

@@ -1,6 +1,7 @@
 /** Deterministic, unit-testable V3 analytics. No replay slot-0 assumption. */
 import { displayMapLabel } from './mapCatalog';
 export type V3Match = {
+  summaryScore?: {wins:number;losses:number};
   source?: 'replay'|'manual';
   matchId: string; playedAt: string | null; mapName: string | null; mapId: number | string | null;
   matchType: string | null; gameMode: string | null;
@@ -8,6 +9,7 @@ export type V3Match = {
 };
 export type V3Round = { roundId: string; matchId: string; roundNumber: number; teamSlot: number; side: string | null; won: boolean | null; site?: string | null };
 export type V3Appearance = {
+  roundsRepresented?:number; deaths?:number|null;
   roundId: string; matchId: string; playerId: string; teamIndex: number | null;
   kills: number | null; died: boolean | null; assists: number | null;
   headshots: number | null; operatorName: string | null;
@@ -73,6 +75,7 @@ export function analyzeOverview(data: OverviewV3, perspective: Perspective, peri
     const slot = joined[0].teamIndex;
     if (slots.size !== 1 || !isSlot(slot)) {ambiguousMatches++; continue;}
     const present = new Set(joined.map(a=>a.playerId)).size;
+    if(match.summaryScore){const {wins:a,losses:b}=match.summaryScore;const wins=slot===0?a:b,losses=slot===0?b:a;stats.push(...joined);matches.push({...match,slot,present,wins,losses,outcome:wins>losses?'WIN':wins<losses?'LOSS':'UNKNOWN',scopedRounds:[]});continue;}
     const all = (roundsByMatch.get(match.matchId) ?? []).filter(r=>r.teamSlot===slot)
       .sort((a,b)=>a.roundNumber-b.roundNumber);
     // The match score is only verified if every recorded round has a result
@@ -99,12 +102,13 @@ export function analyzeOverview(data: OverviewV3, perspective: Perspective, peri
     if(side==='attack'){attackRounds++;if(r.won)attackWins++;}
     if(side==='defense'){defenseRounds++;if(r.won)defenseWins++;}
   }
-  const rounds = new Set(playedSides.map(r=>r.roundId)).size;
-  const roundWins=playedSides.filter(r=>r.won===true).length;
-  const roundLosses=playedSides.filter(r=>r.won===false).length;
+  const summaries=matches.filter(m=>m.summaryScore);
+  const rounds = new Set(playedSides.map(r=>r.roundId)).size+summaries.reduce((n,m)=>n+m.roundCount,0);
+  const roundWins=playedSides.filter(r=>r.won===true).length+summaries.reduce((n,m)=>n+m.wins,0);
+  const roundLosses=playedSides.filter(r=>r.won===false).length+summaries.reduce((n,m)=>n+m.losses,0);
   const totalKills=stats.reduce((s,a)=>s+(a.kills??0),0);
-  const totalDeaths=stats.reduce((s,a)=>s+(a.died===true?1:0),0);
-  const kd=stats.length>0 && stats.every(a=>a.died!==null && a.kills!==null)
+  const totalDeaths=stats.reduce((s,a)=>s+(a.deaths??(a.died===true?1:0)),0);
+  const kd=stats.length>0 && stats.every(a=>(a.deaths!=null||a.died!==null) && a.kills!==null)
     ? totalDeaths>0 ? (totalKills/totalDeaths).toFixed(2) : totalKills>0?'∞':'—' : null;
   const hsRows=stats.filter(a=>a.headshots!==null && a.kills!==null);
   const hsEligibleKills=hsRows.reduce((s,a)=>s+(a.kills??0),0);
@@ -115,9 +119,9 @@ export function analyzeOverview(data: OverviewV3, perspective: Perspective, peri
   for(const a of stats){const bucket=byPlayer.get(a.playerId)??[];bucket.push(a);byPlayer.set(a.playerId,bucket);}
   const players=[...byPlayer].map(([playerId,rows]):Leader=>{
     const kills=rows.reduce((s,a)=>s+(a.kills??0),0);
-    const deaths=rows.filter(a=>a.died===true).length;
-    return {playerId,username:names.get(playerId)??playerId,kills,deaths,roundsPlayed:rows.length,
-      kd:rows.every(a=>a.died!==null && a.kills!==null)?(deaths>0?(kills/deaths).toFixed(2):kills>0?'∞':'—'):null};
+    const deaths=rows.reduce((n,a)=>n+(a.deaths??Number(a.died===true)),0);
+    return {playerId,username:names.get(playerId)??playerId,kills,deaths,roundsPlayed:rows.reduce((n,a)=>n+(a.roundsRepresented??1),0),
+      kd:rows.every(a=>(a.deaths!=null||a.died!==null) && a.kills!==null)?(deaths>0?(kills/deaths).toFixed(2):kills>0?'∞':'—'):null};
   }).sort((a,b)=>b.kills-a.kills || a.username.localeCompare(b.username));
   const maps=new Map<string,MapStat>();
   for(const m of decided){

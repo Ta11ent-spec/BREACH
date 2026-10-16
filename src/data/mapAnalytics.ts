@@ -48,7 +48,10 @@ export function analyzeMaps(data: OverviewV3, perspective: Perspective, period: 
       const name = r.site?.trim() || 'Site not recorded';
       const rounds = sites.get(name) ?? []; rounds.push(r); sites.set(name, rounds);
     }
-    return { ...group.identity, ...summarizeMapRounds(group.rounds), mapId: group.matches[0].mapId, rawName: group.matches[0].mapName,
+    const summary=summarizeMapRounds(group.rounds);
+    for(const m of group.matches.filter(m=>m.summaryScore)){summary.rounds+=m.roundCount;summary.wins+=m.wins;summary.losses+=m.losses;}
+    summary.winRate=asPercent(summary.wins,summary.wins+summary.losses);
+    return { ...group.identity, ...summary, mapId: group.matches[0].mapId, rawName: group.matches[0].mapName,
       matches: group.matches, matchWins: wins, matchLosses: losses, unverifiedMatches: group.matches.length - wins - losses,
       matchWinRate: asPercent(wins, wins + losses),
       sites: [...sites].map(([name, rounds]) => ({ name, ...summarizeMapRounds(rounds) })).sort((a, b) => b.rounds - a.rounds || a.name.localeCompare(b.name)) };

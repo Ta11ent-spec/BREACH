@@ -27,9 +27,9 @@
 .real-insights .insight-kpis .pill{white-space:normal;line-height:1.6;font-size:8px}
 .real-insights .report-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:18px}
 .real-insights .section-title{flex-wrap:wrap}
-.real-insights select{background:#192329;border:1px solid #39454a;color:var(--text);padding:8px;border-radius:4px;font:9px var(--mono)}
-.recorded-matrix-row{width:100%;background:none;border:0;border-bottom:1px solid #28333a;text-align:left;color:var(--text)}
-.recorded-matrix-row:hover,.recorded-dist-row:hover{background:#213029}
+.real-insights select{background:var(--fixed-192329);border:1px solid var(--fixed-39454a);color:var(--text);padding:8px;border-radius:4px;font:9px var(--mono)}
+.recorded-matrix-row{width:100%;background:none;border:0;border-bottom:1px solid var(--fixed-28333a);text-align:left;color:var(--text)}
+.recorded-matrix-row:hover,.recorded-dist-row:hover{background:var(--fixed-213029)}
 .recorded-matrix-row>strong{line-height:1.6;overflow-wrap:anywhere}
 .recorded-matrix-row small{display:block;font:8px var(--mono);color:var(--muted);margin-top:5px}
 .recorded-dist-row{width:100%;border:0;background:none;color:var(--text);padding:5px 0;text-align:left;grid-template-columns:minmax(90px,1fr) minmax(80px,2fr) 52px}

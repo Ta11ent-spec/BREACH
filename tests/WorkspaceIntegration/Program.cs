@@ -136,6 +136,22 @@ try{
  Assert((string)(await ad.ReadAsync("SELECT Avatar FROM dbo.AccountProfile"))[0]["Avatar"]! == png,"avatar survives database roundtrip");
  Assert(await ProfileEndpoints.Save(profile with{Revision=2,Avatar=""},a,default) is IStatusCodeHttpResult{StatusCode:200},"profile picture can be removed");
  Assert((string)(await ad.ReadAsync("SELECT Avatar FROM dbo.AccountProfile"))[0]["Avatar"]! == "","picture removal persists");
+ var roster=Enumerable.Range(0,10).Select(i=>new ManualPlayer("manual-player:"+Guid.NewGuid(),"Player "+i,i<5?0:1)).ToArray();
+ var recordedId=(string)(await ad.ReadAsync("SELECT TOP(1) PlayerId FROM dbo.Players"))[0]["PlayerId"]!;
+ roster[0]=new(recordedId,"Do not rename canonical player",0);
+ var ten=completed with{Roster=roster,Rounds=completed.Rounds.Select(r=>r with{Players=roster.Select(p=>new ManualPlayerStats(p.PlayerId,"",1,false,0,0)).ToArray()}).ToArray()};
+ var tenId=Guid.NewGuid();
+ Assert(await ManualEndpoints.Save(tenId,new(0,"submitted",ten),a,default) is IStatusCodeHttpResult{StatusCode:200},"ten-player round entry saves with existing and new players");
+ var tenSaved=JsonSerializer.Deserialize<ManualMatch>((string)(await ad.ReadAsync("SELECT Payload FROM dbo.ManualMatches WHERE Id=@id",("@id",tenId)))[0]["Payload"]!,ManualEndpoints.Json)!;
+ Assert(tenSaved.Roster![0].Username=="One"&&tenSaved.Rounds[0].Players!.Length==10,"all round stats persist and existing player's canonical name is preserved");
+ Assert(ManualEndpoints.Validate(new(0,"submitted",ten with{Roster=[..roster.Take(9)]})) is not null,"nine-player roster rejected");
+ Assert(ManualEndpoints.Validate(new(0,"submitted",ten with{Roster=[roster[0],roster[0],..roster.Skip(2)]})) is not null,"duplicate roster players rejected");
+ Assert(ManualEndpoints.Validate(new(0,"submitted",ten with{Rounds=[ten.Rounds[0] with{Players=[]}]})) is not null,"missing round players rejected");
+ var final=ten with{Rounds=[],Summary=new(4,1,roster.Select(p=>new ManualSummaryPlayer(p.PlayerId,8,3,2,4)).ToArray())};
+ Assert(await ManualEndpoints.Save(Guid.NewGuid(),new(0,"submitted",final),b,default) is IStatusCodeHttpResult{StatusCode:200},"final scoreboard entry saves without invented round rows");
+ Assert(ManualEndpoints.Validate(new(0,"submitted",final with{Summary=final.Summary! with{Wins=3}})) is not null,"unfinished final score rejected");
+ Assert(ManualEndpoints.Validate(new(0,"submitted",final with{Summary=final.Summary! with{Players=[final.Summary!.Players[0] with{Deaths=6},..final.Summary.Players.Skip(1)]}})) is not null,"deaths cannot exceed final match round count");
+ Assert(ManualEndpoints.Validate(new(0,"submitted",final with{Summary=final.Summary! with{Players=[final.Summary!.Players[0] with{Headshots=9},..final.Summary.Players.Skip(1)]}})) is not null,"scoreboard headshots cannot exceed kills");
  Console.WriteLine($"{checks} integration checks passed against isolated SQL database.");
 }finally{SqlConnection.ClearAllPools();await Sql($"ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{database}]",true);}
 

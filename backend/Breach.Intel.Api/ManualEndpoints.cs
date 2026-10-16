@@ -5,9 +5,17 @@ using Microsoft.Data.SqlClient;
 namespace Breach.Intel.Api;
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ManualRound(string Side, string Operator, string Site, bool? Won, int? Kills, bool? Died, int? Assists, int? Headshots, string Notes);
+public sealed record ManualPlayer(string PlayerId,string Username,int TeamIndex);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ManualMatch(string PlayerId, string Username, string Platform, string Map, string Mode, int Target, DateTimeOffset PlayedAt, string Notes, ManualRound[] Rounds);
+public sealed record ManualPlayerStats(string PlayerId,string Operator,int? Kills,bool? Died,int? Assists,int? Headshots);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ManualRound(string Side, string Operator, string Site, bool? Won, int? Kills, bool? Died, int? Assists, int? Headshots, string Notes, ManualPlayerStats[]? Players=null);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ManualSummaryPlayer(string PlayerId,int? Kills,int? Deaths,int? Assists,int? Headshots);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ManualSummary(int Wins,int Losses,ManualSummaryPlayer[] Players);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ManualMatch(string PlayerId, string Username, string Platform, string Map, string Mode, int Target, DateTimeOffset PlayedAt, string Notes, ManualRound[] Rounds, ManualPlayer[]? Roster=null,ManualSummary? Summary=null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ManualWrite(int Revision, string Status, ManualMatch Payload);
 public sealed record SharedManualRecord(string Id, int Revision, string Status, string Payload, DateTime UpdatedAt);
@@ -21,14 +29,32 @@ public static class ManualEndpoints
         if(input.Revision<0 || input.Revision==int.MaxValue || input.Status is not ("draft" or "submitted") || p is null) return "Invalid draft revision or status.";
         bool Text(string? s,int max)=>s is not null && s.Length<=max && !s.Any(c=>char.IsControl(c)&&c!='\n'&&c!='\r'&&c!='\t');
         if(!Text(p.PlayerId,100)||!Text(p.Username,100)||!Text(p.Map,100)||!Text(p.Notes,4000)||p.Platform is not ("PC" or "PlayStation" or "Xbox") || p.Mode is not ("Ranked Bomb" or "Custom Bomb") || p.Target is <1 or >12 || p.PlayedAt.Year<2000 || p.PlayedAt>DateTimeOffset.UtcNow.AddMinutes(5) || p.Rounds is null || p.Rounds.Length>23) return "Check player, platform, map, date and match format.";
+        if(p.Roster is not null){
+            if(p.Roster.Length!=10 || p.Roster.Any(x=>x is null || !Text(x.PlayerId,100)||!Text(x.Username,100)||x.TeamIndex is <0 or >1) || p.Roster.Count(x=>x.TeamIndex==0)!=5 || p.Roster.Count(x=>x.TeamIndex==1)!=5 || p.Roster.Select(x=>x.PlayerId).Distinct(StringComparer.Ordinal).Count()!=10)return "Choose ten distinct players, five on each team.";
+            if(input.Status=="submitted" && p.Roster.Any(x=>string.IsNullOrWhiteSpace(x.PlayerId)||string.IsNullOrWhiteSpace(x.Username)))return "Name or select all ten players before submitting.";
+        }
+        if(p.Summary is {} summary){
+            var n=summary.Wins+summary.Losses;var high=Math.Max(summary.Wins,summary.Losses);var low=Math.Min(summary.Wins,summary.Losses);
+            if(p.Roster is null || p.Rounds.Length!=0 || summary.Wins<0||summary.Losses<0||high>12||summary.Players is null||summary.Players.Length!=10||summary.Players.Any(x=>x is null)||summary.Players.Select(x=>x.PlayerId).Distinct(StringComparer.Ordinal).Count()!=10||summary.Players.Any(x=>!p.Roster.Any(r=>r.PlayerId==x.PlayerId)))return "Check scoreboard players and final score.";
+            foreach(var x in summary.Players){
+                if(x.Kills is <0||x.Deaths is <0||x.Assists is <0||x.Headshots is <0||x.Kills>5*n||x.Assists>5*n||x.Headshots>5*n||x.Deaths>n||x.Headshots is not null&&(x.Kills is null||x.Headshots>x.Kills))return "Scoreboard statistics exceed the match limits.";
+            }
+            var endedScore=p.Mode=="Ranked Bomb"?high==4&&low<=2||high==5&&low>=3&&low<=4:high==p.Target&&low<p.Target;
+            if(input.Status=="submitted"&&(!endedScore||string.IsNullOrWhiteSpace(p.Map)))return "Enter a complete final score and map.";
+            return null;
+        }
         int wins=0,losses=0;bool ended=false;
         foreach(var r in p.Rounds){
             if(r is null || !Text(r.Operator,100)||!Text(r.Site,100)||!Text(r.Notes,2000)||r.Side is not ("Attack" or "Defense") || r.Kills is <0 or >5 || r.Assists is <0 or >5 || r.Headshots is <0 or >5 || r.Headshots is not null && (r.Kills is null || r.Headshots>r.Kills)) return "Round stats must be 0–5. Headshots require kills and cannot exceed them.";
+            if(p.Roster is not null){
+                if(r.Players is null || r.Players.Length!=10 || r.Players.Any(x=>x is null) || r.Players.Select(x=>x.PlayerId).Distinct(StringComparer.Ordinal).Count()!=10 || r.Players.Any(x=>!p.Roster.Any(p=>p.PlayerId==x.PlayerId)))return "Every round must contain the same ten roster players.";
+                if(r.Players.Any(x=>!Text(x.Operator,100)||x.Kills is <0 or >5||x.Assists is <0 or >5||x.Headshots is <0 or >5||x.Headshots is not null&&(x.Kills is null||x.Headshots>x.Kills)))return "Check round statistics for all players. Headshots cannot exceed kills.";
+            }else if(r.Players is not null)return "Round players require a match roster.";
             if(input.Status=="submitted" && (ended||r.Won is null)) return "Each round needs a result, and no rounds may follow a match-ending score.";
             if(r.Won==true)wins++;else if(r.Won==false)losses++;
             ended=p.Mode=="Ranked Bomb" ? Math.Max(wins,losses)>=5 || Math.Max(wins,losses)>=4&&Math.Abs(wins-losses)>=2 : Math.Max(wins,losses)>=p.Target;
         }
-        if(input.Status=="submitted" && (string.IsNullOrWhiteSpace(p.PlayerId)||string.IsNullOrWhiteSpace(p.Username)||string.IsNullOrWhiteSpace(p.Map)||!ended))return "Select a player and map, then record a complete match score before submitting.";
+        if(input.Status=="submitted" && ((p.Roster is null&&(string.IsNullOrWhiteSpace(p.PlayerId)||string.IsNullOrWhiteSpace(p.Username)))||string.IsNullOrWhiteSpace(p.Map)||!ended))return "Select a player and map, then record a complete match score before submitting.";
         return null;
     }
     public static void MapManualMatches(this WebApplication app)
@@ -115,16 +141,20 @@ public static class ManualEndpoints
         if(revision is null&&input.Revision!=0)return Results.NotFound();
         if((string?)status=="submitted")return Results.Conflict(new{message="Submitted matches are read-only. Create a new draft for another match."});
         var p=input.Payload;
-        if(!string.IsNullOrEmpty(p.PlayerId)){
-            if(p.PlayerId.StartsWith("manual-player:",StringComparison.Ordinal)){
-                if(!Guid.TryParse(p.PlayerId[14..],out _))return Results.BadRequest(new{message="Invalid manual player identifier."});
+        var canonical=new List<ManualPlayer>();
+        foreach(var player in p.Roster??[new(p.PlayerId,p.Username,0)]){
+            if(string.IsNullOrEmpty(player.PlayerId)){canonical.Add(player);continue;}
+            if(player.PlayerId.StartsWith("manual-player:",StringComparison.Ordinal)){
+                if(!Guid.TryParse(player.PlayerId[14..],out _))return Results.BadRequest(new{message="Invalid manual player identifier."});
+                canonical.Add(player);
             }else{
-                var name=await Run("SELECT Username FROM dbo.Players WHERE PlayerId=@player",("@player",p.PlayerId));
+                var name=await Run("SELECT Username FROM dbo.Players WHERE PlayerId=@player",("@player",player.PlayerId));
                 if(name is null)return Results.BadRequest(new{message="Choose an existing recorded player or create a manual profile."});
-                // Preserve the canonical display name, never rename a shared player through a manual form.
-                p=p with{Username=(string)name};payload=JsonSerializer.Serialize(p,Json);
+                canonical.Add(player with{Username=(string)name});
             }
         }
+        p=p with{PlayerId=canonical[0].PlayerId,Username=canonical[0].Username,Roster=p.Roster is null?null:canonical.ToArray()};
+        payload=JsonSerializer.Serialize(p,Json);
         if(revision is null)await Run("INSERT dbo.ManualMatches(Id,Revision,Status,Payload) VALUES(@id,1,@status,@payload)",("@id",id),("@status",input.Status),("@payload",payload));
         else await Run("UPDATE dbo.ManualMatches SET Revision=Revision+1,Status=@status,Payload=@payload,UpdatedAt=SYSUTCDATETIME() WHERE Id=@id",("@id",id),("@status",input.Status),("@payload",payload));
         await tx.CommitAsync(ct);

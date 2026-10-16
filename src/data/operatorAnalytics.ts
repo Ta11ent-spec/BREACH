@@ -27,7 +27,7 @@ export function analyzeOperators(data: OverviewV3, perspective: Perspective, per
   const groups = new Map<string, { name: string; side: OperatorSide; rows: V3Appearance[] }>();
   for (const row of data.appearances) {
     const match = matches.get(row.matchId);
-    if (!selected.has(row.playerId) || !match || row.teamIndex !== match.slot) continue;
+    if (row.roundsRepresented!=null || !selected.has(row.playerId) || !match || row.teamIndex !== match.slot) continue;
     const side = classifySide(teamRows.get(`${row.roundId}|${match.slot}`)?.side);
     const name = row.operatorName?.trim() || 'Unknown operator';
     const key = `${name}|${side}`;

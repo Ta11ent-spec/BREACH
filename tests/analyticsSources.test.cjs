@@ -44,3 +44,34 @@ test('cross-account shared IDs remain distinct in Combined lists and Match Cente
  assert.equal(resolveMatchReport(report,{mode:'player',members:['friend']}).metrics.kills,8);
  assert.equal(selectSources(fixture(),[a,b],'replay').matches.length,1);
 });
+
+const {compareKd}=loadTs('src/data/kdSort.ts');
+function tenPlayerRecord(summaryOnly=false){
+ const roster=Array.from({length:10},(_,i)=>({playerId:'manual-player:'+i,username:'Player '+i,teamIndex:i<5?0:1}));
+ const p={...record.payload,roster,rounds:record.payload.rounds.map(r=>({...r,players:roster.map(p=>({playerId:p.playerId,operator:p.teamIndex===0?'Ash':'Smoke',kills:p.teamIndex===0?1:0,died:p.teamIndex===1,assists:0,headshots:0}))}))};
+ if(summaryOnly){p.rounds=[];p.summary={wins:4,losses:0,players:roster.map(p=>({playerId:p.playerId,kills:p.teamIndex===0?4:0,deaths:p.teamIndex===0?0:4,assists:0,headshots:0}))};}
+ return {...record,id:'ten',payload:p};
+}
+test('ten-player manual match attributes both teams and all stats across analytics',()=>{
+ const r=tenPlayerRecord(),data=selectSources(fixture(),[r],'manual');
+ assert.equal(data.players.length,10);assert.equal(data.matches.length,1);assert.equal(data.appearances.length,40);
+ const players=analyzePlayers(data,'ALL');assert.equal(players[0].wins,1);assert.equal(players[0].kills,4);assert.equal(players[5].losses,1);assert.equal(players[5].deaths,4);
+ const report=resolveMatchReport(manualMatchReport(r),{mode:'player',members:['manual-player:5']});
+ assert.equal(report.resolved.outcome,'LOSS');assert.equal(report.teammates.length,5);assert.equal(report.opponents.length,5);assert.equal(report.metrics.deaths,4);assert.equal(report.rounds.length,4);
+ assert.equal(analyzeMaps(data,{mode:'player',members:['manual-player:5']},'ALL').maps[0].matchLosses,1);
+});
+test('scoreboard-only entries preserve totals without inventing rounds, sites or operators',()=>{
+ const r=tenPlayerRecord(true),data=selectSources(fixture(),[r],'manual'),scope={mode:'player',members:['manual-player:5']};
+ assert.equal(data.rounds.length,0);assert.equal(data.appearances.length,10);
+ const profile=analyzePlayers(data,'ALL').find(p=>p.playerId==='manual-player:5');assert.equal(profile.deaths,4);assert.equal(profile.rounds,4);assert.equal(profile.kd,'0.00');assert.equal(profile.losses,1);assert.equal(profile.operators.length,0);
+ const overview=analyzeOverview(data,scope,'ALL');assert.equal(overview.roundLosses,4);assert.equal(overview.totalDeaths,4);assert.equal(overview.rounds,4);assert.equal(overview.defenseRounds,0);
+ const maps=analyzeMaps(data,scope,'ALL').maps;assert.equal(maps[0].rounds,4);assert.equal(maps[0].sites.length,0);
+ assert.equal(analyzeOperators(data,scope,'ALL').operators.length,0);
+ const report=resolveMatchReport(manualMatchReport(r),scope);assert.equal(report.metrics.deaths,4);assert.equal(report.rounds.length,0);assert.equal(report.trackedRoundCount,4);assert.equal(report.resolved.losses,4);
+ const insights=buildInsights(data,scope,'ALL',1);assert.equal(insights.totals.deaths,4);assert.equal(insights.coverage.completeCoverage,100);
+});
+test('K/D arrows sort numerically, keep unknown last and handle zero deaths',()=>{
+ const values=['2.00',null,'∞','0.50','10.00','—'];
+ assert.deepEqual([...values].sort((a,b)=>compareKd(a,b,'asc')),['0.50','2.00','10.00','∞',null,'—']);
+ assert.deepEqual([...values].sort((a,b)=>compareKd(a,b,'desc')),['∞','10.00','2.00','0.50',null,'—']);
+});

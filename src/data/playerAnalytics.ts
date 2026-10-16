@@ -19,11 +19,12 @@ export function playerTotals(rows: V3Appearance[]): PlayerTotals {
   const sum = (field: 'kills' | 'assists' | 'headshots') => rows.length && rows.every(r => r[field] != null)
     ? rows.reduce((value, r) => value + r[field]!, 0) : null;
   const kills = sum('kills'), assists = sum('assists'), headshots = sum('headshots');
-  const deaths = rows.length && rows.every(r => r.died != null) ? rows.filter(r => r.died).length : null;
-  return { rounds: rows.length, kills, deaths, assists, headshots,
+  const deaths = rows.length && rows.every(r => r.deaths != null || r.died != null) ? rows.reduce((n,r)=>n+(r.deaths??Number(r.died)),0) : null;
+  const rounds=rows.reduce((n,r)=>n+(r.roundsRepresented??1),0);
+  return { rounds, kills, deaths, assists, headshots,
     kd: kills == null || deaths == null ? null : deaths ? (kills / deaths).toFixed(2) : kills ? '∞' : '—',
     hs: kills != null && headshots != null && headshots <= kills ? asPercent(headshots, kills) : null,
-    survival: deaths == null ? null : asPercent(rows.length - deaths, rows.length) };
+    survival: deaths == null ? null : asPercent(rounds - deaths, rounds) };
 }
 
 export function analyzePlayers(data: OverviewV3, period: PlayerPeriod, now = Date.now()): PlayerProfile[] {
@@ -49,6 +50,7 @@ export function analyzePlayers(data: OverviewV3, period: PlayerPeriod, now = Dat
     for (const row of rows) {
       const matchRows = perMatch.get(row.matchId) ?? [];
       matchRows.push(row); perMatch.set(row.matchId, matchRows);
+      if(row.roundsRepresented!=null)continue;
       const name = row.operatorName || 'Unknown operator';
       const operatorRows = perOperator.get(name) ?? [];
       operatorRows.push(row); perOperator.set(name, operatorRows);

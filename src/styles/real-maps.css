@@ -1,5 +1,5 @@
 .real-map-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-.real-map-toolbar select{background:#192329;border:1px solid #39454a;color:var(--text);padding:9px 12px;border-radius:4px;font:10px var(--mono)}
+.real-map-toolbar select{background:var(--fixed-192329);border:1px solid var(--fixed-39454a);color:var(--text);padding:9px 12px;border-radius:4px;font:10px var(--mono)}
 .real-map-toolbar .period-switch{margin:0 0 0 auto}
 .map-back-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .map-back-row .period-switch{margin-bottom:20px}
@@ -9,7 +9,7 @@
 .real-maps .map-card-bottom{flex-wrap:wrap;line-height:1.6}
 .real-maps .map-detail-hero h1{overflow-wrap:anywhere}
 .real-maps .two-grid{margin-bottom:18px}
-.map-identity-note{display:flex;gap:10px;align-items:flex-start;padding:15px;background:#273024;border:1px solid #4c6141;border-radius:5px;color:#b9cba9;font-size:11px;line-height:1.6;margin-bottom:18px}
+.map-identity-note{display:flex;gap:10px;align-items:flex-start;padding:15px;background:var(--fixed-273024);border:1px solid #4c6141;border-radius:5px;color:#b9cba9;font-size:11px;line-height:1.6;margin-bottom:18px}
 .map-identity-note svg{flex-shrink:0;margin-top:3px}
 .recorded-map-sides{display:flex;flex-direction:column;gap:25px;margin:24px 0}
 .recorded-map-sides .side-row{margin-bottom:10px}

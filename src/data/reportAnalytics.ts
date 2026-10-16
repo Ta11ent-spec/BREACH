@@ -34,7 +34,7 @@ export function buildInsights(data: OverviewV3, perspective: Perspective, period
   const operators = analyzeOperators(data, perspective, period, now).operators;
   const participants = analyzePlayers({ ...data, matches: data.matches.filter(m => matchIds.has(m.matchId)) }, 'ALL', now)
     .filter(p => selected.has(p.playerId) && p.rounds > 0);
-  const measured = rows.filter(r => r.kills != null && r.died != null && r.assists != null && r.headshots != null).length;
+  const measured = rows.filter(r => r.kills != null && (r.deaths != null || r.died != null) && r.assists != null && r.headshots != null).length;
   const completeCoverage = asPercent(measured, rows.length);
   const eligibleMaps = maps.filter(m => m.matchWins + m.matchLosses >= minimumMatches && m.matchWinRate != null);
   const weakestMap = [...eligibleMaps].sort((a, b) => a.matchWinRate! - b.matchWinRate! || b.matches.length - a.matches.length || a.key.localeCompare(b.key))[0] ?? null;

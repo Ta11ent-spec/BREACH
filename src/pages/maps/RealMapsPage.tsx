@@ -15,7 +15,7 @@ const players: OverviewV3['players'] = [];
 const matches: OverviewV3['matches'] = [];
 const rate = (n: number | null) => n == null ? '—' : `${n}%`;
 const sideRate = (wins: number, rounds: number) => rate(asPercent(wins, rounds));
-const colors = ['#a3d88d', '#72c7c0', '#dfbb79', '#85a6e6', '#da9fae'];
+const colors = ['#d8a38d', '#72c7c0', '#dfbb79', '#85a6e6', '#da9fae'];
 function color(name: string) { return colors[[...name].reduce((v, c) => v + c.charCodeAt(0), 0) % colors.length]; }
 function source(map: MapRecord) { return map.source === 'inferred' ? 'NAME INFERRED FROM SITES' : map.source === 'unknown' ? 'UNRESOLVED MAP' : 'RECORDED BATTLEGROUND'; }
 

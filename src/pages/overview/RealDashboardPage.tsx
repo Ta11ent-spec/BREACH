@@ -11,7 +11,7 @@ import { TrackingScope } from '../../components/TrackingScope';
 
 type Period='7D'|'30D'|'ALL';
 const initials=(name:string)=>name.split(/[\s_-]+/).map(part=>part.slice(0,1)).join('').slice(0,2).toUpperCase()||'??';
-function colorFor(name:string){const palette=['#a3d88d','#72c7c0','#dfbb79','#85a6e6','#da9fae'];let sum=0;for(const ch of name)sum=(sum+ch.charCodeAt(0))%palette.length;return palette[sum];}
+function colorFor(name:string){const palette=['#d8a38d','#72c7c0','#dfbb79','#85a6e6','#da9fae'];let sum=0;for(const ch of name)sum=(sum+ch.charCodeAt(0))%palette.length;return palette[sum];}
 function labelDate(value:string|null){if(!value)return 'DATE UNKNOWN';const d=new Date(value);return Number.isFinite(d.getTime())?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase():'DATE UNKNOWN';}
 function mapName(m:ResolvedMatch){return mapLabel(m.mapName,m.mapId)+(m.source==='manual'?' · MANUAL':'');}
 const asRate=(n:number,d:number)=>asPercent(n,d)===null?'—':`${asPercent(n,d)}%`;
@@ -25,7 +25,7 @@ function RoundWinRing({wins,total}:{wins:number;total:number}){
   return <div className="ring-wrap" style={{width:152,height:152}} role="img" aria-label={total?`Overall round win rate ${value}% (${wins} wins in ${total} rounds)`:'No known round results'}>
     <svg viewBox="0 0 140 140" width="152" height="152" aria-hidden="true">
       <circle cx="70" cy="70" r="56" fill="none" stroke="#28333c" strokeWidth="14"/>
-      <circle cx="70" cy="70" r="56" fill="none" stroke="#d0ff61" strokeWidth="14" strokeDasharray={`${circumference*(value??0)/100} ${circumference}`} transform="rotate(-90 70 70)"/>
+      <circle cx="70" cy="70" r="56" fill="none" stroke="#ff9061" strokeWidth="14" strokeDasharray={`${circumference*(value??0)/100} ${circumference}`} transform="rotate(-90 70 70)"/>
     </svg><div className="ring-center"><strong>{value===null?'—':`${value}%`}</strong><span>OVERALL ROUND W/R</span></div>
   </div>;
 }
@@ -51,8 +51,8 @@ function VerifiedWinChart({matches}:{matches:ResolvedMatch[]}){
   const line=points.map((p,i)=>`${i?'L':'M'} ${p.x} ${p.y}`).join(' ');
   return <div className="linechart"><svg viewBox="0 0 620 220" preserveAspectRatio="none" role="img" aria-label="Cumulative match win rate, with axis from 0 to 100 percent">
     {[100,75,50,25,0].map(v=>{const y=30+(100-v)*1.48;return <g key={v}><line x1="46" x2="584" y1={y} y2={y} stroke="#27323a" strokeDasharray="4 6"/><text x="4" y={y+4} fontSize="11" fontFamily="monospace" fill="#8c9d9a">{v}%</text></g>;})}
-    <path d={line} stroke="#d0ff61" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-    {points.map(p=><circle key={p.index} cx={p.x} cy={p.y} r={p.index===points.length-1?4.5:2.5} fill="#d0ff61"><title>{`${p.date}: cumulative ${p.rate.toFixed(1)}% (${p.index+1} matches)`}</title></circle>)}
+    <path d={line} stroke="#ff9061" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    {points.map(p=><circle key={p.index} cx={p.x} cy={p.y} r={p.index===points.length-1?4.5:2.5} fill="#ff9061"><title>{`${p.date}: cumulative ${p.rate.toFixed(1)}% (${p.index+1} matches)`}</title></circle>)}
     {[0,Math.floor((points.length-1)/2),points.length-1].filter((v,i,a)=>v>=0&&a.indexOf(v)===i).map(i=><text key={i} x={points[i].x} y="213" textAnchor="middle" fontSize="10" fontFamily="monospace" fill="#8c9d9a">{points[i].date}</text>)}
   </svg></div>;
 }

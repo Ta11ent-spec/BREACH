@@ -1,7 +1,7 @@
 // Fictional demo fixtures and deterministic match generator. NEVER production player data.
 export const OUR = 'NOVA UNIT';
 export const players = [
-  {id:'vex',name:'VEX',tag:'Vexx.NOVA',real:'Alex Morgan',role:'IGL / FLEX',specialty:'Shot calling & utility',initials:'VX',color:'#ccff5e',mains:['Ace','Mira','Buck'],number:'01'},
+  {id:'vex',name:'VEX',tag:'Vexx.NOVA',real:'Alex Morgan',role:'IGL / FLEX',specialty:'Shot calling & utility',initials:'VX',color:'#ff8e5e',mains:['Ace','Mira','Buck'],number:'01'},
   {id:'ghost',name:'GHOST',tag:'Ghost.NOVA',real:'Jordan Blake',role:'ENTRY FRAGGER',specialty:'Opening duels & map control',initials:'GH',color:'#73baf8',mains:['Ash','Jäger','Iana'],number:'02'},
   {id:'rook',name:'ROOK',tag:'Rook.NOVA',real:'Sam Rivera',role:'ANCHOR / SUPPORT',specialty:'Site setup & executes',initials:'RK',color:'#eeb578',mains:['Smoke','Thermite','Mute'],number:'03'},
   {id:'echo',name:'ECHO',tag:'Echo.NOVA',real:'Taylor Brooks',role:'FLEX / INTEL',specialty:'Information & flank watch',initials:'EC',color:'#bf95fb',mains:['Zero','Valkyrie','Solis'],number:'04'},
@@ -9,7 +9,7 @@ export const players = [
 ];
 export const enemies = ['BLKOUT','CIPHER','RAZOR','ONYX','SPECTRE'];
 export const maps = [
-  {id:'clubhouse',name:'Clubhouse',code:'CLB',site:'CCTV / Cash',type:'Tactical compound',color:'#a6c184'},
+  {id:'clubhouse',name:'Clubhouse',code:'CLB',site:'CCTV / Cash',type:'Tactical compound',color:'#c19684'},
   {id:'oregon',name:'Oregon',code:'ORG',site:'Laundry / Supply',type:'Industrial farmhouse',color:'#cda57d'},
   {id:'bank',name:'Bank',code:'BNK',site:'Lockers / CCTV',type:'Urban high-rise',color:'#8caddc'},
   {id:'chalet',name:'Chalet',code:'CHL',site:'Wine / Snowmobile',type:'Alpine residence',color:'#c0a3d8'},
@@ -19,18 +19,18 @@ export const maps = [
 export const operators = [
  {name:'Ace',side:'ATK',role:'Hard breach',pick:74,win:64,kd:1.48,color:'#63b7d3'},
  {name:'Ash',side:'ATK',role:'Entry',pick:69,win:58,kd:1.63,color:'#d1a37c'},
- {name:'Buck',side:'ATK',role:'Soft breach',pick:57,win:61,kd:1.39,color:'#c3cd92'},
+ {name:'Buck',side:'ATK',role:'Soft breach',pick:57,win:61,kd:1.39,color:'#cda492'},
  {name:'Iana',side:'ATK',role:'Intel / entry',pick:53,win:56,kd:1.31,color:'#b7afea'},
  {name:'Thermite',side:'ATK',role:'Hard breach',pick:49,win:63,kd:1.14,color:'#e6ae7b'},
  {name:'Zofia',side:'ATK',role:'Flex / entry',pick:44,win:55,kd:1.20,color:'#dba9a3'},
  {name:'Zero',side:'ATK',role:'Intel',pick:39,win:59,kd:1.27,color:'#a2bcb4'},
- {name:'Sledge',side:'ATK',role:'Soft breach',pick:33,win:54,kd:1.22,color:'#b2c490'},
+ {name:'Sledge',side:'ATK',role:'Soft breach',pick:33,win:54,kd:1.22,color:'#c4a090'},
  {name:'Mira',side:'DEF',role:'Anchor / intel',pick:72,win:69,kd:1.24,color:'#d9a3bc'},
  {name:'Jäger',side:'DEF',role:'Anti-projectile',pick:68,win:62,kd:1.47,color:'#c6b780'},
  {name:'Smoke',side:'DEF',role:'Area denial',pick:61,win:65,kd:1.18,color:'#86ba94'},
  {name:'Valkyrie',side:'DEF',role:'Intel / roam',pick:59,win:63,kd:1.31,color:'#90b9ce'},
  {name:'Azami',side:'DEF',role:'Setup / denial',pick:56,win:60,kd:1.44,color:'#cda8c9'},
- {name:'Mute',side:'DEF',role:'Anti-intel',pick:48,win:62,kd:1.08,color:'#c2d1a0'},
+ {name:'Mute',side:'DEF',role:'Anti-intel',pick:48,win:62,kd:1.08,color:'#d1afa0'},
  {name:'Solis',side:'DEF',role:'Roam / intel',pick:43,win:57,kd:1.26,color:'#bdb1df'},
  {name:'Wamai',side:'DEF',role:'Anti-projectile',pick:37,win:59,kd:1.22,color:'#c2c7cc'}
 ];

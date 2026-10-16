@@ -46,7 +46,7 @@ function stats(rows:ReportAppearance[]){
   const knownTotals:StatTotals={kills:0,deaths:0,assists:0,headshots:0,damageDealt:0,damageTaken:0};
   const coverage:StatCoverage={kills:0,deaths:0,assists:0,headshots:0,damageDealt:0,damageTaken:0};
   for(const row of rows){
-    const values={kills:numeric(row.kills),deaths:typeof row.died==='boolean'?Number(row.died):null,
+    const values={kills:numeric(row.kills),deaths:row.deaths??(typeof row.died==='boolean'?Number(row.died):null),
       assists:numeric(row.assists),headshots:numeric(row.headshots),damageDealt:numeric(row.damageDealt),damageTaken:numeric(row.damageTaken)};
     for(const field of Object.keys(values) as NumericField[]){
       const value=values[field];
@@ -56,7 +56,7 @@ function stats(rows:ReportAppearance[]){
   const totals=Object.fromEntries((Object.keys(knownTotals) as NumericField[])
     .map(field=>[field,rows.length>0&&coverage[field]===rows.length?knownTotals[field]:null])) as Record<NumericField,number|null>;
   const hsValid=rows.every(row=>row.headshots==null||row.kills==null||row.headshots<=row.kills);
-  return {...totals,knownTotals,coverage,sampledRounds:rows.length,kd:ratio(totals.kills,totals.deaths),
+  return {...totals,knownTotals,coverage,sampledRounds:rows.reduce((n,r)=>n+(r.roundsRepresented??1),0),kd:ratio(totals.kills,totals.deaths),
     hs:hsValid&&totals.headshots!=null&&totals.kills!=null?asPercent(totals.headshots,totals.kills):null};
 }
 
@@ -67,7 +67,7 @@ function playerRows(appearances:ReportAppearance[],chosen:Set<string>):ReportPla
     const slots=new Set(rows.map(row=>row.teamIndex));
     const slot=rows[0].teamIndex;
     return {...stats(rows),playerId,username:rows.find(row=>row.username)?.username??playerId,selected:chosen.has(playerId),
-      teamIndex:slots.size===1&&isSlot(slot)?slot:null,roundsPlayed:new Set(rows.map(row=>row.roundId)).size,
+      teamIndex:slots.size===1&&isSlot(slot)?slot:null,roundsPlayed:rows.reduce((n,r)=>n+(r.roundsRepresented??1),0),
       operators:[...new Set(rows.map(row=>row.operatorName).filter((name):name is string=>!!name))]};
   }).sort((a,b)=>(b.kills??-1)-(a.kills??-1)||a.username.localeCompare(b.username)||a.playerId.localeCompare(b.playerId));
 }
@@ -141,7 +141,7 @@ export function resolveMatchReport(report:MatchReport,perspective:Perspective):R
       events:classifyEvents(report.events.filter(event=>event.roundId===round.roundId),appearances,chosen,slot)};
   });
   return {resolved,reason,...splitRows(playerRows(report.appearances,chosen),slot),rounds,
-    metrics:metrics(selectedAppearances,rounds),trackedRoundCount:rounds.filter(round=>round.participated).length};
+    metrics:{...metrics(selectedAppearances,rounds),...(report.match.summaryScore&&resolved?{roundWins:resolved.wins,roundLosses:resolved.losses}:{})},trackedRoundCount:report.match.summaryScore?report.match.roundCount:rounds.filter(round=>round.participated).length};
 }
 
 export function getRoundPerspective(view:ResolvedReport,roundId:string):ResolvedReportRound|null{

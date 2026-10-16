@@ -14,7 +14,7 @@ const emptyPlayers: OverviewV3['players'] = [];
 const emptyMatches: OverviewV3['matches'] = [];
 const value = (n: number | string | null | undefined) => n == null ? '—' : typeof n === 'number' ? n.toLocaleString() : n;
 const percent = (n: number | null) => n == null ? '—' : `${n}%`;
-const avatar = (name: string) => ({ initials: name.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase() || '?', color: '#c9fa62' });
+const avatar = (name: string) => ({ initials: name.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase() || '?', color: '#fa9062' });
 const playerUrl = (id: string) => '/players/' + encodeURIComponent(id);
 
 function PlayerTable({ players, open }: { players: PlayerProfile[]; open: (id: string) => void }) {
