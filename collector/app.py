@@ -15,12 +15,13 @@ from engine import parser_manifest, scan, suggested_roots, verify_parser
 from store import Store
 from auth import Auth0, AuthError
 import sync
+from background import Tray, startup_enabled, set_startup
 
 BG, PANEL, TEXT, MUTED, ACCENT = '#0b0f13', '#151b21', '#eef3ed', '#929da5', '#d0ff59'
 
 
 class Collector(tk.Tk):
-    def __init__(self, data_dir, parser=None, auth_config=None):
+    def __init__(self, data_dir, parser=None, auth_config=None, background=False, show_event=None):
         super().__init__()
         self.title('BREACH / INTEL — PC Collector')
         self.geometry('1100x740'); self.minsize(820, 600); self.configure(bg=BG)
@@ -28,6 +29,11 @@ class Collector(tk.Tk):
         self.parser = parser or resource('siege-dissect.exe')
         self.messages = queue.Queue(); self.stop = threading.Event(); self.worker = None
         self.watching = False; self.closing = False; self.next_scan = 0
+        self.show_event = show_event; self.start_hidden = background; self.tray_ready = False
+        self.tray = Tray(self.messages)
+        self.auto_watch = tk.BooleanVar(value=self.store.get('autoWatch', 'true') == 'true')
+        self.keep_background = tk.BooleanVar(value=self.store.get('keepBackground', 'true') == 'true')
+        self.start_windows = tk.BooleanVar(value=startup_enabled())
         self.auth = None
         self.api_url = None
         sync_config = resource("sync.json")
@@ -46,6 +52,7 @@ class Collector(tk.Tk):
         self.counts = tk.StringVar(); self.watch_label = tk.StringVar(value='START WATCHING')
         self.protocol('WM_DELETE_WINDOW', self.close_app)
         self.style(); self.layout(); self.refresh(); self.after(250, self.tick)
+        self.tray.start(); self.after(400, self.resume_automatically)
 
     def style(self):
         style = ttk.Style(self); style.theme_use('clam')
@@ -85,6 +92,9 @@ class Collector(tk.Tk):
         self.button(actions, '', self.toggle_sync, textvariable=self.sync_label).pack(side='left', padx=8)
         self.button(actions, 'RETRY UPLOADS', self.retry_uploads).pack(side='left')
         self.label(actions, size=10, color=ACCENT, textvariable=self.counts).pack(side='right')
+        automatic = tk.Frame(body, bg=BG); automatic.pack(fill='x', pady=(10, 0))
+        for label, value, command in [('Watch automatically on launch', self.auto_watch, self.save_background), ('Keep running when window closes', self.keep_background, self.save_background), ('Start with Windows', self.start_windows, self.configure_startup)]:
+            tk.Checkbutton(automatic, text=label, variable=value, command=command, bg=BG, fg=TEXT, selectcolor=PANEL, activebackground=BG, activeforeground=TEXT).pack(side='left', padx=(0, 18))
         notebook = ttk.Notebook(body)
         jobs_frame = tk.Frame(notebook, bg=PANEL); ready_frame = tk.Frame(notebook, bg=PANEL)
         notebook.add(jobs_frame, text='COLLECTION ACTIVITY'); notebook.add(ready_frame, text='MATCH QUEUE')
@@ -96,7 +106,7 @@ class Collector(tk.Tk):
         self.button(bottom, 'EXPORT DIAGNOSTICS', self.export_diagnostics).pack(side='left', padx=8)
         self.button(bottom, 'ABOUT', self.about).pack(side='right')
         self.label(footer, size=10, color=MUTED, textvariable=self.status, anchor='w', wraplength=1000).pack(fill='x', pady=(12, 0))
-        self.label(footer, 'Original replays remain untouched. Closing the app stops watching. Exported matches stay in the local queue.', 9, MUTED).pack(anchor='w', pady=(8, 0))
+        self.label(footer, 'Close to the system tray when background mode is enabled. Use the tray menu to Open, Pause or Quit. Your PC must be awake.', 9, MUTED).pack(anchor='w', pady=(8, 0))
         notebook.pack(fill='both', expand=True, pady=15)
 
     def table(self, parent, columns, widths):
@@ -116,13 +126,15 @@ class Collector(tk.Tk):
     def browse(self):
         folder = filedialog.askdirectory(title='Choose the game MatchReplay folder', parent=self)
         if folder:
-            self.pause(); self.folder.set(folder); self.store.set('replayFolder', folder)
+            self.stop.set(); self.watching = False; self.folder.set(folder); self.store.set('replayFolder', folder)
+            self.resume_automatically()
 
     def detect(self):
         roots = suggested_roots()
         if roots:
-            self.pause(); self.folder.set(roots[0]); self.store.set('replayFolder', roots[0])
+            self.stop.set(); self.watching = False; self.folder.set(roots[0]); self.store.set('replayFolder', roots[0])
             self.status.set('Detected replay folder. Use Browse if you play from another installation.')
+            self.resume_automatically()
         else:
             self.status.set('No common replay folder found. Use Browse to select it.')
 
@@ -152,14 +164,55 @@ class Collector(tk.Tk):
         if self.watching:
             self.pause()
         else:
+            self.store.set('watchPaused', 'false')
             self.watching = True; self.watch_label.set('STOP WATCHING'); self.start_scan()
+
+    def save_background(self):
+        self.store.set('autoWatch', str(self.auto_watch.get()).lower())
+        self.store.set('keepBackground', str(self.keep_background.get()).lower())
+        if self.auto_watch.get():
+            self.store.set('watchPaused', 'false'); self.resume_automatically()
+
+    def configure_startup(self):
+        try: set_startup(self.start_windows.get())
+        except OSError as exc:
+            self.start_windows.set(startup_enabled()); self.status.set(str(exc))
+
+    def resume_automatically(self):
+        if self.closing: return
+        if self.auto_watch.get() and self.store.get('watchPaused', 'false') != 'true':
+            if self.folder.get() and Path(self.folder.get()).is_dir():
+                self.watching = True; self.watch_label.set('STOP WATCHING'); self.next_scan = 0
+                self.status.set('Watching automatically. Sync uses your saved setting; enable it once to upload.')
+            else:
+                self.status.set('Select a replay folder once. Automatic watching will begin after setup.'); self.show_window()
+
+    def show_window(self):
+        self.deiconify(); self.lift()
+
+    def tray_action(self, action):
+        if self.closing: return
+        if action == 'ready':
+            self.tray_ready = True
+            if self.start_hidden and self.folder.get() and Path(self.folder.get()).is_dir() and self.auth and self.auth.session:
+                self.withdraw()
+        elif action == 'show': self.show_window()
+        elif action == 'auto': self.resume_automatically()
+        elif action == 'pause': self.pause()
+        elif action == 'resume':
+            if not self.watching: self.toggle_watch()
+        elif action == 'quit': self.quit_app()
+        elif action == 'failed':
+            self.tray_ready = False; self.show_window(); self.status.set('Tray unavailable. Keep this window minimized to collect; closing it will quit.')
 
     def account_action(self):
         if self.worker and self.worker.is_alive():
             self.status.set('Pause collection and wait for the current operation before changing sign-in.'); return
         if not self.auth:
             self.status.set('Auth0 collector configuration is missing. Install the configured collector build.'); return
-        self.pause(); self.stop.clear(); self.scan_button.configure(state='disabled')
+        self.watching = False; self.watch_label.set('START WATCHING')
+        self.sync_enabled = False; self.store.set('autoSync', 'false'); self.sync_label.set('ENABLE SYNC')
+        self.stop.clear(); self.scan_button.configure(state='disabled')
         disconnect = bool(self.auth.session)
         def work():
             try:
@@ -169,6 +222,7 @@ class Collector(tk.Tk):
                     device = self.auth.start()
                     self.messages.put(('pairing', device['user_code'], device['verification_uri_complete']))
                     self.auth.finish(device, self.stop, self.messages.put)
+                    self.messages.put(('tray', 'auto'))
             except AuthError as exc: self.messages.put(str(exc))
             except Exception: self.messages.put('Sign-in could not be completed. Try again.')
             finally: self.messages.put(None)
@@ -179,6 +233,7 @@ class Collector(tk.Tk):
         self.store.set('autoSync', str(self.sync_enabled).lower())
         self.sync_label.set('DISABLE SYNC' if self.sync_enabled else 'ENABLE SYNC')
         if self.sync_enabled:
+            self.store.set('watchPaused', 'false'); self.resume_automatically()
             self.next_sync = 0
             self.status.set('Sync enabled. Gameplay statistics are shared; account details and notes remain private.')
         else:
@@ -208,6 +263,7 @@ class Collector(tk.Tk):
         self.worker = threading.Thread(target=work, daemon=False); self.worker.start()
 
     def pause(self):
+        self.store.set('watchPaused', 'true')
         self.watching = False; self.stop.set(); self.watch_label.set('START WATCHING')
         self.sync_enabled = False; self.store.set('autoSync', 'false'); self.sync_label.set('ENABLE SYNC')
         self.status.set('Paused collection and uploads. Queue records are saved.')
@@ -234,17 +290,22 @@ class Collector(tk.Tk):
             value = self.messages.get_nowait()
             if value is None:
                 self.refresh(); self.scan_button.configure(state='normal'); self.next_scan = time.monotonic() + 30
+            elif isinstance(value, tuple) and value[0] == 'tray': self.tray_action(value[1])
             elif isinstance(value, tuple) and value[0] == 'pairing':
                 import webbrowser
                 self.status.set(f'Approve code {value[1]} in your browser. Pause cancels sign-in.')
                 webbrowser.open(value[2])
             else: self.status.set(value)
         alive = self.worker and self.worker.is_alive()
+        if self.show_event:
+            kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+            kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+            if kernel.WaitForSingleObject(self.show_event, 0) == 0: self.show_window()
         if self.closing and not alive:
-            self.store.close(); self.destroy(); return
+            self.tray.stop(); self.store.close(); self.destroy(); return
         if self.sync_enabled and not self.closing and not alive and time.monotonic() >= self.next_sync:
             self.start_sync(); alive = self.worker and self.worker.is_alive()
-        if self.watching and not alive and time.monotonic() >= self.next_scan:
+        if self.watching and not self.closing and not alive and time.monotonic() >= self.next_scan:
             self.start_scan()
         self.after(250, self.tick)
 
@@ -269,10 +330,17 @@ class Collector(tk.Tk):
             except Exception as exc: messagebox.showerror('Export failed', str(exc), parent=self)
 
     def about(self):
-        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · beta\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Uploads use your signed-in account. Automatic retries run while sync is enabled and this app is open. Automatic startup and background service are not enabled.', parent=self)
+        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · beta\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Uploads use your signed-in account. Automatic watching uses your saved replay folder. Enable Start with Windows for passive startup. Closing to the tray keeps collection running; use the tray menu to Quit. Sync must be enabled once, and your PC must be awake.', parent=self)
 
     def close_app(self):
-        self.pause(); self.closing = True; self.status.set('Finishing shutdown and saving queue state…')
+        if self.keep_background.get() and self.tray_ready:
+            self.withdraw()
+        else: self.quit_app()
+
+    def quit_app(self):
+        # Preserve saved sync/watch preferences; only an explicit Pause disables them.
+        self.watching = False; self.stop.set(); self.closing = True
+        self.status.set('Finishing shutdown and saving queue state…')
 
 
 def main():
@@ -281,6 +349,7 @@ def main():
     args.add_argument('--parser', type=Path)
     args.add_argument('--auth-config', type=Path, help='Public Auth0 collector settings; never a client secret')
     args.add_argument('--self-test', type=Path, help='Write packaged-runtime validation to this file and exit')
+    args.add_argument('--background', action='store_true', help='Start in the tray after initial setup')
     options = args.parse_args()
     if options.self_test:
         import tempfile
@@ -289,6 +358,9 @@ def main():
             validate(json.loads(resource('collector-v1.example.json').read_text(encoding='utf-8')))
             manifest = parser_manifest(); verify_parser(options.parser or resource('siege-dissect.exe'), manifest['sha256'])
             root = tk.Tk(); root.withdraw(); root.update_idletasks(); root.destroy()
+            import pystray._win32
+            from PIL import Image
+            Image.new('RGBA', (16, 16), '#ff783d').close()
             from auth import protect
             protected = protect(b'packaged-runtime-check')
             credential_check = protect(protected, decrypt=True) == b'packaged-runtime-check'
@@ -299,20 +371,30 @@ def main():
             options.self_test.write_text(json.dumps({'ok': True, 'version': VERSION, 'sqlite': bool(installation), 'tk': True, 'schema': True, 'parserChecksum': True, 'windowsCredentialProtection': credential_check, 'auth0Configured': config.exists(), 'syncConfigured': sync_config.exists()}), encoding='utf-8')
         return
     data_dir = options.data_dir or Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'BREACH/CollectorData'
-    handle = None
+    handle = None; show_event = None
     if os.name == 'nt':
         import hashlib
         kernel = ctypes.WinDLL('kernel32', use_last_error=True)
         kernel.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_wchar_p]
         kernel.CreateMutexW.restype = ctypes.c_void_p
-        handle = kernel.CreateMutexW(None, False, 'Local\\BreachCollector-' + hashlib.sha256(str(data_dir.resolve()).encode()).hexdigest())
+        identity = hashlib.sha256(str(data_dir.resolve()).encode()).hexdigest()
+        kernel.CreateEventW.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_bool, ctypes.c_wchar_p]
+        kernel.CreateEventW.restype = ctypes.c_void_p
+        show_event = kernel.CreateEventW(None, False, False, 'Local\\BreachCollectorShow-' + identity)
+        handle = kernel.CreateMutexW(None, False, 'Local\\BreachCollector-' + identity)
         if not handle or ctypes.get_last_error() == 183:
-            messagebox.showinfo('BREACH collector', 'The collector is already running for this data folder.'); return
+            if show_event and not options.background:
+                kernel.SetEvent.argtypes = [ctypes.c_void_p]; kernel.SetEvent(show_event)
+            kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+            if handle: kernel.CloseHandle(handle)
+            if show_event: kernel.CloseHandle(show_event)
+            return
     try:
-        Collector(data_dir, options.parser, options.auth_config).mainloop()
+        Collector(data_dir, options.parser, options.auth_config, options.background, show_event).mainloop()
     finally:
         if handle:
             kernel.CloseHandle.argtypes = [ctypes.c_void_p]; kernel.CloseHandle(handle)
+        if show_event: kernel.CloseHandle(show_event)
 
 
 if __name__ == '__main__':

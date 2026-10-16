@@ -2,6 +2,10 @@ Unicode True
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "x64.nsh"
+!include "nsDialogs.nsh"
+!include "FileFunc.nsh"
+Var StartupChoice
+Var StartupCheckbox
 !ifndef INSTALLROOT
   !define INSTALLROOT "$LOCALAPPDATA\Programs\BREACH Collector"
 !endif
@@ -19,6 +23,7 @@ SetCompressor /SOLID lzma
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TEXT "Collect completed Ranked Bomb replays and sync them to BREACH.$\r$\n$\r$\nThis beta includes its runtime and replay parser. No Python, SQL Server or administrator access is required.$\r$\n$\r$\nSign in to BREACH, then enable sync to upload. This beta is unsigned; second-PC compatibility testing is ongoing. Uninstall preserves the separate local queue and original replays."
 !insertmacro MUI_PAGE_WELCOME
+Page custom StartupPage StartupLeave
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -26,6 +31,11 @@ SetCompressor /SOLID lzma
 !insertmacro MUI_LANGUAGE "English"
 
 Function .onInit
+  StrCpy $StartupChoice ${BST_CHECKED}
+  ${GetParameters} $1
+  ${GetOptions} $1 "/AUTOSTART=" $2
+  StrCmp $2 "0" 0 +2
+  StrCpy $StartupChoice ${BST_UNCHECKED}
   FindWindow $0 "" "BREACH / INTEL — PC Collector"
   StrCmp $0 0 notrunning
   MessageBox MB_ICONSTOP "Close BREACH Collector before installing or updating."
@@ -45,6 +55,23 @@ Function .onInit
   allowed:
 FunctionEnd
 
+Function StartupPage
+  nsDialogs::Create 1018
+  Pop $0
+  ${NSD_CreateLabel} 0 0 100% 36u "Passive collection: after you select a replay folder and enable Sync, BREACH can watch automatically and keep running in the system tray. Your PC must be awake."
+  Pop $0
+  ${NSD_CreateCheckbox} 0 48u 100% 16u "Start BREACH Collector when I sign into Windows"
+  Pop $StartupCheckbox
+  ${NSD_SetState} $StartupCheckbox $StartupChoice
+  ${NSD_CreateLabel} 0 78u 100% 40u "You can turn startup off in the collector. Closing the window keeps it in the tray; use the tray menu to Pause or Quit. No administrator access or Windows service is required."
+  Pop $0
+  nsDialogs::Show
+FunctionEnd
+
+Function StartupLeave
+  ${NSD_GetState} $StartupCheckbox $StartupChoice
+FunctionEnd
+
 Section "Collector"
   SetShellVarContext current
   SetOutPath "$INSTDIR"
@@ -58,6 +85,11 @@ Section "Collector"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "InstallLocation" "$INSTDIR"
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCTKEY}" "NoRepair" 1
+  ${If} $StartupChoice == ${BST_CHECKED}
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${PRODUCTKEY}" '$\"$INSTDIR\BreachCollector.exe$\" --background'
+  ${Else}
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${PRODUCTKEY}"
+  ${EndIf}
 SectionEnd
 
 Function un.onInit
@@ -77,6 +109,9 @@ FunctionEnd
 
 Section "Uninstall"
   SetShellVarContext current
+  ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${PRODUCTKEY}"
+  StrCmp $0 '$\"$INSTDIR\BreachCollector.exe$\" --background' 0 +2
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${PRODUCTKEY}"
   !include "${UNINSTALL_FILES}"
   Delete "$INSTDIR\breach-install.ini"
   Delete "$INSTDIR\Uninstall.exe"

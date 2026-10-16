@@ -43,3 +43,10 @@ Validation: 77 isolated SQL integration checks, existing analytics regression su
 - Invisible 64px entrance at the bottom-right of My account opens PEG / BREAK, an original peg-bouncing game. No sidebar entry or visible entrance button.
 - Mouse, touch and keyboard aiming; ten balls, orange objectives, blue scoring pegs, moving free-ball bucket, replay/next board, pause and local best score. No API calls or match-stat writes.
 - Fixed-step physics, bounded shot duration, background-tab pause and animation cleanup. Four physics tests cover shot resolution, scoring, catch, win/loss and next boards.
+
+## V0.1.5 — passive collector and account polish
+The website version resets from V1.1.4 to V0.1.5 at the user's request. Future published updates advance the patch number by two (V0.1.7, V0.1.9, V0.1.11).
+- Collector v0.3.3 adds automatic watching of the saved replay folder, optional Windows sign-in startup, and system-tray Open/Resume/Pause/Quit controls. Closing to tray keeps collection running; explicit Quit preserves sync/watch preferences. Explicit Pause remains paused across restarts.
+- Startup never bypasses initial folder selection, account authentication or the one-time Enable Sync action. The PC must be awake; Windows Startup Apps settings can disable startup.
+- Sign Out is in My account beside the email. The hidden arcade entrance is aligned with Remove Picture on the far-right inside edge of the profile box.
+- Existing role permissions, map linking and all stored match data are unchanged.

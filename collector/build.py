@@ -82,7 +82,7 @@ def main():
     if missing: raise SystemExit('Missing cached dependency licenses: ' + ', '.join(missing))
     subprocess.run([sys.executable, '-m', 'PyInstaller', '--noconfirm', '--windowed', '--onedir', '--name', 'BreachCollector',
                     '--distpath', str(out), '--workpath', str(out / 'work'), '--specpath', str(out / 'spec'),
-                    '--add-data', str(assets) + ';assets', '--collect-all', 'jsonschema_specifications',
+                    '--add-data', str(assets) + ';assets', '--collect-all', 'jsonschema_specifications', '--hidden-import', 'pystray._win32',
                     str(ROOT / 'collector/app.py')], check=True)
     payload = out / 'BreachCollector'
     # Exact file list for uninstall: never recursively delete an arbitrary install folder.
@@ -93,7 +93,7 @@ def main():
         lines.append('RMDir "$INSTDIR\\' + str(folder.relative_to(payload)) + '"')
     uninstall = out / 'uninstall-files.nsh'; uninstall.write_text('\n'.join(lines), encoding='utf-8')
     installer = out / f'BREACH-Collector-Setup-{VERSION}.exe'
-    subprocess.run([str(compiler), '/V2', '/DVERSION=' + VERSION, '/DPAYLOAD=' + str(payload), '/DOUTPUT=' + str(installer),
+    subprocess.run([str(compiler), '/INPUTCHARSET', 'UTF8', '/V2', '/DVERSION=' + VERSION, '/DPAYLOAD=' + str(payload), '/DOUTPUT=' + str(installer),
                     '/DUNINSTALL_FILES=' + str(uninstall), str(ROOT / 'collector/installer.nsi')], check=True)
     hashes = {p.name: hashlib.file_digest(p.open('rb'), 'sha256').hexdigest() for p in [installer, payload / 'BreachCollector.exe']}
     (out / 'SHA256SUMS.json').write_text(json.dumps(hashes, indent=2), encoding='utf-8')
