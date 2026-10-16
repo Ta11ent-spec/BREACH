@@ -19,7 +19,11 @@ public static class CollectorContract
             JsonValueKind.Array => new JsonArray(e.EnumerateArray().Select(Normalize).ToArray()),
             _ => JsonNode.Parse(e.GetRawText())
         };
-        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(Normalize(payload)!.ToJsonString())));
+        var source=JsonNode.Parse(payload.GetRawText())!;
+        foreach(var a in source["appearances"]!.AsArray())a!["stats"]!.AsObject().Remove("impact");
+        var issues=source["issues"]!.AsArray();for(var i=issues.Count-1;i>=0;i--)if(issues[i]?["code"]?.GetValue<string>()=="IMPACT_UNAVAILABLE")issues.RemoveAt(i);
+        using var canonical=JsonDocument.Parse(source.ToJsonString());
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(Normalize(canonical.RootElement)!.ToJsonString())));
     }
     // Evaluates the deliberately small vocabulary used by our committed v1 schema.
     // Never accepts a schema supplied by a caller, resolves only local $defs.
@@ -90,7 +94,19 @@ public static class CollectorContract
             var rid=a.GetProperty("roundId").GetString()!;var pid=a.GetProperty("playerId").GetString()!;
             if(!rids.Contains(rid)||!pids.Contains(pid)||!pairs.Add((rid,pid)))throw new ContractException("Duplicate or unresolved appearance.");
             var stats=a.GetProperty("stats");
+            if(stats.TryGetProperty("impact",out var impact)&&impact.ValueKind!=JsonValueKind.Null){
+                var value=JsonSerializer.Deserialize<ImpactStats>(impact,ManualEndpoints.Json);
+                int? Number(string key)=>stats.GetProperty(key).ValueKind==JsonValueKind.Number?stats.GetProperty(key).GetInt32():null;
+                var died=stats.GetProperty("died");int? death=died.ValueKind==JsonValueKind.Null?null:died.GetBoolean()?1:0;
+                var slot=a.GetProperty("teamIndex");int? won=null;
+                if(slot.ValueKind==JsonValueKind.Number)won=rounds.First(r=>r.GetProperty("roundId").GetString()==rid).GetProperty("teams").EnumerateArray().First(t=>t.GetProperty("slot").GetInt32()==slot.GetInt32()).GetProperty("won").GetBoolean()?1:0;
+                if(ImpactStats.Validate(value,1,Number("kills"),death,won) is {} error)throw new ContractException(error);
+            }
             if(stats.GetProperty("headshots").ValueKind==JsonValueKind.Number&&stats.GetProperty("kills").ValueKind==JsonValueKind.Number&&stats.GetProperty("headshots").GetInt32()>stats.GetProperty("kills").GetInt32())throw new ContractException("Headshots exceed kills.");
+        }
+        foreach(var roundGroup in p.GetProperty("appearances").EnumerateArray().GroupBy(a=>a.GetProperty("roundId").GetString())){
+            var rows=roundGroup.Select(a=>(a.GetProperty("teamIndex").ValueKind==JsonValueKind.Number?a.GetProperty("teamIndex").GetInt32():-1,a.GetProperty("stats").TryGetProperty("impact",out var v)&&v.ValueKind!=JsonValueKind.Null?JsonSerializer.Deserialize<ImpactStats>(v,ManualEndpoints.Json):null)).ToArray();
+            if(ImpactStats.Group(rows,1) is {} error)throw new ContractException(error);
         }
         var ids=new HashSet<string>();var seq=new HashSet<(string,int)>();
         foreach(var e in p.GetProperty("events").EnumerateArray()) {

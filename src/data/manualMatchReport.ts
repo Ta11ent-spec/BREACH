@@ -21,7 +21,7 @@ export function manualMatchReport(record:ManualRecord):MatchReport{
   if(r.won===true)wins++;if(r.won===false)losses++;
   for(const player of p.roster??[{playerId:p.playerId,username:p.username,teamIndex:0}]){
   const stats=p.roster?r.players?.find(s=>s.playerId===player.playerId):r;
-  report.appearances.push({roundId,matchId,roundNumber:i+1,playerId:player.playerId,username:player.username,teamIndex:player.teamIndex,operatorId:null,operatorName:stats?.operator||null,spawn:null,scoreSnapshot:null,kills:stats?.kills??null,died:stats?.died??null,assists:stats?.assists??null,headshots:stats?.headshots??null,headshotPercentage:null,damageDealt:null,damageTaken:null,secondsAlive:null,deathTime:null,entryKill:null,entryDeath:null,tradeKill:null,tradedDeath:null,untradedDeath:null,clutch1vX:null,extraStatsJson:null});
+  report.appearances.push({roundId,matchId,roundNumber:i+1,playerId:player.playerId,username:player.username,teamIndex:player.teamIndex,operatorId:null,operatorName:stats?.operator||null,spawn:null,scoreSnapshot:null,kills:stats?.kills??null,died:stats?.died??null,assists:stats?.assists??null,headshots:stats?.headshots??null,impact:stats?.impact,headshotPercentage:null,damageDealt:null,damageTaken:null,secondsAlive:null,deathTime:null,entryKill:null,entryDeath:null,tradeKill:null,tradedDeath:null,untradedDeath:null,clutch1vX:null,extraStatsJson:null});
   }
  });
  return report;

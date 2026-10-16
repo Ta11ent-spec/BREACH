@@ -1,3 +1,4 @@
+import type {Impact} from './impact';
 import {resolveMap,resolveSite} from './mapCatalog';
 import {fetchApi} from './realApi';
 
@@ -37,7 +38,7 @@ export type ReportAppearance = {
   entryKill: boolean | null; entryDeath: boolean | null;
   tradeKill: boolean | null; tradedDeath: boolean | null;
   untradedDeath: boolean | null; clutch1vX: number | null;
-  extraStatsJson: string | null;
+  extraStatsJson: string | null; impact?:Impact|null;
 };
 
 export type ReportEvent = {

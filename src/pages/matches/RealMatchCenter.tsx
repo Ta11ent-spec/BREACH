@@ -1,3 +1,4 @@
+import {ImpactSummary} from '../../components/ImpactSummary';
 import {usePlaylist} from '../../data/usePlaylist';
 import {matchPlaylist,playlistLabels} from '../../data/playlists';
 import {playerTotals} from '../../data/playerAnalytics';
@@ -89,12 +90,14 @@ function EventFeed({ events, report, view }: { events: ReportEvent[]; report: Ma
   return <div className="timeline-scroll tall recorded-events">{events.map(event => {
     const actor = report.appearances.find(player => player.roundId === event.roundId && player.playerId === event.actorPlayerId);
     const relation = actor && view.resolved ? actor.teamIndex === view.resolved.slot ? 'friendly' : actor.teamIndex === 1 - view.resolved.slot ? 'hostile' : 'neutral' : 'neutral';
+    const target=report.appearances.find(player=>player.roundId===event.roundId&&player.playerId===event.targetPlayerId);
+    const teamkill=event.eventType==='Kill'&&actor?.teamIndex!=null&&target?.teamIndex===actor.teamIndex;
     const time = event.timeRemainingSeconds;
     const clock = time == null || time < 0 ? '—' : `${Math.floor(time / 60)}:${String(Math.floor(time % 60)).padStart(2, '0')}`;
     return <div className="event-line" key={event.eventId}><span className="event-clock" title="Replay time remaining">{clock}</span>
       <span className={`event-marker ${relation}`}><Icon name={event.eventType?.toLowerCase().includes('kill') ? 'crosshair' : 'activity'} size={13} /></span>
       <div className="event-description"><strong>{event.actorUsername || 'Actor unrecorded'}</strong><span>{event.targetUsername ? `→ ${event.targetUsername}` : ''}</span>
-        <small>R{String(event.roundNumber).padStart(2, '0')} · {event.eventType || 'EVENT'}{event.isHeadshot === true ? ' · HEADSHOT' : ''}{event.weaponId != null ? ` · WEAPON ${event.weaponId}` : ''}</small></div>
+        <small>R{String(event.roundNumber).padStart(2, '0')} · {teamkill?'TEAMKILL':event.eventType || 'EVENT'}{event.isHeadshot === true ? ' · HEADSHOT' : ''}{event.weaponId != null ? ` · WEAPON ${event.weaponId}` : ''}</small></div>
     </div>;
   })}</div>;
 }
@@ -168,6 +171,7 @@ export function RealMatchCenter({ app, id, number }: { app: any; id?: string; nu
     {id && playlistExcluded && <Notice>This match belongs to {playlistLabels[matchPlaylist(report.data!.match.matchType)]}. Select that playlist to view its stats.</Notice>}
     {id && !playlistExcluded && !excluded && report.data && view && hasSelection && <>{report.data.match.summaryScore&&<Notice>Final scoreboard entry: match totals and result are available. Round order, bombsites, operators and individual round stats were not recorded.</Notice>}
       {view.reason && <Notice>{view.reason} Choose a participating player or squad to resolve the match perspective.</Notice>}
+      <ImpactSummary rows={report.data.appearances.filter(a=>scope.chosen.includes(a.playerId)&&(!isRound||a.roundId===currentRound?.roundId))}/>
       {isRound ? currentRound ? <RoundReport app={app} report={report.data} view={view} round={currentRound} identity={scope.identity} onPlayer={onPlayer} />
         : <Empty title="Round unavailable" sub="This round number is not present in the recorded match." />
         : <>

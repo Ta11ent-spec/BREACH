@@ -266,12 +266,14 @@ app.MapGet("/api/overview/v3", async (SqlStore db) =>
         SELECT r.RoundId AS roundId, r.MatchId AS matchId,
                rp.PlayerId AS playerId, rp.TeamIndex AS teamIndex,
                rp.Kills AS kills, rp.Died AS died, rp.Assists AS assists,
-               rp.Headshots AS headshots, rp.OperatorName AS operatorName
+               rp.Headshots AS headshots, rp.OperatorName AS operatorName,
+               JSON_QUERY(CASE WHEN ISJSON(rp.ExtraStatsJson)=1 THEN rp.ExtraStatsJson ELSE '{}' END,'$.impact') AS impactJson
         FROM dbo.RoundPlayers rp
         JOIN dbo.MatchRounds r ON r.RoundId=rp.RoundId
         ORDER BY r.MatchId,r.RoundNumber,rp.TeamIndex,rp.PlayerId
         """);
 
+    ImpactStats.DecodeRows(appearances);
     var players = await db.ReadAsync("""
         SELECT PlayerId AS playerId, ProfileId AS profileId,
                Username AS username FROM dbo.Players

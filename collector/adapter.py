@@ -5,12 +5,13 @@ import re
 import sys
 import uuid
 from collections import Counter
+from impact import derive
 from datetime import datetime, timezone
 from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-VERSION = '0.3.7'
+VERSION = '0.3.9'
 MAX_BYTES = 4 * 1024 * 1024
 FORMATS = FormatChecker()
 
@@ -156,6 +157,8 @@ def convert(raw_rounds, source_hashes, installation_id, parser_version, message_
         name_counts = Counter(p.get('username') for p in r['players'])
         stat_counts = Counter(p.get('username') for p in r['stats'])
         stats = {s.get('username'): s for s in r['stats']}
+        impact, impact_issue = derive(r)
+        if impact_issue: issues.append({'severity':'warning','code':'IMPACT_UNAVAILABLE','message':f'Round {index + 1}: {impact_issue}'})
         identities = {}
         for p in r['players']:
             name, profile = p.get('username'), p.get('profileID') or None
@@ -169,7 +172,7 @@ def convert(raw_rounds, source_hashes, installation_id, parser_version, message_
                 issues.append({'severity': 'warning', 'code': 'AMBIGUOUS_OR_MISSING_STATS', 'message': f'Round {index + 1}: stats cannot be uniquely linked to {name}; measurements remain null'})
             op = p.get('operator') or {}
             appearances.append({'roundId': rid, 'playerId': pid, 'teamIndex': p.get('teamIndex'), 'operatorId': decimal(op.get('id')), 'operatorName': op.get('name'),
-                                'stats': {k: s.get(k) for k in ('kills', 'died', 'assists', 'headshots', 'damageDealt', 'damageTaken')} | {'scoreSnapshot': s.get('score')}})
+                                'stats': {k: s.get(k) for k in ('kills', 'died', 'assists', 'headshots', 'damageDealt', 'damageTaken')} | {'scoreSnapshot': s.get('score'), 'impact': impact.get(name)}})
         for i, e in enumerate(r['matchFeedback']):
             def resolve(name):
                 candidates = identities.get(name, [])

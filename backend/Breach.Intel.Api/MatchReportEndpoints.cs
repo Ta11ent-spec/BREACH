@@ -62,7 +62,8 @@ public static class MatchReportEndpoints
                            rp.EntryKill AS entryKill, rp.EntryDeath AS entryDeath,
                            rp.TradeKill AS tradeKill, rp.TradedDeath AS tradedDeath,
                            rp.UntradedDeath AS untradedDeath, rp.Clutch1vX AS clutch1vX,
-                           rp.ExtraStatsJson AS extraStatsJson
+                           rp.ExtraStatsJson AS extraStatsJson,
+                           JSON_QUERY(CASE WHEN ISJSON(rp.ExtraStatsJson)=1 THEN rp.ExtraStatsJson ELSE '{}' END,'$.impact') AS impactJson
                     FROM dbo.RoundPlayers rp
                     JOIN dbo.MatchRounds r ON r.RoundId=rp.RoundId
                     WHERE r.MatchId=@id
@@ -72,6 +73,7 @@ public static class MatchReportEndpoints
                 // Source events identify participants by username. Resolve an ID only
                 // when exactly one player has the same snapshot name in that round.
                 // Binary comparison avoids assigning a differently cased name.
+                ImpactStats.DecodeRows(appearances);
                 var events = await db.ReadAsync("""
                     SELECT e.EventId AS eventId, e.RoundId AS roundId,
                            r.RoundNumber AS roundNumber, e.EventSequence AS eventSequence,

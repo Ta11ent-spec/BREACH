@@ -1,8 +1,10 @@
+import {impactTotals} from './impact';
 import { analyzeOverview, asPercent } from './overviewAnalytics';
 import type { OverviewV3, V3Appearance, V3Player, ResolvedMatch } from './overviewAnalytics';
 
 export type PlayerPeriod = '7D' | '30D' | 'ALL';
 export type PlayerTotals = {
+  impact:ReturnType<typeof impactTotals>;
   rounds: number; kills: number | null; deaths: number | null; assists: number | null;
   headshots: number | null; kd: string | null; hs: number | null; survival: number | null;
 };
@@ -21,7 +23,7 @@ export function playerTotals(rows: V3Appearance[]): PlayerTotals {
   const kills = sum('kills'), assists = sum('assists'), headshots = sum('headshots');
   const deaths = rows.length && rows.every(r => r.deaths != null || r.died != null) ? rows.reduce((n,r)=>n+(r.deaths??Number(r.died)),0) : null;
   const rounds=rows.reduce((n,r)=>n+(r.roundsRepresented??1),0);
-  return { rounds, kills, deaths, assists, headshots,
+  return { rounds, kills, deaths, assists, headshots, impact:impactTotals(rows),
     kd: kills == null || deaths == null ? null : deaths ? (kills / deaths).toFixed(2) : kills ? '∞' : '—',
     hs: kills != null && headshots != null && headshots <= kills ? asPercent(headshots, kills) : null,
     survival: deaths == null ? null : asPercent(rounds - deaths, rounds) };

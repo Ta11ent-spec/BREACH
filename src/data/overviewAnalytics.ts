@@ -1,4 +1,5 @@
 /** Deterministic, unit-testable V3 analytics. No replay slot-0 assumption. */
+import type {Impact} from './impact';
 import { displayMapLabel, resolveMap } from './mapCatalog';
 export type V3Match = {
   summaryScore?: {wins:number;losses:number};
@@ -9,6 +10,7 @@ export type V3Match = {
 };
 export type V3Round = { roundId: string; matchId: string; roundNumber: number; teamSlot: number; side: string | null; won: boolean | null; site?: string | null };
 export type V3Appearance = {
+  impact?:Impact|null;
   roundsRepresented?:number; deaths?:number|null;
   roundId: string; matchId: string; playerId: string; teamIndex: number | null;
   kills: number | null; died: boolean | null; assists: number | null;

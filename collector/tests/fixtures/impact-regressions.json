@@ -1,0 +1,410 @@
+[
+  {
+    "round": {
+      "matchType": {
+        "name": "Ranked"
+      },
+      "gamemode": {
+        "name": "Bomb"
+      },
+      "players": [
+        {
+          "username": "p0",
+          "teamIndex": 1
+        },
+        {
+          "username": "p1",
+          "teamIndex": 1
+        },
+        {
+          "username": "p2",
+          "teamIndex": 1
+        },
+        {
+          "username": "p3",
+          "teamIndex": 1
+        },
+        {
+          "username": "p4",
+          "teamIndex": 1
+        },
+        {
+          "username": "p5",
+          "teamIndex": 0
+        },
+        {
+          "username": "p6",
+          "teamIndex": 0
+        },
+        {
+          "username": "p7",
+          "teamIndex": 0
+        },
+        {
+          "username": "p8",
+          "teamIndex": 0
+        },
+        {
+          "username": "p9",
+          "teamIndex": 0
+        }
+      ],
+      "teams": [
+        {
+          "won": false
+        },
+        {
+          "won": true
+        }
+      ],
+      "stats": [
+        {
+          "username": "p0",
+          "kills": 2,
+          "died": false
+        },
+        {
+          "username": "p1",
+          "kills": 2,
+          "died": true
+        },
+        {
+          "username": "p2",
+          "kills": 0,
+          "died": true
+        },
+        {
+          "username": "p3",
+          "kills": 0,
+          "died": true
+        },
+        {
+          "username": "p4",
+          "kills": 1,
+          "died": true
+        },
+        {
+          "username": "p5",
+          "kills": 0,
+          "died": true
+        },
+        {
+          "username": "p6",
+          "kills": 1,
+          "died": true
+        },
+        {
+          "username": "p7",
+          "kills": 2,
+          "died": true
+        },
+        {
+          "username": "p8",
+          "kills": 1,
+          "died": true
+        },
+        {
+          "username": "p9",
+          "kills": 0,
+          "died": true
+        }
+      ],
+      "matchFeedback": [
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p6",
+          "target": "p4",
+          "timeInSeconds": 146
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p1",
+          "target": "p6",
+          "timeInSeconds": 123
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p7",
+          "target": "p2",
+          "timeInSeconds": 107
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p7",
+          "target": "p3",
+          "timeInSeconds": 100
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p1",
+          "target": "p8",
+          "timeInSeconds": 94
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p8",
+          "target": "p1",
+          "timeInSeconds": 94
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p4",
+          "target": "p7",
+          "timeInSeconds": 81
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p0",
+          "target": "p5",
+          "timeInSeconds": 62
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p0",
+          "target": "p9",
+          "timeInSeconds": 42
+        }
+      ]
+    },
+    "expected": {
+      "p0": [
+        0,
+        0,
+        1,
+        0,
+        0
+      ]
+    }
+  },
+  {
+    "round": {
+      "matchType": {
+        "name": "Ranked"
+      },
+      "gamemode": {
+        "name": "Bomb"
+      },
+      "players": [
+        {
+          "username": "p0",
+          "teamIndex": 0
+        },
+        {
+          "username": "p1",
+          "teamIndex": 0
+        },
+        {
+          "username": "p2",
+          "teamIndex": 0
+        },
+        {
+          "username": "p3",
+          "teamIndex": 0
+        },
+        {
+          "username": "p4",
+          "teamIndex": 0
+        },
+        {
+          "username": "p5",
+          "teamIndex": 1
+        },
+        {
+          "username": "p6",
+          "teamIndex": 1
+        },
+        {
+          "username": "p7",
+          "teamIndex": 1
+        },
+        {
+          "username": "p8",
+          "teamIndex": 1
+        },
+        {
+          "username": "p9",
+          "teamIndex": 1
+        }
+      ],
+      "teams": [
+        {
+          "won": true
+        },
+        {
+          "won": false
+        }
+      ],
+      "stats": [
+        {
+          "username": "p0",
+          "kills": 0,
+          "died": true
+        },
+        {
+          "username": "p1",
+          "kills": 0,
+          "died": true
+        },
+        {
+          "username": "p2",
+          "kills": 1,
+          "died": true
+        },
+        {
+          "username": "p3",
+          "kills": 3,
+          "died": false
+        },
+        {
+          "username": "p4",
+          "kills": 1,
+          "died": true
+        },
+        {
+          "username": "p5",
+          "kills": 2,
+          "died": true
+        },
+        {
+          "username": "p6",
+          "kills": 1,
+          "died": true
+        },
+        {
+          "username": "p7",
+          "kills": 0,
+          "died": true
+        },
+        {
+          "username": "p8",
+          "kills": 0,
+          "died": true
+        },
+        {
+          "username": "p9",
+          "kills": 1,
+          "died": true
+        }
+      ],
+      "matchFeedback": [
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p5",
+          "target": "p0",
+          "timeInSeconds": 123
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p3",
+          "target": "p7",
+          "timeInSeconds": 104
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p3",
+          "target": "p8",
+          "timeInSeconds": 65
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p6",
+          "target": "p1",
+          "timeInSeconds": 56
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p4",
+          "target": "p6",
+          "timeInSeconds": 53
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p5",
+          "target": "p4",
+          "timeInSeconds": 49
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p9",
+          "target": "p2",
+          "timeInSeconds": 35
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p3",
+          "target": "p9",
+          "timeInSeconds": 27
+        },
+        {
+          "type": {
+            "name": "Kill",
+            "id": 0
+          },
+          "username": "p2",
+          "target": "p5",
+          "timeInSeconds": 0
+        }
+      ]
+    },
+    "expected": {
+      "p3": [
+        0,
+        1,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+]

@@ -63,9 +63,23 @@ try{
  Assert(File.ReadAllText(Path.Combine(root,"Contracts/collector-v1.schema.json"))==File.ReadAllText(Path.Combine(root,"../../public/contracts/collector-v1.schema.json")),"API and collector use the same contract");
  var json=File.ReadAllText(Path.Combine(root,"../../tests/WorkspaceIntegration/envelope.json"));
  var rich=JsonNode.Parse(json)!;rich["payload"]!["match"]!["mapId"]="18446744073709551615";rich["payload"]!["appearances"]![0]!["stats"]!["scoreSnapshot"]=4294967286L;rich["payload"]!["events"]![0]!["timeRemainingSeconds"]=15.25;json=rich.ToJsonString();
+ using var legacyDoc=JsonDocument.Parse(json);
+ var impactPayload=JsonNode.Parse(json)!;
+ impactPayload["payload"]!["appearances"]![0]!["stats"]!["impact"]=JsonNode.Parse("""{"version":1,"openingKills":1,"openingDeaths":null,"openingTeamkills":0,"openingTeamkillDeaths":0,"openingOtherDeaths":0,"clutches":[0,0,0,0,0]}""");
+ json=impactPayload.ToJsonString();
  using var doc=JsonDocument.Parse(json);CollectorContract.Validate(doc.RootElement,schema.RootElement);
+ Assert(CollectorContract.Hash(doc.RootElement.GetProperty("payload"))==CollectorContract.Hash(legacyDoc.RootElement.GetProperty("payload")),"derived impact metadata preserves legacy gameplay hash");
+ Assert(ImpactStats.Validate(new(1,0,0,0,0,0,[0,1,1,0,0]),1,0,0,1)!=null,"multiple clutch wins in one round rejected");
+ Assert(ImpactStats.Validate(new(1,0,0,0,0,0,[1,0,0,0,0]),1,0,0,0)!=null,"losing-side clutch win rejected");
+ Assert(ImpactStats.Validate(new(1,0,1,0,1,0,[0,0,0,0,0]),1,0,1)!=null,"contradictory death categories rejected");
+ Assert(ImpactStats.Group([(0,new(1,1,0,0,0,0,[0,0,0,0,0])),(0,new(1,0,1,0,0,0,[0,0,0,0,0]))],1)!=null,"enemy opening duel cannot involve teammates");
+ Assert(ImpactStats.Group([(0,new(1,0,0,1,0,0,[0,0,0,0,0])),(0,new(1,0,0,0,1,0,[0,0,0,0,0]))],1)==null,"opening teamkill remains a separate same-team incident");
  var result=await UploadEndpoints.Save(doc.RootElement,a,default);
  Assert(result is IStatusCodeHttpResult {StatusCode:200},"valid upload committed");
+ Assert(Convert.ToInt32(await Sql("SELECT COUNT(*) FROM dbo.RoundPlayers WHERE JSON_VALUE(ExtraStatsJson,'$.impact.openingKills')='1'"))==1,"corrected impact metadata persists separately from legacy parser columns");
+ var impactRows=await ad.ReadAsync("SELECT JSON_QUERY(ExtraStatsJson,'$.impact') AS impactJson FROM dbo.RoundPlayers");ImpactStats.DecodeRows(impactRows);
+ Assert(impactRows.Any(r=>r["impact"] is ImpactStats{OpeningKills:1}),"API decodes impact metadata for analytics");
+ Assert(await UploadEndpoints.Save(legacyDoc.RootElement,a,default) is IStatusCodeHttpResult{StatusCode:200},"old collector retry after enriched upload remains idempotent");
  Assert((await ad.ReadAsync("SELECT * FROM dbo.Matches")).Count==1,"one gameplay match inserted");
  Assert((await ad.ReadAsync("SELECT MapId AS mapId FROM dbo.Matches"))[0]["mapId"]?.ToString()=="18446744073709551615","unsigned game IDs remain exact decimal strings");
  Assert((await bd.ReadAsync("SELECT * FROM dbo.Players")).Count==1,"console account sees uploaded player data");
@@ -112,6 +126,7 @@ try{
  Assert(await ManualEndpoints.Save(manualId,stale,a,default) is IStatusCodeHttpResult{StatusCode:409},"stale manual edits cannot overwrite newer revisions");
  Assert(ManualEndpoints.Validate(draft with{Status="submitted"}) is not null,"incomplete match cannot submit");
  var completed=manual with{Rounds=Enumerable.Range(0,4).Select(_=>blank with{Won=true,Kills=1,Died=false}).ToArray()};
+ completed=completed with{Rounds=[completed.Rounds[0] with{Impact=new(1,1,null,0,null,null,[0,1,0,0,0])},..completed.Rounds.Skip(1)]};
  Assert(ManualEndpoints.Validate(new(1,"submitted",completed)) is null,"complete ranked sweep validates with optional stats unknown");
  Assert(ManualEndpoints.Validate(new(1,"submitted",completed with{Rounds=[..completed.Rounds,blank with{Won=false}]})) is not null,"rounds after a terminal score rejected");
  Assert(ManualEndpoints.Validate(new(1,"draft",manual with{Rounds=[blank with{Kills=1,Headshots=2}]})) is not null,"impossible headshots rejected even in drafts");
@@ -123,6 +138,7 @@ try{
  Assert(await ManualEndpoints.Save(manualId,new(2,"draft",completed),a,default) is IStatusCodeHttpResult{StatusCode:409},"submitted manual records are immutable");
  Assert((await ad.ReadAsync("SELECT * FROM dbo.Matches")).Count==1,"manual submission does not pollute shared replay catalogue");
  var savedManual=JsonSerializer.Deserialize<ManualMatch>((string)(await ad.ReadAsync("SELECT Payload FROM dbo.ManualMatches"))[0]["Payload"]!,ManualEndpoints.Json)!;
+ Assert(savedManual.Rounds[0].Impact is {OpeningKills:1}&&savedManual.Rounds[0].Impact!.Clutches[1]==1,"manual round impact survives SQL persistence");
  Assert(savedManual.Rounds[0].Assists is null,"unknown manual statistics remain null through SQL persistence");
  Assert(await ManualEndpoints.Save(manualId,new(2,"draft",manual),b,default) is IStatusCodeHttpResult{StatusCode:404},"another account cannot update an owner's draft ID");
  // Shared analytics includes existing submissions from other accounts, never drafts or notes.
@@ -136,6 +152,7 @@ try{
  Assert(sharedA.Select(r=>r.Id).Distinct().Count()==2,"shared IDs prevent collisions across owners");
  Assert(sharedA.SequenceEqual(sharedB),"owner and other account receive identical shared stats");
  Assert(sharedA.All(r=>!r.Payload.Contains("private")),"shared payload excludes private match and round notes");
+ Assert(sharedA.All(r=>JsonSerializer.Deserialize<ManualMatch>(r.Payload,ManualEndpoints.Json)!.Rounds[0].Impact?.OpeningKills==1),"shared manual feed retains impact while stripping notes");
  var sharedPayload=JsonSerializer.Deserialize<ManualMatch>(sharedA[0].Payload,ManualEndpoints.Json)!;
  Assert(sharedPayload.Rounds.Sum(r=>r.Kills)==4&&sharedPayload.Rounds[0].Assists is null,"shared payload retains stats and unknown values");
  var ownerPayload=(string)(await bd.ReadAsync("SELECT Payload FROM dbo.ManualMatches WHERE Id=@id",("@id",manualId)))[0]["Payload"]!;

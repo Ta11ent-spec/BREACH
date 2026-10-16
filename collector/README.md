@@ -1,4 +1,4 @@
-# BREACH Windows Collector 0.3.1 — Beta
+# BREACH Windows Collector 0.3.9 — Beta
 
 The Windows x64 collector watches Siege replay folders, parses completed Ranked, Unranked/Standard and Casual matches, and uploads normalized match data to the hosted BREACH API after sign-in and Enable Sync. Python, SQL Server and developer tools are not required on the player's PC.
 
@@ -35,7 +35,7 @@ Uninstall removes installed program files while preserving queue data and game r
 Use Windows x64, the collector build virtual environment, the reviewed siege-dissect parser and NSIS:
 
 ```powershell
-.tmp/collector-venv/Scripts/python.exe collector/build.py --parser <parser.exe> --makensis <makensis.exe> --auth-config <public-auth-config.json> --api-url <https-api-origin> --output releases/collector/0.3.7-hosted
+.tmp/collector-venv/Scripts/python.exe collector/build.py --parser <parser.exe> --makensis <makensis.exe> --auth-config <public-auth-config.json> --api-url <https-api-origin> --output releases/collector/0.3.9-hosted
 ```
 
 Auth configuration contains only public domain, native client ID and audience. Never package sessions, queue databases or private developer settings. The installer includes third-party licenses.
@@ -47,3 +47,6 @@ See [workspace sync](../docs/WORKSPACE_SYNC.md) for the protocol and isolation g
 Folder detection reads Steam installation records, registered libraryfolders.vdf paths, game manifests and registered Ubisoft/game install locations. Multiple found folders prompt for selection. It does not scan entire drives; Browse remains the fallback. Supported complete Ranked Bomb, Unranked/Standard Bomb and Casual (Bomb/QuickMatchBomb, SecureArea, Hostage) matches upload with their original playlist. The recorded regulation/overtime format and every score must validate. Missing early rounds, unsupported formats and parser failures remain local. Website playlist filtering defaults to Ranked.
 
 Version 0.3.7 retries previously unsupported-mode holds once on upgrade; acknowledged uploads are untouched. Parser panics are not fixed by playlist support: retain the affected replay folder and export diagnostics to investigate.
+
+## Version 0.3.9 impact metrics
+Opening duels use the first opponent kill/victim. The first elimination, if a teamkill or standalone death, is retained as a separate opening incident. Clutch size is the enemy count when the eventual winning player first becomes the last teammate standing; later posthumous kills do not shrink it. Normalization derives these metrics from the timeline instead of trusting the parser entry/1vX flags. Only complete, unambiguous Ranked Bomb round timelines are currently enabled; other playlists and inconsistent rounds retain unknown impact fields and their original stats/events. Existing uploads/queues are not backfilled. The server excludes derived impact metadata and its warnings from the gameplay fingerprint so an old client and a new client cannot conflict solely because one includes the new metrics. First recorded gameplay remains authoritative.

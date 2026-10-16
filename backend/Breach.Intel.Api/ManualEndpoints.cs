@@ -7,11 +7,11 @@ namespace Breach.Intel.Api;
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ManualPlayer(string PlayerId,string Username,int TeamIndex);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ManualPlayerStats(string PlayerId,string Operator,int? Kills,bool? Died,int? Assists,int? Headshots);
+public sealed record ManualPlayerStats(string PlayerId,string Operator,int? Kills,bool? Died,int? Assists,int? Headshots,ImpactStats? Impact=null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ManualRound(string Side, string Operator, string Site, bool? Won, int? Kills, bool? Died, int? Assists, int? Headshots, string Notes, ManualPlayerStats[]? Players=null);
+public sealed record ManualRound(string Side, string Operator, string Site, bool? Won, int? Kills, bool? Died, int? Assists, int? Headshots, string Notes, ManualPlayerStats[]? Players=null,ImpactStats? Impact=null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ManualSummaryPlayer(string PlayerId,int? Kills,int? Deaths,int? Assists,int? Headshots);
+public sealed record ManualSummaryPlayer(string PlayerId,int? Kills,int? Deaths,int? Assists,int? Headshots,ImpactStats? Impact=null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ManualSummary(int Wins,int Losses,ManualSummaryPlayer[] Players);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -37,8 +37,12 @@ public static class ManualEndpoints
             var n=summary.Wins+summary.Losses;var high=Math.Max(summary.Wins,summary.Losses);var low=Math.Min(summary.Wins,summary.Losses);
             if(p.Roster is null || p.Rounds.Length!=0 || summary.Wins<0||summary.Losses<0||high>12||summary.Players is null||summary.Players.Length!=10||summary.Players.Any(x=>x is null)||summary.Players.Select(x=>x.PlayerId).Distinct(StringComparer.Ordinal).Count()!=10||summary.Players.Any(x=>!p.Roster.Any(r=>r.PlayerId==x.PlayerId)))return "Check scoreboard players and final score.";
             foreach(var x in summary.Players){
+                var team=p.Roster.First(r=>r.PlayerId==x.PlayerId).TeamIndex;
+                if(ImpactStats.Validate(x.Impact,n,x.Kills,x.Deaths,team==0?summary.Wins:summary.Losses) is {} impactError)return impactError;
                 if(x.Kills is <0||x.Deaths is <0||x.Assists is <0||x.Headshots is <0||x.Kills>5*n||x.Assists>5*n||x.Headshots>5*n||x.Deaths>n||x.Headshots is not null&&(x.Kills is null||x.Headshots>x.Kills))return "Scoreboard statistics exceed the match limits.";
             }
+            if(ImpactStats.Group(summary.Players.Select(x=>(p.Roster.First(r=>r.PlayerId==x.PlayerId).TeamIndex,x.Impact)).ToArray(),n) is {} groupError)return groupError;
+            foreach(var team in new[]{0,1})if(summary.Players.Where(x=>p.Roster.First(r=>r.PlayerId==x.PlayerId).TeamIndex==team).Sum(x=>x.Impact?.Clutches.Sum(n=>n??0)??0)>(team==0?summary.Wins:summary.Losses))return "Team clutch wins exceed won rounds.";
             var endedScore=(p.Mode is "Ranked Bomb" or "Unranked Bomb")?high==4&&low<=2||high==5&&low>=3&&low<=4:high==(p.Mode=="Casual Bomb"?3:p.Mode=="Standard Bomb"?4:p.Target)&&low<(p.Mode=="Casual Bomb"?3:p.Mode=="Standard Bomb"?4:p.Target);
             if(input.Status=="submitted"&&(!endedScore||string.IsNullOrWhiteSpace(p.Map)))return "Enter a complete final score and map.";
             return null;
@@ -50,6 +54,10 @@ public static class ManualEndpoints
                 if(r.Players is null || r.Players.Length!=10 || r.Players.Any(x=>x is null) || r.Players.Select(x=>x.PlayerId).Distinct(StringComparer.Ordinal).Count()!=10 || r.Players.Any(x=>!p.Roster.Any(p=>p.PlayerId==x.PlayerId)))return "Every round must contain the same ten roster players.";
                 if(r.Players.Any(x=>!Text(x.Operator,100)||x.Kills is <0 or >5||x.Assists is <0 or >5||x.Headshots is <0 or >5||x.Headshots is not null&&(x.Kills is null||x.Headshots>x.Kills)))return "Check round statistics for all players. Headshots cannot exceed kills.";
             }else if(r.Players is not null)return "Round players require a match roster.";
+            if(r.Players is not null&&p.Roster is not null){
+                foreach(var x in r.Players){var team=p.Roster.First(p=>p.PlayerId==x.PlayerId).TeamIndex;var won=r.Won is null?(int?)null:(r.Won==(team==0)?1:0);if(ImpactStats.Validate(x.Impact,1,x.Kills,x.Died is null?null:x.Died==true?1:0,won) is {} error)return error;}
+                if(ImpactStats.Group(r.Players.Select(x=>(p.Roster.First(p=>p.PlayerId==x.PlayerId).TeamIndex,x.Impact)).ToArray(),1) is {} error2)return error2;
+            }else if(ImpactStats.Validate(r.Impact,1,r.Kills,r.Died is null?null:r.Died==true?1:0,r.Won is null?null:r.Won==true?1:0) is {} error3)return error3;
             if(input.Status=="submitted" && (ended||r.Won is null)) return "Each round needs a result, and no rounds may follow a match-ending score.";
             if(r.Won==true)wins++;else if(r.Won==false)losses++;
             ended=(p.Mode is "Ranked Bomb" or "Unranked Bomb") ? Math.Max(wins,losses)>=5 || Math.Max(wins,losses)>=4&&Math.Abs(wins-losses)>=2 : Math.Max(wins,losses)>=(p.Mode=="Casual Bomb"?3:p.Mode=="Standard Bomb"?4:p.Target);
