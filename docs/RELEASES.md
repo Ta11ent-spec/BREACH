@@ -31,3 +31,10 @@ Validation: 77 isolated SQL integration checks, existing analytics regression su
 - Installer and collector messaging now describe hosted synchronization accurately. Website footer and sidebar use one version constant.
 - Verified 38 collector tests, packaged runtime self-test, hosted Auth0 login, an existing real replay acknowledgement, lost-response duplicate retry and restart receipt retention. The existing replay's original gameplay stats were preserved.
 - Unsigned beta: fresh-match insertion on the hosted service and second-PC installation remain unverified. New-match transactions are covered by isolated API integration checks.
+
+## V1.1.3 — account permissions
+- A single deployment-configured Owner can grant/revoke Admin access in My account. New accounts default to Player; Admins cannot assign roles or access private workspaces.
+- Owner and Admin can correct shared map/bombsite links. Permission changes and catalog revisions are audited; prior recorded link revisions can be restored without changing gameplay records.
+- My account displays the sign-in identity and account ID for unambiguous access requests.
+- Owner is configured by Security__OwnerAccountKey (the exact authenticated workspace/account hash), not by email, player name, or legacy dbo schema. There is no public bootstrap or ownership-transfer endpoint.
+- Validation: 98 isolated SQL checks, 80 frontend analytics tests, TypeScript/build checks. Original LocalDB instance failed to start; tests ran on a separate BREACH_Permissions_Test instance.

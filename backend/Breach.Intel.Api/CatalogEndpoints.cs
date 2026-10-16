@@ -15,7 +15,7 @@ public static class CatalogEndpoints
         if(p.Sites.Any(s=>s is null||!Text(s.Map,80)||!Maps.Contains(s.Map)||!Text(s.Alias,150)||!Text(s.Site,150))||p.Sites.Select(s=>s.Map.ToLowerInvariant()+"\n"+s.Alias.ToLowerInvariant()).Distinct().Count()!=p.Sites.Length)return "Use one site link per map and original site label.";
         return null;
     }
-    public static bool CanEdit(Workspace w)=>w.Schema=="dbo";
+    public static async Task<bool> CanEdit(Workspace w)=>await w.RoleAsync() is "Owner" or "Admin";
     public static void MapCatalogLinks(this WebApplication app){
         var group=app.MapGroup("/api/catalog-links");
         group.AddEndpointFilter(async(c,next)=>{
@@ -27,10 +27,10 @@ public static class CatalogEndpoints
             await using var cmd=new SqlCommand("SELECT Payload FROM dbo.CatalogLinks WHERE Id=1",db);
             var json=await cmd.ExecuteScalarAsync();
             var links=json is string s?JsonSerializer.Deserialize<CatalogLinks>(s,ManualEndpoints.Json)!:new CatalogLinks(0,[],[]);
-            return Results.Ok(new{links.Revision,links.Maps,links.Sites,canEdit=CanEdit(w)});
+            return Results.Ok(new{links.Revision,links.Maps,links.Sites,canEdit=await CanEdit(w)});
         });
         group.MapPut("",async(HttpContext h,Workspace w)=>{
-            if(!CanEdit(w))return Results.StatusCode(403);
+            if(!await CanEdit(w))return Results.StatusCode(403);
             if(h.Request.Headers["X-Breach-Request"]!="catalog-links")return Results.BadRequest();
             if(!h.Request.HasJsonContentType())return Results.StatusCode(415);
             using var body=new MemoryStream();var buffer=new byte[8192];int count;
@@ -40,19 +40,32 @@ public static class CatalogEndpoints
             if(p is null)return Results.BadRequest();
             return await Save(p,w,h.RequestAborted);
         });
+        group.MapGet("/history",async(Workspace w,SqlStore store)=>{
+            if(!await CanEdit(w))return Results.StatusCode(403);
+            return Results.Ok(await store.ReadAsync("SELECT TOP(50) Revision AS revision,Actor AS actor,Payload AS payload,ChangedAt AS changedAt FROM dbo.CatalogAudit ORDER BY Revision DESC"));
+        });
     }
     public static async Task<IResult> Save(CatalogLinks p,Workspace w,CancellationToken ct){
-        if(!CanEdit(w))return Results.StatusCode(403);
+        if(!await CanEdit(w))return Results.StatusCode(403);
             var error=Validate(p);if(error!=null)return Results.BadRequest(new{message=error});
             await using var db=w.Connection();await db.OpenAsync(ct);
             await using var tx=(SqlTransaction)await db.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
+            // Hold the role read until commit so revocation cannot race a catalog write.
+            if(!w.IsOwner){
+                await using var access=new SqlCommand("SELECT Role FROM dbo.AccountRoles WITH(HOLDLOCK) WHERE AccountKey=@id",db,tx);
+                access.Parameters.AddWithValue("@id",w.Id);
+                if(await access.ExecuteScalarAsync(ct) as string!="Admin")return Results.StatusCode(403);
+            }
             await using var read=new SqlCommand("SELECT Revision FROM dbo.CatalogLinks WITH(UPDLOCK,HOLDLOCK) WHERE Id=1",db,tx);
             var revision=await read.ExecuteScalarAsync(ct);
             if((revision is int n?n:0)!=p.Revision)return Results.Conflict(new{message="Links changed in another tab. Reload before saving."});
             var next=p with{Revision=p.Revision+1};
             await using var write=new SqlCommand(revision is null?"INSERT dbo.CatalogLinks(Id,Revision,Payload,UpdatedBy) VALUES(1,@revision,@json,@by)":"UPDATE dbo.CatalogLinks SET Revision=@revision,Payload=@json,UpdatedBy=@by,UpdatedAt=SYSUTCDATETIME() WHERE Id=1",db,tx);
             write.Parameters.AddWithValue("@revision",next.Revision);write.Parameters.AddWithValue("@json",JsonSerializer.Serialize(next,ManualEndpoints.Json));write.Parameters.AddWithValue("@by",w.Id);
-            await write.ExecuteNonQueryAsync(ct);await tx.CommitAsync(ct);
+                        await write.ExecuteNonQueryAsync(ct);
+            await using var audit=new SqlCommand("INSERT dbo.CatalogAudit(Revision,Actor,Payload) VALUES(@revision,@actor,@payload)",db,tx);
+            audit.Parameters.AddWithValue("@revision",next.Revision);audit.Parameters.AddWithValue("@actor",w.Id);audit.Parameters.AddWithValue("@payload",JsonSerializer.Serialize(next,ManualEndpoints.Json));await audit.ExecuteNonQueryAsync(ct);
+            await tx.CommitAsync(ct);
             return Results.Ok(new{next.Revision,next.Maps,next.Sites,canEdit=true});
     }
 

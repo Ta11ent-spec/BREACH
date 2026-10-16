@@ -10,12 +10,14 @@ using Microsoft.Data.SqlClient;
 
 var root=Path.GetFullPath(args[0]);
 var database="BREACH_SYNC_TEST_"+Guid.NewGuid().ToString("N");
-var connection=$"Server=(localdb)\\MSSQLLocalDB;Database={database};Integrated Security=true;TrustServerCertificate=true";
+var instance=args.Length>1?args[1]:"MSSQLLocalDB";
+if(!System.Text.RegularExpressions.Regex.IsMatch(instance,@"^[A-Za-z0-9_]+$"))throw new ArgumentException("Invalid test instance");
+var connection=$"Server=(localdb)\\{instance};Database={database};Integrated Security=true;TrustServerCertificate=true";
 var master=connection.Replace(database,"master");
 async Task<object?> Sql(string sql,bool admin=false){await using var c=new SqlConnection(admin?master:connection);await c.OpenAsync();await using var command=new SqlCommand(sql,c){CommandTimeout=60};return await command.ExecuteScalarAsync();}
 var checks=0;
 void Assert(bool condition,string name){if(!condition)throw new Exception(name);checks++;Console.WriteLine("PASS: "+name);}
-Workspace NewWorkspace(string subject){return new Workspace(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"ConnectionStrings:BreachDatabase",connection},{"Auth0:AllowedSubjects:0","synthetic-owner"}}).Build(),new Env(root));}
+Workspace NewWorkspace(string subject){return new Workspace(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"ConnectionStrings:BreachDatabase",connection},{"Auth0:AllowedSubjects:0","synthetic-owner"},{"Security:OwnerAccountKey",Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("https://synthetic.example/\nsynthetic-owner")))}}).Build(),new Env(root));}
 async Task<Workspace> Resolve(string subject){var w=NewWorkspace(subject);var h=new DefaultHttpContext();h.User=new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub",subject),new Claim("iss","https://synthetic.example/")],"test"));await w.ResolveAsync(h,true);return w;}
 try{
  await Sql($"CREATE DATABASE [{database}]",true);
@@ -32,6 +34,23 @@ try{
  Assert(CatalogEndpoints.Validate(links with{Maps=[new MapLink("999","Not a map")]})!=null,"map links reject unknown destinations");
  Assert(CatalogEndpoints.Validate(links with{Maps=[new MapLink("999","Bank"),new MapLink("999","Chalet")]})!=null,"map links reject duplicate IDs");
  Assert(await CatalogEndpoints.Save(new CatalogLinks(1,[],[]),a,default) is IStatusCodeHttpResult{StatusCode:200},"owner can undo links without touching gameplay");
+ Assert(await a.RoleAsync()=="Owner"&&await b.RoleAsync()=="Player","only configured account is Owner; new accounts default to Player");
+ Assert(await PermissionEndpoints.Save(b.Id,new("Admin",0),b,default) is IStatusCodeHttpResult{StatusCode:403},"player cannot promote themselves");
+ Assert(await PermissionEndpoints.Save(b.Id,new("Owner",0),a,default) is IStatusCodeHttpResult{StatusCode:400},"owner cannot create additional owners");
+ Assert(await PermissionEndpoints.Save(a.Id,new("Player",0),a,default) is IStatusCodeHttpResult{StatusCode:400},"sole owner cannot be demoted");
+ Assert(await PermissionEndpoints.Save(new string('f',64),new("Admin",0),a,default) is IStatusCodeHttpResult{StatusCode:404},"cannot grant access to nonexistent accounts");
+ Assert(await PermissionEndpoints.Save(b.Id,new("Admin",0),a,default) is IStatusCodeHttpResult{StatusCode:200},"owner grants admin access");
+ Assert(await b.RoleAsync()=="Admin","grant takes effect without signing in again");
+ Assert(await PermissionEndpoints.Save(b.Id,new("Player",1),b,default) is IStatusCodeHttpResult{StatusCode:403},"admin cannot assign or revoke permissions");
+ Assert(await CatalogEndpoints.Save(new CatalogLinks(2,[new MapLink("999","Chalet")],[]),b,default) is IStatusCodeHttpResult{StatusCode:200},"admin can correct shared maps");
+ Assert(await PermissionEndpoints.Save(b.Id,new("Player",0),a,default) is IStatusCodeHttpResult{StatusCode:409},"stale permission changes rejected");
+ Assert(await PermissionEndpoints.Save(b.Id,new("Player",1),a,default) is IStatusCodeHttpResult{StatusCode:200},"owner revokes admin access");
+ Assert(await CatalogEndpoints.Save(new CatalogLinks(3,[],[]),b,default) is IStatusCodeHttpResult{StatusCode:403},"revoked admin immediately loses map edit access");
+ Assert(Convert.ToInt32(await Sql("SELECT COUNT(*) FROM dbo.PermissionAudit"))==2,"grant and revoke are audited atomically");
+ Assert(Convert.ToInt32(await Sql("SELECT COUNT(*) FROM dbo.CatalogAudit"))==3,"successful map changes retain revision history");
+ var noOwner=new Workspace(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"ConnectionStrings:BreachDatabase",connection},{"Auth0:AllowedSubjects:0","synthetic-owner"}}).Build(),new Env(root));
+ var ownerHttp=new DefaultHttpContext{User=new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub","synthetic-owner"),new Claim("iss","https://synthetic.example/")],"test"))};await noOwner.ResolveAsync(ownerHttp,true);
+ Assert(noOwner.Schema=="dbo"&&!noOwner.IsOwner&&await noOwner.RoleAsync()=="Player","legacy database workspace no longer confers owner permissions");
  var conf=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"ConnectionStrings:BreachDatabase",connection}}).Build();
  var ad=new SqlStore(conf,a);var bd=new SqlStore(conf,b);
  var squads=new SquadStore(conf,a);
@@ -167,4 +186,3 @@ sealed class Env(string root):IWebHostEnvironment {
  public string WebRootPath{get;set;}="";public IFileProvider WebRootFileProvider{get;set;}=new NullFileProvider();
  public string ContentRootPath{get;set;}=root;public IFileProvider ContentRootFileProvider{get;set;}=new NullFileProvider();
 }
-

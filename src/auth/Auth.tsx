@@ -4,6 +4,8 @@ import {setAccessTokenProvider} from './apiAuth';
 
 const env=import.meta.env;
 export const authConfigured=Boolean(env.VITE_AUTH0_DOMAIN&&env.VITE_AUTH0_CLIENT_ID&&env.VITE_AUTH0_AUDIENCE);
+function SignedInIdentity(){const {user}=useAuth0();return <p>Signed in as <strong>{user?.email??user?.name??'BREACH member'}</strong></p>;}
+export function AccountIdentity(){return authConfigured?<SignedInIdentity/>:null;}
 
 function Session({children}:{children:ReactNode}){
   const {isLoading,isAuthenticated,error,loginWithRedirect,logout,getAccessTokenSilently}=useAuth0();

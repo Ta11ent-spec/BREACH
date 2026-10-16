@@ -9,6 +9,16 @@ public sealed class Workspace(IConfiguration config, IWebHostEnvironment env)
 {
     public string Id { get; private set; } = "";
     public string Schema { get; private set; } = "";
+    // Owner is pinned by deployment configuration, never by a signup or client claim.
+    public string OwnerAccountKey => config["Security:OwnerAccountKey"] ?? "";
+    public bool IsOwner => Id.Length==64 && OwnerAccountKey.Length==64 && Id==OwnerAccountKey;
+    public async Task<string> RoleAsync(CancellationToken ct=default) {
+        if(IsOwner)return "Owner";
+        await using var db=Connection();await db.OpenAsync(ct);
+        await using var cmd=new SqlCommand("SELECT Role FROM dbo.AccountRoles WHERE AccountKey=@id",db);
+        cmd.Parameters.AddWithValue("@id",Id);
+        return await cmd.ExecuteScalarAsync(ct) as string ?? "Player";
+    }
     public string Scope(string sql)
     {
         if (Schema.Length == 0) throw new InvalidOperationException("Workspace has not been resolved.");
@@ -56,6 +66,7 @@ public sealed class Workspace(IConfiguration config, IWebHostEnvironment env)
         await Run(Scope(File.ReadAllText(Path.Combine(env.ContentRootPath,"Sql","006_manual_matches.sql"))));
         await Run(Scope(File.ReadAllText(Path.Combine(env.ContentRootPath,"Sql","007_account_profile.sql"))));
         await Run("IF OBJECT_ID('dbo.CatalogLinks','U') IS NULL CREATE TABLE dbo.CatalogLinks(Id int NOT NULL PRIMARY KEY CHECK(Id=1),Revision int NOT NULL,Payload nvarchar(max) NOT NULL,UpdatedBy char(64) NOT NULL,UpdatedAt datetime2 NOT NULL DEFAULT SYSUTCDATETIME());");
+        await Run(File.ReadAllText(Path.Combine(env.ContentRootPath,"Sql","008_permissions.sql")));
         await tx.CommitAsync(http.RequestAborted);
     }
 }
