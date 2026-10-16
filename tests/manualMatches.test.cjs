@@ -20,3 +20,24 @@ test('terminal score and complete round results are required',()=>{assert.deepEq
 test('impossible headshots and fractional counts are rejected',()=>{const p=match();p.rounds[0].headshots=2;p.rounds[1].kills=1.5;assert.ok(manualErrors(p).length>=2);});
 test('manual adapter excludes drafts and preserves replay source',()=>{const base={matches:[],rounds:[],appearances:[],players:[],perspective:'',rosterStorage:''};const records=[{id:'one',status:'draft',payload:match()},{id:'two',status:'submitted',payload:match()}];const data=withManualMatches(base,records);assert.equal(base.matches.length,0);assert.equal(data.matches.length,1);assert.equal(data.matches[0].isCompleteMatch,true);assert.equal(data.matches[0].source,'manual');assert.equal(data.appearances[0].assists,null);const player=analyzePlayers(data,'ALL')[0];assert.equal(player.kills,4);assert.equal(player.winRate,100);assert.equal(player.unverified,0);assert.equal(withManualMatches(data,records).matches.length,1);});
 test('ranked overtime and custom first-to formats are validated',()=>{const p=match();p.rounds=[true,false,true,false,true,false,true,false,true].map(won=>({...newRound(),won}));assert.deepEqual(manualErrors(p),[]);p.mode='Custom Bomb';p.target=2;p.rounds=p.rounds.slice(0,3);assert.deepEqual(manualErrors(p),[]);});
+
+const {roundSelection,setRoundSelection,noneSelection,partialSelection}=loadTs('src/data/roundImpact.ts');
+test('round dropdowns preserve unknowns and map selected events to collector-shaped counts',()=>{
+ const rows=['a','b','c'].map(playerId=>({playerId,kills:2}));
+ let next=setRoundSelection(rows,'openingKills','a');
+ assert.deepEqual(next.map(r=>r.impact.openingKills),[1,0,0]);
+ assert(next.every(r=>r.impact.openingDeaths===null&&r.kills===2));
+ next=setRoundSelection(next,'clutches',JSON.stringify(['b',3]));
+ assert.deepEqual(next[1].impact.clutches,[0,0,1,0,0]);
+ assert.deepEqual(next[0].impact.clutches,[0,0,0,0,0]);
+ assert.equal(roundSelection(next,'clutches'),JSON.stringify(['b',3]));
+ next=setRoundSelection(next,'openingKills','');
+ assert(next.every(r=>r.impact.openingKills===null));
+ assert.deepEqual(next[1].impact.clutches,[0,0,1,0,0]);
+ assert.equal(roundSelection(setRoundSelection(next,'clutches',noneSelection),'clutches'),noneSelection);
+});
+test('existing partial round counts are preserved until explicitly replaced',()=>{
+ const rows=[{playerId:'a',impact:{openingKills:1}},{playerId:'b'}];
+ assert.equal(roundSelection(rows,'openingKills'),partialSelection);
+ assert.equal(setRoundSelection(rows,'openingKills',partialSelection),rows);
+});
