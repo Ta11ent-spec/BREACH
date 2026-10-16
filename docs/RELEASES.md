@@ -66,3 +66,8 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 - Collector v0.3.7 supports completed Unranked/Standard Bomb and Casual/Quick Match replays in supported recorded formats. Server validates playlist/score rules; missing format metadata is not guessed for new modes. Existing Ranked uploads remain compatible.
 - Shared Ranked (default), Unranked/Standard, Casual/Quick Match and Other/Unknown filters apply before analytics, histories and exports. Manual entries support matching Bomb formats.
 - Unsupported-mode holds retry once after collector upgrade. Parser crashes remain local with clearer diagnostics; affected original replays are needed to diagnose these separately.
+
+## V0.1.15 — Shared statistics filter bar
+
+- Moved 7D / 30D / ALL into the Playlist and Replay / Manual / Combined bar across Overview, Match Center, Players, Maps, Operators, Compare and Insights.
+- Date selection and filtering behavior are unchanged; controls wrap on narrow screens.

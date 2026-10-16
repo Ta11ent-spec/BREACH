@@ -81,10 +81,9 @@ export function RealDashboardPage({app}:{app:any}){
   const latest=view?.latest??null;
   const latestRounds=latest?latest.scopedRounds:[];
   const allPlayers=data?.players??[];
-  return <div className="page real-dashboard"><ManualDataToggle included={includeManual} onChange={setIncludeManual}/>
+  return <div className="page real-dashboard"><ManualDataToggle included={includeManual} onChange={setIncludeManual} period={period} onPeriodChange={period=>app.setState({period})}/>
     <div className="dashboard-head">
       {app.headline('REPLAY INTELLIGENCE / PERFORMANCE CENTER','Command overview.','Every round. Every decision. Your selected data sources.')}
-      <div className="period-switch" aria-label="Time range">{(['7D','30D','ALL'] as Period[]).map(p=><button key={p} className={period===p?'active':''} onClick={()=>app.setState({period:p})}>{p}</button>)}</div>
     </div>
     {loading&&<section className="panel real-dashboard-status" role="status"><Icon name="activity" size={18}/> Loading recorded player and match data...</section>}
     {error&&<section className="panel real-dashboard-status" role="alert"><strong>Dashboard unavailable.</strong><span>{error} Restart the ASP.NET Core API and refresh.</span><code>dotnet run --project .\backend\Breach.Intel.Api\Breach.Intel.Api.csproj</code></section>}

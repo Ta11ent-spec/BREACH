@@ -28,7 +28,6 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
   try{id=id?decodeURIComponent(id):undefined;}catch{/* invalid IDs use the not-found view */}
   const [playlist]=usePlaylist();
   const [includeManual,setIncludeManual]=useManualInclusion();
-  const sourceToggle=<ManualDataToggle included={includeManual} onChange={setIncludeManual}/>;
   const [data, setData] = useState<OverviewV3 | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
@@ -38,6 +37,7 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
   const [tab, setTab] = useState<'overview' | 'history' | 'operators'>('overview');
   const [historyPage, setHistoryPage] = useState(0);
   const period: PlayerPeriod = app.state.period ?? 'ALL';
+  const sourceToggle=<ManualDataToggle included={includeManual} onChange={setIncludeManual} period={period} onPeriodChange={period=>app.setState({period})}/>;
   const scope = useTrackingScope(data?.players ?? emptyPlayers, data?.matches ?? emptyMatches);
   useEffect(() => {
     const controller = new AbortController();
@@ -63,7 +63,6 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
     scope.onMode('player'); scope.onSelectedPlayer(profile.playerId);
     app.go(matchId ? '/matches/' + encodeURIComponent(matchId) : '/matches');
   };
-  const periodControl = <div className="period-switch" aria-label="Player statistics date range">{(['7D', '30D', 'ALL'] as const).map(p => <button key={p} className={p === period ? 'active' : ''} aria-pressed={p === period} onClick={() => app.setState({ period: p })}>{p}</button>)}</div>;
   if (error || !data) return <div className="page real-players">{sourceToggle}{app.headline('PLAYER INTELLIGENCE / IMPORTED REPLAYS', 'Player directory.', 'Individual performance from your recorded matches.')}
     <section className="panel real-notice" role="status"><h3>{error ? 'Player data unavailable' : 'Loading player intelligence'}</h3><p>{error ?? 'Reading your imported replay records…'}</p>{error && <Btn icon="activity" onClick={() => setRevision(v => v + 1)}>RETRY</Btn>}</section></div>;
   if (id && !profile) return <div className="page real-players">{sourceToggle}<button className="back-link" onClick={() => app.go('/players')}><Icon name="arrowleft" size={15}/> ALL PLAYERS</button><section className="panel"><Empty title="Player not found" sub="This player ID is not in your imported replay catalog."/></section></div>;
@@ -72,7 +71,7 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
     const currentHistoryPage = Math.min(historyPage, Math.max(0, historyPages - 1));
     const latest = profile.history.slice(0, 10).reverse();
     const peak = Math.max(1, ...latest.map(h => h.stats.kills ?? 0));
-    return <div className="page real-players">{sourceToggle}<div className="player-back-row"><button className="back-link" onClick={() => app.go('/players')}><Icon name="arrowleft" size={15}/> ALL PLAYERS</button>{periodControl}</div>
+    return <div className="page real-players">{sourceToggle}<div className="player-back-row"><button className="back-link" onClick={() => app.go('/players')}><Icon name="arrowleft" size={15}/> ALL PLAYERS</button></div>
       <div className="profile-hero"><div className="profile-id"><Monogram player={avatar(profile.username)} size="xl"/><div><div className="eyebrow">IMPORTED REPLAY / PLAYER DOSSIER</div><h1>{profile.username}<span className="period">.</span></h1><p className="player-full-id">{profile.playerId}</p><Pill tone="success" dot>RECORDED PLAYER</Pill></div></div>
         <div className="profile-mini"><div><span>MOST PLAYED OPERATOR</span><strong>{profile.operators[0]?.name ?? '—'}</strong></div><div><span>MATCHES</span><strong>{profile.matchCount}</strong></div><div><span>ROUNDS</span><strong>{profile.rounds}</strong></div></div></div>
       <div className="player-profile-actions"><span>{period === 'ALL' ? 'All imported matches' : `Last ${period === '7D' ? '7' : '30'} days`} · Individual statistics · {profile.unverified} unknown results</span><Btn icon="arrow" onClick={() => followMatch()}>VIEW PLAYER MATCHES</Btn></div>
@@ -88,7 +87,7 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
     </div>;
   }
   return <div className="page real-players">{sourceToggle}{app.headline('PLAYER INTELLIGENCE / IMPORTED REPLAYS', 'Player directory.', 'Track every player, operator, and contribution across your recorded matches.', <Pill tone="outline">{data.players.length} KNOWN PLAYERS</Pill>)}
-    <div className="player-directory-toolbar"><div className="filter-search"><Icon name="search" size={15}/><input aria-label="Search imported players" placeholder="Username or player ID" value={search} onChange={e => setSearch(e.target.value)}/></div><select aria-label="Sort players" value={sort} onChange={e => setSort(e.target.value as PlayerSort)}><option value="rounds">MOST ROUNDS</option><option value="kills">MOST KILLS</option><option value="kd">HIGHEST K/D</option><option value="name">NAME A–Z</option></select>{periodControl}</div>
+    <div className="player-directory-toolbar"><div className="filter-search"><Icon name="search" size={15}/><input aria-label="Search imported players" placeholder="Username or player ID" value={search} onChange={e => setSearch(e.target.value)}/></div><select aria-label="Sort players" value={sort} onChange={e => setSort(e.target.value as PlayerSort)}><option value="rounds">MOST ROUNDS</option><option value="kills">MOST KILLS</option><option value="kd">HIGHEST K/D</option><option value="name">NAME A–Z</option></select></div>
     <TrackingScope scope={scope} players={data.players}/>
     <div className="player-directory-caption"><span>{scope.mode === 'team' ? scope.activeSquad?.name ?? 'Select or create a squad' : 'All imported players'} · {filtered.length} matching players</span>{scope.mode === 'player' && <Btn small disabled={!scope.selectedPlayer} onClick={() => app.go(playerUrl(scope.selectedPlayer))}>OPEN SELECTED PROFILE</Btn>}<span>{period === 'ALL' ? 'ALL RECORDED DATES' : `LAST ${period === '7D' ? '7' : '30'} DAYS`}</span></div>
     {visible.length ? <><div className="roster-grid">{visible.map((p, i) => <button className={`player-card ${p.playerId === scope.selectedPlayer ? 'selected-player-card' : ''}`} key={p.playerId} onClick={() => app.go(playerUrl(p.playerId))}><div className="player-card-top"><span>{String(currentPage * 12 + i + 1).padStart(2, '0')} / {members.has(p.playerId) ? 'SQUAD MEMBER' : p.playerId.startsWith('manual-player:')?'MANUAL PROFILE':'RECORDED PLAYER'}</span><Icon name="arrow" size={17}/></div><div className="player-card-person"><Monogram player={avatar(p.username)} size="lg"/><div><small>{p.matchCount} MATCHES · {p.rounds} ROUNDS</small><h2>{p.username}</h2><span>{p.playerId.slice(0, 8)}</span></div></div><div className="player-card-specialty">{p.operators[0] ? `Most played · ${p.operators[0].name}` : 'No rounds in this range'}</div><div className="player-card-metrics"><div><small>K/D</small><strong>{value(p.kd)}</strong></div><div><small>MATCH W/R</small><strong>{percent(p.winRate)}</strong></div><div><small>HS%</small><strong>{percent(p.hs)}</strong></div></div><div className="player-card-bottom">VIEW PLAYER DOSSIER <Icon name="chevron" size={15}/></div></button>)}</div><Pagination page={currentPage} pages={pages} total={filtered.length} setPage={setPage}/><section className="panel"><SectionTitle eyebrow="01 / PLAYER RANKING" title="Performance leaderboard" right={<Pill tone="quiet">CURRENT PAGE · {visible.length} PLAYERS</Pill>}/><PlayerTable players={visible} open={id => app.go(playerUrl(id))}/></section></>
