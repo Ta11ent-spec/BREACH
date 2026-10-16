@@ -4,7 +4,11 @@ import {setAccessTokenProvider} from './apiAuth';
 
 const env=import.meta.env;
 export const authConfigured=Boolean(env.VITE_AUTH0_DOMAIN&&env.VITE_AUTH0_CLIENT_ID&&env.VITE_AUTH0_AUDIENCE);
-function SignedInIdentity(){const {user}=useAuth0();return <p>Signed in as <strong>{user?.email??user?.name??'BREACH member'}</strong></p>;}
+function SignedInIdentity(){
+ const {user,logout}=useAuth0();const [busy,setBusy]=useState(false),[error,setError]=useState('');
+ async function signOut(){setBusy(true);setError('');try{await logout({logoutParams:{returnTo:window.location.origin}});}catch{setError('Could not sign out. Please try again.');}finally{setBusy(false);}}
+ return <section className="panel account-session" aria-label="Sign-in session"><div className="account-session-row"><p>Signed in as <strong>{user?.email??user?.name??'BREACH member'}</strong></p><button className="btn" disabled={busy} onClick={()=>void signOut()}>{busy?'SIGNING OUT…':'SIGN OUT'}</button></div>{error&&<p role="alert">{error}</p>}</section>;
+}
 export function AccountIdentity(){return authConfigured?<SignedInIdentity/>:null;}
 
 function Session({children}:{children:ReactNode}){
@@ -36,7 +40,7 @@ function Session({children}:{children:ReactNode}){
   if(isLoading)return <div className="auth-screen"><p>Checking your session…</p></div>;
   if(!isAuthenticated||!ready)return <div className="auth-screen"><div className="panel auth-card"><div className="eyebrow">BREACH / INTEL</div><h1>Your matches.<br/>Your workspace.</h1><p>Sign in securely to access BREACH. Passwords are managed by Auth0.</p>{error&&<p role="alert">Sign-in could not be completed. Try again.</p>}<button className="btn primary" onClick={()=>void loginWithRedirect()}>SIGN IN</button><button className="btn" onClick={()=>void loginWithRedirect({authorizationParams:{screen_hint:'signup',prompt:'login'}})}>CREATE ACCOUNT</button></div></div>;
   if(access!=='approved')return <div className="auth-screen"><div className="panel auth-card"><div className="eyebrow">BREACH / INTEL</div><h1>{access==='pending'?'Account verified.':'Checking access.'}</h1><p>{access==='pending'?'Access to this private replay workspace is awaiting approval.':access==='error'?'The API could not verify workspace access. Check that the backend is running, then try again.':'Verifying your workspace access…'}</p>{access!=='checking'&&<button className="btn primary" onClick={()=>setRetry(value=>value+1)}>CHECK ACCESS</button>}<button className="btn" onClick={()=>void logout({logoutParams:{returnTo:window.location.origin}})}>SIGN OUT</button></div></div>;
-  return <><div key={workspaceId}>{children}</div><button className="auth-signout" onClick={()=>void logout({logoutParams:{returnTo:window.location.origin}})}>SIGN OUT</button></>;
+  return <div key={workspaceId}>{children}</div>;
 }
 export function Authentication({children}:{children:ReactNode}){
   if(!authConfigured)return import.meta.env.DEV?<>{children}</>:<div className="auth-screen"><p>BREACH sign-in needs to be configured before this build can be used.</p></div>;
