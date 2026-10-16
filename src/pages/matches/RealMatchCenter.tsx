@@ -1,3 +1,5 @@
+import {usePlaylist} from '../../data/usePlaylist';
+import {matchPlaylist,playlistLabels} from '../../data/playlists';
 import {playerTotals} from '../../data/playerAnalytics';
 import {compareKd} from '../../data/kdSort';
 import {ManualDataToggle,useManualInclusion} from '../../components/ManualDataToggle';
@@ -99,11 +101,13 @@ function EventFeed({ events, report, view }: { events: ReportEvent[]; report: Ma
 
 export function RealMatchCenter({ app, id, number }: { app: any; id?: string; number?: number }) {
   try{id=id?decodeURIComponent(id):undefined;}catch{/* retain invalid ID for not-found feedback */}
+  const [playlist]=usePlaylist();
   const [includeManual,setIncludeManual]=useManualInclusion();
   const resource=useRecordedOverview(includeManual);
   const overview={...resource,loading:!resource.data&&!resource.error};
   const excluded=id?(id.startsWith('manual:')?includeManual==='replay':includeManual==='manual'):false;
   const report = useResource<MatchReport>(id && !excluded ? `/matches/${encodeURIComponent(id)}/report` : null);
+  const playlistExcluded=!!report.data&&matchPlaylist(report.data.match.matchType)!==playlist;
   const scope = useTrackingScope(overview.data?.players ?? emptyPlayers, overview.data?.matches);
   const period: Period = ['7D', '30D', 'ALL'].includes(app.state.period) ? app.state.period : '30D';
   const perspective = useMemo(() => ({ mode: scope.mode, members: scope.chosen }), [scope.mode, JSON.stringify(scope.chosen)]);
@@ -116,6 +120,7 @@ export function RealMatchCenter({ app, id, number }: { app: any; id?: string; nu
   const [tab, setTab] = useState('scoreboard');
   const [eventRound, setEventRound] = useState('ALL');
   const [eventQuery, setEventQuery] = useState('');
+  useEffect(()=>setModeFilter('ALL'),[playlist]);
   useEffect(() => { setEventRound('ALL'); setEventQuery(''); }, [id]);
   const kdByMatch=useMemo(()=>new Map((overview.data?.matches??[]).map(m=>[m.matchId,playerTotals(overview.data!.appearances.filter(a=>a.matchId===m.matchId&&scope.chosen.includes(a.playerId))).kd])),[overview.data,JSON.stringify(scope.chosen)]);
   const filtered = useMemo(() => {
@@ -162,7 +167,8 @@ export function RealMatchCenter({ app, id, number }: { app: any; id?: string; nu
     </>}
     {id && report.loading && <Notice>Loading the complete match report…</Notice>}
     {id && report.error && <Notice error>{report.error} <button className="text-action" onClick={report.reload}>RETRY</button></Notice>}
-    {id && report.data && view && hasSelection && <>{report.data.match.summaryScore&&<Notice>Final scoreboard entry: match totals and result are available. Round order, bombsites, operators and individual round stats were not recorded.</Notice>}
+    {id && playlistExcluded && <Notice>This match belongs to {playlistLabels[matchPlaylist(report.data!.match.matchType)]}. Select that playlist to view its stats.</Notice>}
+    {id && !playlistExcluded && !excluded && report.data && view && hasSelection && <>{report.data.match.summaryScore&&<Notice>Final scoreboard entry: match totals and result are available. Round order, bombsites, operators and individual round stats were not recorded.</Notice>}
       {view.reason && <Notice>{view.reason} Choose a participating player or squad to resolve the match perspective.</Notice>}
       {isRound ? currentRound ? <RoundReport app={app} report={report.data} view={view} round={currentRound} identity={scope.identity} onPlayer={onPlayer} />
         : <Empty title="Round unavailable" sub="This round number is not present in the recorded match." />

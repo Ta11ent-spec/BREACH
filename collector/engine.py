@@ -129,7 +129,10 @@ def parse_one(parser, source, dest, stop, timeout=180):
                     raise TimeoutError('Parser timed out; retry or check replay compatibility')
             if proc.returncode:
                 output.seek(0, 2); size = output.tell(); output.seek(max(0, size - 1200))
-                raise ValueError('Parser failed: ' + output.read().decode('utf-8', errors='replace'))
+                detail = output.read().decode('utf-8', errors='replace')
+                if 'panic:' in detail:
+                    raise ValueError('Replay parser crashed; this recording may be incomplete or incompatible. Original files are safe. Export diagnostics and retain this replay folder for investigation. ' + detail[-1200:])
+                raise ValueError('Parser failed: ' + detail)
         finally:
             if proc.poll() is None:
                 proc.kill(); proc.wait(timeout=10)

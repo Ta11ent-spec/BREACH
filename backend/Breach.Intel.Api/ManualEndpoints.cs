@@ -28,7 +28,7 @@ public static class ManualEndpoints
         var p=input.Payload;
         if(input.Revision<0 || input.Revision==int.MaxValue || input.Status is not ("draft" or "submitted") || p is null) return "Invalid draft revision or status.";
         bool Text(string? s,int max)=>s is not null && s.Length<=max && !s.Any(c=>char.IsControl(c)&&c!='\n'&&c!='\r'&&c!='\t');
-        if(!Text(p.PlayerId,100)||!Text(p.Username,100)||!Text(p.Map,100)||!Text(p.Notes,4000)||p.Platform is not ("PC" or "PlayStation" or "Xbox") || p.Mode is not ("Ranked Bomb" or "Custom Bomb") || p.Target is <1 or >12 || p.PlayedAt.Year<2000 || p.PlayedAt>DateTimeOffset.UtcNow.AddMinutes(5) || p.Rounds is null || p.Rounds.Length>23) return "Check player, platform, map, date and match format.";
+        if(!Text(p.PlayerId,100)||!Text(p.Username,100)||!Text(p.Map,100)||!Text(p.Notes,4000)||p.Platform is not ("PC" or "PlayStation" or "Xbox") || p.Mode is not ("Ranked Bomb" or "Unranked Bomb" or "Standard Bomb" or "Casual Bomb" or "Custom Bomb") || p.Target is <1 or >12 || p.PlayedAt.Year<2000 || p.PlayedAt>DateTimeOffset.UtcNow.AddMinutes(5) || p.Rounds is null || p.Rounds.Length>23) return "Check player, platform, map, date and match format.";
         if(p.Roster is not null){
             if(p.Roster.Length!=10 || p.Roster.Any(x=>x is null || !Text(x.PlayerId,100)||!Text(x.Username,100)||x.TeamIndex is <0 or >1) || p.Roster.Count(x=>x.TeamIndex==0)!=5 || p.Roster.Count(x=>x.TeamIndex==1)!=5 || p.Roster.Select(x=>x.PlayerId).Distinct(StringComparer.Ordinal).Count()!=10)return "Choose ten distinct players, five on each team.";
             if(input.Status=="submitted" && p.Roster.Any(x=>string.IsNullOrWhiteSpace(x.PlayerId)||string.IsNullOrWhiteSpace(x.Username)))return "Name or select all ten players before submitting.";
@@ -39,7 +39,7 @@ public static class ManualEndpoints
             foreach(var x in summary.Players){
                 if(x.Kills is <0||x.Deaths is <0||x.Assists is <0||x.Headshots is <0||x.Kills>5*n||x.Assists>5*n||x.Headshots>5*n||x.Deaths>n||x.Headshots is not null&&(x.Kills is null||x.Headshots>x.Kills))return "Scoreboard statistics exceed the match limits.";
             }
-            var endedScore=p.Mode=="Ranked Bomb"?high==4&&low<=2||high==5&&low>=3&&low<=4:high==p.Target&&low<p.Target;
+            var endedScore=(p.Mode is "Ranked Bomb" or "Unranked Bomb")?high==4&&low<=2||high==5&&low>=3&&low<=4:high==(p.Mode=="Casual Bomb"?3:p.Mode=="Standard Bomb"?4:p.Target)&&low<(p.Mode=="Casual Bomb"?3:p.Mode=="Standard Bomb"?4:p.Target);
             if(input.Status=="submitted"&&(!endedScore||string.IsNullOrWhiteSpace(p.Map)))return "Enter a complete final score and map.";
             return null;
         }
@@ -52,7 +52,7 @@ public static class ManualEndpoints
             }else if(r.Players is not null)return "Round players require a match roster.";
             if(input.Status=="submitted" && (ended||r.Won is null)) return "Each round needs a result, and no rounds may follow a match-ending score.";
             if(r.Won==true)wins++;else if(r.Won==false)losses++;
-            ended=p.Mode=="Ranked Bomb" ? Math.Max(wins,losses)>=5 || Math.Max(wins,losses)>=4&&Math.Abs(wins-losses)>=2 : Math.Max(wins,losses)>=p.Target;
+            ended=(p.Mode is "Ranked Bomb" or "Unranked Bomb") ? Math.Max(wins,losses)>=5 || Math.Max(wins,losses)>=4&&Math.Abs(wins-losses)>=2 : Math.Max(wins,losses)>=(p.Mode=="Casual Bomb"?3:p.Mode=="Standard Bomb"?4:p.Target);
         }
         if(input.Status=="submitted" && ((p.Roster is null&&(string.IsNullOrWhiteSpace(p.PlayerId)||string.IsNullOrWhiteSpace(p.Username)))||string.IsNullOrWhiteSpace(p.Map)||!ended))return "Select a player and map, then record a complete match score before submitting.";
         return null;

@@ -63,6 +63,26 @@ class BackgroundTests(unittest.TestCase):
         self.assertFalse(self.app.watching)
         self.assertEqual(self.app.store.get('autoWatch'), 'false')
 
+    def test_upgrade_retries_only_unsupported_holds_once(self):
+        from adapter import VERSION
+        directory=self.root/'upgrade';directory.mkdir()
+        store=Store(directory/'collector.db')
+        store.set('modeSupportVersion','0.3.5')
+        for folder,state,detail in [('unsupported','held','Unsupported mode or regulation length; retained for review'),('uploaded','queued','Uploaded'),('broken','failed','Parser failed'),('unfinished','held','Final score does not confirm a finished match')]:
+            store.record(folder,'signature',state,detail)
+        store.close()
+        app=Collector(directory);app.withdraw()
+        self.assertEqual(app.store.job('unsupported')['state'],'interrupted')
+        self.assertEqual(app.store.job('uploaded')['state'],'queued')
+        self.assertEqual(app.store.job('broken')['state'],'failed')
+        self.assertEqual(app.store.job('unfinished')['state'],'held')
+        app.store.record('unsupported','signature','held','Unsupported playlist')
+        self.assertEqual(app.store.get('modeSupportVersion'),VERSION)
+        app.store.close();app.destroy()
+        app=Collector(directory);app.withdraw()
+        self.assertEqual(app.store.job('unsupported')['state'],'held')
+        app.store.close();app.destroy()
+
     def test_windows_startup_quotes_executable_and_is_per_user(self):
         self.assertIn('"', startup_command(r'C:\Program Files\BREACH Collector\BreachCollector.exe'))
         self.assertTrue(startup_command().endswith(' --background'))

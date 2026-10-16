@@ -67,7 +67,12 @@ public static class CollectorContract
         }
         Check(envelope,schema);
         var p=envelope.GetProperty("payload");var m=p.GetProperty("match");
-        if(m.GetProperty("completion").GetString()!="complete"||m.GetProperty("matchType").GetString()!="Ranked"||m.GetProperty("gameMode").GetString()!="Bomb")throw new ContractException("Only completed Ranked Bomb matches can be uploaded.");
+        var kind=m.GetProperty("matchType").GetString();var objective=m.GetProperty("gameMode").GetString();
+        var casual=kind is "QuickMatch" or "Quick Match" or "Casual";
+        var regulation=m.TryGetProperty("roundsPerMatch",out var rr)&&rr.ValueKind==JsonValueKind.Number?rr.GetInt32():kind=="Ranked"?6:0;
+        var overtime=m.TryGetProperty("roundsPerMatchOvertime",out var ot)&&ot.ValueKind==JsonValueKind.Number?ot.GetInt32():kind=="Ranked"?3:0;
+        var validFormat=kind=="Ranked"?regulation==6&&overtime==3:kind is "Standard" or "Unranked"?regulation==6&&(overtime==1||overtime==3):casual&&regulation==4&&overtime==1;
+        if(m.GetProperty("completion").GetString()!="complete"||!validFormat||!(objective=="Bomb"||casual&&objective is "QuickMatchBomb" or "SecureArea" or "Hostage"))throw new ContractException("Only completed supported Ranked, Unranked/Standard or Casual matches can be uploaded; new playlists require recorded match format.");
         var rounds=p.GetProperty("rounds").EnumerateArray().OrderBy(r=>r.GetProperty("number").GetInt32()).ToArray();
         var rids=rounds.Select(r=>r.GetProperty("roundId").GetString()!).ToHashSet();
         var players=p.GetProperty("players").EnumerateArray().ToArray();var pids=players.Select(r=>r.GetProperty("playerId").GetString()!).ToHashSet();
@@ -77,8 +82,8 @@ public static class CollectorContract
             var r=rounds[i];var teams=r.GetProperty("teams").EnumerateArray().OrderBy(t=>t.GetProperty("slot").GetInt32()).ToArray();
             if(r.GetProperty("number").GetInt32()!=i+1||teams[0].GetProperty("slot").GetInt32()!=0||teams[1].GetProperty("slot").GetInt32()!=1||teams.Any(t=>t.GetProperty("won").ValueKind==JsonValueKind.Null)||teams[0].GetProperty("won").GetBoolean()==teams[1].GetProperty("won").GetBoolean())throw new ContractException("Rounds must be contiguous with one winner each.");
             for(var k=0;k<2;k++)if(teams[k].GetProperty("won").GetBoolean())score[k]++;
-            var a=score.Max();var b=score.Min();var ended=(a==4&&a-b>=2&&i<6)||(a==5&&i>=6&&i<=8);
-            if(ended!=(i==rounds.Length-1))throw new ContractException("Round results do not describe a completed Ranked match.");
+            var a=score.Max();var b=score.Min();var ended=(a==regulation/2+1&&i<regulation)||(i>=regulation&&a==regulation/2+overtime/2+1);
+            if(ended!=(i==rounds.Length-1))throw new ContractException("Round results do not describe a completed match in its recorded playlist.");
         }
         var pairs=new HashSet<(string,string)>();
         foreach(var a in p.GetProperty("appearances").EnumerateArray()) {

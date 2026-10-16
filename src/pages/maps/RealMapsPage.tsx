@@ -1,3 +1,4 @@
+import {usePlaylist} from '../../data/usePlaylist';
 import {MapLinking} from './MapLinking';
 import {ManualDataToggle,useManualInclusion} from '../../components/ManualDataToggle';
 import {loadOverview} from '../../data/manualOverview';
@@ -21,6 +22,7 @@ function color(name: string) { return colors[[...name].reduce((v, c) => v + c.ch
 function source(map: MapRecord) { return map.source === 'inferred' ? 'NAME INFERRED FROM SITES' : map.source === 'unknown' ? 'UNRESOLVED MAP' : 'RECORDED BATTLEGROUND'; }
 
 export function RealMapsPage({ app, id }: { app: any; id?: string }) {
+  const [playlist]=usePlaylist();
   const [includeManual,setIncludeManual]=useManualInclusion();
   const [data, setData] = useState<OverviewV3 | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,10 +36,10 @@ export function RealMapsPage({ app, id }: { app: any; id?: string }) {
   useEffect(() => {
     const controller = new AbortController();
     setData(null); setError(null);
-    loadOverview(includeManual, controller.signal).then(next => { if (!controller.signal.aborted) setData(next); })
+    loadOverview(includeManual, controller.signal,playlist).then(next => { if (!controller.signal.aborted) setData(next); })
       .catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to read imported map data.'); });
     return () => controller.abort();
-  }, [revision,includeManual]);
+  }, [revision,includeManual,playlist]);
   useEffect(() => { setSiteSide('ALL'); setHistoryLimit(20); }, [id, period, scope.selectedPlayer, scope.selectedSquad, scope.mode]);
   const view = useMemo(() => data ? analyzeMaps(data, { mode: scope.mode, members: scope.chosen }, period) : { maps: [], ambiguousMatches: 0 }, [data, scope.mode, scope.chosen, period]);
   let mapKey: string | undefined;

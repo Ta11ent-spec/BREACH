@@ -1,3 +1,4 @@
+import {usePlaylist} from '../../data/usePlaylist';
 import {ManualDataToggle,useManualInclusion} from '../../components/ManualDataToggle';
 import {loadOverview} from '../../data/manualOverview';
 import {sourceLabel} from '../../data/analyticsSources';
@@ -58,6 +59,7 @@ function VerifiedWinChart({matches}:{matches:ResolvedMatch[]}){
 }
 
 export function RealDashboardPage({app}:{app:any}){
+  const [playlist]=usePlaylist();
   const [includeManual,setIncludeManual]=useManualInclusion();
   const [data,setData]=useState<OverviewV3|null>(null);
   const [loading,setLoading]=useState(true);
@@ -67,11 +69,11 @@ export function RealDashboardPage({app}:{app:any}){
   const period:Period=['7D','30D','ALL'].includes(app.state.period)?app.state.period:'30D';
   useEffect(()=>{
     const controller=new AbortController();setData(null);setLoading(true);setError(null);
-    loadOverview(includeManual,controller.signal)
+    loadOverview(includeManual,controller.signal,playlist)
       .then(d=>{if(!controller.signal.aborted){setData(d);setLoading(false);}})
       .catch(e=>{if(!controller.signal.aborted){setError(e instanceof ApiError?e.message:'Unable to connect to the local API.');setLoading(false);}});
     return ()=>controller.abort();
-  },[includeManual]);
+  },[includeManual,playlist]);
   const view=useMemo(()=>data&&chosen.length?analyzeOverview(data,{mode,members:chosen},period):null,[data,mode,period,JSON.stringify(chosen)]);
   const sourceNote=mode==='team'?'Squad metrics include only your selected roster members. Opponents and unselected teammates are excluded.':'Player metrics include only the selected player’s recorded rounds.';
   const roundSideKnown=view?view.attackRounds+view.defenseRounds:0;

@@ -178,6 +178,21 @@ try{
  Assert(ManualEndpoints.Validate(new(0,"submitted",final with{Summary=final.Summary! with{Wins=3}})) is not null,"unfinished final score rejected");
  Assert(ManualEndpoints.Validate(new(0,"submitted",final with{Summary=final.Summary! with{Players=[final.Summary!.Players[0] with{Deaths=6},..final.Summary.Players.Skip(1)]}})) is not null,"deaths cannot exceed final match round count");
  Assert(ManualEndpoints.Validate(new(0,"submitted",final with{Summary=final.Summary! with{Players=[final.Summary!.Players[0] with{Headshots=9},..final.Summary.Players.Skip(1)]}})) is not null,"scoreboard headshots cannot exceed kills");
+
+ using var playlistFixtures=JsonDocument.Parse(File.ReadAllText(Path.Combine(root,"../../tests/WorkspaceIntegration/playlists.json")));
+ foreach(var fixture in playlistFixtures.RootElement.EnumerateArray()) {
+  CollectorContract.Validate(fixture,schema.RootElement);
+  var playlist=fixture.GetProperty("payload").GetProperty("match").GetProperty("matchType").GetString();
+  Assert(await UploadEndpoints.Save(fixture,b,default) is IStatusCodeHttpResult{StatusCode:200},"complete "+playlist+" upload succeeds");
+  var mid=fixture.GetProperty("payload").GetProperty("match").GetProperty("matchId").GetString();
+  Assert((string)(await ad.ReadAsync("SELECT MatchType FROM dbo.Matches WHERE MatchId=@id",("@id",mid)))[0]["MatchType"]! == playlist,"playlist survives database roundtrip");
+  var playlistInvalid=JsonNode.Parse(fixture.GetRawText())!;playlistInvalid["payload"]!["match"]!.AsObject().Remove("roundsPerMatchOvertime");
+  using var playlistInvalidDoc=JsonDocument.Parse(playlistInvalid.ToJsonString());var noFormatRejected=false;try{CollectorContract.Validate(playlistInvalidDoc.RootElement,schema.RootElement);}catch(ContractException){noFormatRejected=true;}Assert(noFormatRejected,"non-Ranked format must be explicit");
+  playlistInvalid=JsonNode.Parse(fixture.GetRawText())!;var rr=playlistInvalid["payload"]!["rounds"]!.AsArray();rr.RemoveAt(rr.Count-1);
+  using var truncatedDoc=JsonDocument.Parse(playlistInvalid.ToJsonString());var truncatedRejected=false;try{CollectorContract.Validate(truncatedDoc.RootElement,schema.RootElement);}catch(ContractException){truncatedRejected=true;}Assert(truncatedRejected,"incomplete "+playlist+" rejected");
+ }
+ var standardError=ManualEndpoints.Validate(new(0,"submitted",completed with{Mode="Standard Bomb",Rounds=completed.Rounds.Take(4).Select(r=>r with{Won=true}).ToArray()}));Assert(standardError is null,"manual Standard valid score accepted: "+standardError);
+ Assert(ManualEndpoints.Validate(new(0,"submitted",completed with{Mode="Casual Bomb",Rounds=completed.Rounds.Take(3).Select(r=>r with{Won=true}).ToArray()})) is null,"manual Casual three-win match accepted");
  Console.WriteLine($"{checks} integration checks passed against isolated SQL database.");
 }finally{SqlConnection.ClearAllPools();await Sql($"ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{database}]",true);}
 

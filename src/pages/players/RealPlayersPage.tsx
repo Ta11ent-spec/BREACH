@@ -1,3 +1,4 @@
+import {usePlaylist} from '../../data/usePlaylist';
 import { useEffect, useMemo, useState } from 'react';
 import {ManualDataToggle,useManualInclusion} from '../../components/ManualDataToggle';
 import {loadOverview} from '../../data/manualOverview';
@@ -25,6 +26,7 @@ function PlayerTable({ players, open }: { players: PlayerProfile[]; open: (id: s
 
 export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
   try{id=id?decodeURIComponent(id):undefined;}catch{/* invalid IDs use the not-found view */}
+  const [playlist]=usePlaylist();
   const [includeManual,setIncludeManual]=useManualInclusion();
   const sourceToggle=<ManualDataToggle included={includeManual} onChange={setIncludeManual}/>;
   const [data, setData] = useState<OverviewV3 | null>(null);
@@ -40,11 +42,11 @@ export function RealPlayersPage({ app, id }: { app: any; id?: string }) {
   useEffect(() => {
     const controller = new AbortController();
     setData(null); setError(null);
-    loadOverview(includeManual, controller.signal).then(next => {
+    loadOverview(includeManual, controller.signal,playlist).then(next => {
       if (!controller.signal.aborted) setData(next);
     }).catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load imported players.'); });
     return () => controller.abort();
-  }, [revision,includeManual]);
+  }, [revision,includeManual,playlist]);
   useEffect(() => { setPage(0); }, [search, sort, period, scope.mode, scope.selectedSquad, data]);
   useEffect(() => { setTab('overview'); setHistoryPage(0); }, [id]);
   useEffect(() => { setHistoryPage(0); }, [period]);

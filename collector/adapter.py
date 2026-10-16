@@ -10,7 +10,7 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-VERSION = '0.3.5'
+VERSION = '0.3.7'
 MAX_BYTES = 4 * 1024 * 1024
 FORMATS = FormatChecker()
 
@@ -94,14 +94,23 @@ def validate(envelope):
 
 
 def completion(raw):
-    """Conservative Ranked Bomb rule with per-round score progression evidence."""
+    """Validate playlist, recorded format and every round before accepting a match."""
     ordered = sorted(raw, key=lambda r: r['roundNumber'])
     if [r['roundNumber'] for r in ordered] != list(range(len(ordered))):
         return False, 'Missing rounds; waiting for a contiguous match'
+    first = ordered[0] if ordered else {}
+    kind = (first.get('matchType') or {}).get('name')
+    mode = (first.get('gamemode') or {}).get('name')
+    regulation = first.get('roundsPerMatch')
+    overtime = first.get('roundsPerMatchOvertime', 3 if kind == 'Ranked' else None)
+    allowed = {'Ranked': {(6, 3)}, 'Unranked': {(6, 1), (6, 3)}, 'Standard': {(6, 1), (6, 3)}, 'QuickMatch': {(4, 1)}, 'Casual': {(4, 1)}, 'Quick Match': {(4, 1)}}
+    objectives = {'Bomb', 'QuickMatchBomb', 'SecureArea', 'Hostage'} if kind in ('QuickMatch', 'Casual', 'Quick Match') else {'Bomb'}
+    if (regulation, overtime) not in allowed.get(kind, set()) or mode not in objectives:
+        return False, 'Unsupported playlist, objective or missing match format; retained for review'
     previous = [0, 0]
     for index, r in enumerate(ordered):
-        if (r.get('matchType') or {}).get('name') != 'Ranked' or (r.get('gamemode') or {}).get('name') != 'Bomb' or r.get('roundsPerMatch') != 6:
-            return False, 'Unsupported mode or regulation length; retained for review'
+        if ((r.get('matchType') or {}).get('name'), (r.get('gamemode') or {}).get('name'), r.get('roundsPerMatch'), r.get('roundsPerMatchOvertime', 3 if kind == 'Ranked' else None)) != (kind, mode, regulation, overtime):
+            return False, 'Playlist or match format changes between rounds'
         teams = r['teams']
         if len(teams) != 2 or any(type(t.get('score')) is not int or type(t.get('won')) is not bool for t in teams):
             return False, 'Missing score or round outcome'
@@ -111,9 +120,9 @@ def completion(raw):
             return False, 'Scores do not agree with recorded round outcomes'
         previous = scores
         a, b = sorted(scores, reverse=True)
-        ended = (a == 4 and a - b >= 2 and index < 6) or (a == 5 and 6 <= index <= 8)
+        ended = (a == regulation // 2 + 1 and index < regulation) or (index >= regulation and a == regulation // 2 + overtime // 2 + 1)
         if ended:
-            return (index == len(ordered) - 1, 'Completed Ranked Bomb match' if index == len(ordered) - 1 else 'Rounds continue after a terminal score')
+            return (index == len(ordered) - 1, f'Completed {kind} {mode} match' if index == len(ordered) - 1 else 'Rounds continue after a terminal score')
     return False, 'Final score does not confirm a finished match'
 
 
@@ -177,7 +186,7 @@ def convert(raw_rounds, source_hashes, installation_id, parser_version, message_
                 'source': {'kind': 'pc-replay', 'parserName': 'siege-dissect', 'parserVersion': parser_version, 'normalizerVersion': VERSION, 'gameVersion': first.get('gameVersion'), 'collectedAt': utc_now()},
                 'payload': {'match': {'matchId': match_id, 'mapId': decimal((first.get('map') or {}).get('id')), 'mapName': (first.get('map') or {}).get('name'),
                                       'playedAt': first.get('timestamp'), 'recordingProfileId': first.get('recordingProfileID') or None,
-                                      'completion': 'complete' if complete else 'incomplete', 'matchType': (first.get('matchType') or {}).get('name'), 'gameMode': (first.get('gamemode') or {}).get('name')},
+                                      'roundsPerMatch': first.get('roundsPerMatch'), 'roundsPerMatchOvertime': first.get('roundsPerMatchOvertime', 3 if (first.get('matchType') or {}).get('name') == 'Ranked' else None), 'completion': 'complete' if complete else 'incomplete', 'matchType': (first.get('matchType') or {}).get('name'), 'gameMode': (first.get('gamemode') or {}).get('name')},
                             'rounds': rounds, 'players': list(players.values()), 'appearances': appearances, 'events': events, 'issues': issues}}
     validate(envelope)
     return envelope

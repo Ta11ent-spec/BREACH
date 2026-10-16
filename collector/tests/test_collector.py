@@ -62,7 +62,7 @@ class AdapterTests(unittest.TestCase):
         self.assertFalse(completion(raw)[0])
 
     def test_unsupported_mode_is_held(self):
-        for mode in ('Custom', 'Unranked', 'Standard', 'Casual', 'Quick Match'):
+        for mode in ('Custom', 'Unknown', 'DualFront'):
             with self.subTest(mode=mode):
                 raw = source(); raw[-1]['matchType']['name'] = mode
                 self.assertFalse(completion(raw)[0])

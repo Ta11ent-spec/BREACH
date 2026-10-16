@@ -1,0 +1,1521 @@
+[
+  {
+    "schemaVersion": "1.0.0",
+    "messageId": "d62356ae-da63-525a-b3be-5b9867d479d4",
+    "collector": {
+      "installationId": "33333333-3333-4333-8333-333333333333",
+      "version": "0.3.7"
+    },
+    "source": {
+      "kind": "pc-replay",
+      "parserName": "siege-dissect",
+      "parserVersion": "test-parser",
+      "normalizerVersion": "0.3.7",
+      "gameVersion": "TEST",
+      "collectedAt": "2026-10-16T18:02:14Z"
+    },
+    "payload": {
+      "match": {
+        "matchId": "d545d5ae-bf74-5d8a-95e7-9143e4710f25",
+        "mapId": "9223372036854775808",
+        "mapName": "Test",
+        "playedAt": "2026-10-12T20:00:00Z",
+        "recordingProfileId": null,
+        "roundsPerMatch": 6,
+        "roundsPerMatchOvertime": 3,
+        "completion": "complete",
+        "matchType": "Unranked",
+        "gameMode": "Bomb"
+      },
+      "rounds": [
+        {
+          "roundId": "a2dccee831e72e90ba290978",
+          "number": 1,
+          "site": null,
+          "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "9613590bdb1d7a85e6a24f60",
+          "number": 2,
+          "site": null,
+          "sourceSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "d7a054bc2db64a09395cee86",
+          "number": 3,
+          "site": null,
+          "sourceSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "a698ac1599c9ea0f67a70f7d",
+          "number": 4,
+          "site": null,
+          "sourceSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "f73bebbcb3ecf28900f5e2a6",
+          "number": 5,
+          "site": null,
+          "sourceSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "ea2bfb2d5b6f39a33ee4c62e",
+          "number": 6,
+          "site": null,
+          "sourceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "607d52ea2fd7e5c12f7cceaf",
+          "number": 7,
+          "site": null,
+          "sourceSha256": "6666666666666666666666666666666666666666666666666666666666666666",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "eb8b938e313833c1d118f4ad",
+          "number": 8,
+          "site": null,
+          "sourceSha256": "7777777777777777777777777777777777777777777777777777777777777777",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "f090d1553ffbe8c71ad63870",
+          "number": 9,
+          "site": null,
+          "sourceSha256": "8888888888888888888888888888888888888888888888888888888888888888",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        }
+      ],
+      "players": [
+        {
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "profileId": "22222222-2222-4222-8222-222222222222",
+          "username": "One"
+        }
+      ],
+      "appearances": [
+        {
+          "roundId": "a2dccee831e72e90ba290978",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "9613590bdb1d7a85e6a24f60",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "d7a054bc2db64a09395cee86",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "a698ac1599c9ea0f67a70f7d",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "f73bebbcb3ecf28900f5e2a6",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "ea2bfb2d5b6f39a33ee4c62e",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "607d52ea2fd7e5c12f7cceaf",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "eb8b938e313833c1d118f4ad",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "f090d1553ffbe8c71ad63870",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        }
+      ],
+      "events": [
+        {
+          "eventId": "51df0111d7832389fd5ca75f",
+          "roundId": "a2dccee831e72e90ba290978",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "e341b0b7fb7511b11a07561d",
+          "roundId": "9613590bdb1d7a85e6a24f60",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "45f6ee4d35dbd632e6ef9d59",
+          "roundId": "d7a054bc2db64a09395cee86",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "faf926a3977d7524128bb317",
+          "roundId": "a698ac1599c9ea0f67a70f7d",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "071c4d6649e53a95e4dd9ca4",
+          "roundId": "f73bebbcb3ecf28900f5e2a6",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "5ad81f83a7c532bcaf38930d",
+          "roundId": "ea2bfb2d5b6f39a33ee4c62e",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "378db9e50405ff61f81140d3",
+          "roundId": "607d52ea2fd7e5c12f7cceaf",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "0459c68842f11074faf9a0ca",
+          "roundId": "eb8b938e313833c1d118f4ad",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "62b90076ae2e1f86c9deadb8",
+          "roundId": "f090d1553ffbe8c71ad63870",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        }
+      ],
+      "issues": [
+        {
+          "severity": "info",
+          "code": "COMPLETION_CHECK",
+          "message": "Completed Unranked Bomb match"
+        }
+      ]
+    }
+  },
+  {
+    "schemaVersion": "1.0.0",
+    "messageId": "42b073f3-8d1e-5d37-8790-5f693f527acc",
+    "collector": {
+      "installationId": "33333333-3333-4333-8333-333333333333",
+      "version": "0.3.7"
+    },
+    "source": {
+      "kind": "pc-replay",
+      "parserName": "siege-dissect",
+      "parserVersion": "test-parser",
+      "normalizerVersion": "0.3.7",
+      "gameVersion": "TEST",
+      "collectedAt": "2026-10-16T18:02:14Z"
+    },
+    "payload": {
+      "match": {
+        "matchId": "5a70ff73-f88f-58a6-bcd0-3902244fa1e6",
+        "mapId": "9223372036854775808",
+        "mapName": "Test",
+        "playedAt": "2026-10-12T20:00:00Z",
+        "recordingProfileId": null,
+        "roundsPerMatch": 6,
+        "roundsPerMatchOvertime": 1,
+        "completion": "complete",
+        "matchType": "Standard",
+        "gameMode": "Bomb"
+      },
+      "rounds": [
+        {
+          "roundId": "4820a31033cd575e1fe662ea",
+          "number": 1,
+          "site": null,
+          "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "94dfa726a023efeb7ece18fc",
+          "number": 2,
+          "site": null,
+          "sourceSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "23fa99055c8f597e4e02dd76",
+          "number": 3,
+          "site": null,
+          "sourceSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "b773df739c1ab563c595b8e6",
+          "number": 4,
+          "site": null,
+          "sourceSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "64b80029ee225187e1fd765d",
+          "number": 5,
+          "site": null,
+          "sourceSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "fa4a90d07b5608098dc2edd3",
+          "number": 6,
+          "site": null,
+          "sourceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "d5daf611becf26689ee385a6",
+          "number": 7,
+          "site": null,
+          "sourceSha256": "6666666666666666666666666666666666666666666666666666666666666666",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        }
+      ],
+      "players": [
+        {
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "profileId": "22222222-2222-4222-8222-222222222222",
+          "username": "One"
+        }
+      ],
+      "appearances": [
+        {
+          "roundId": "4820a31033cd575e1fe662ea",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "94dfa726a023efeb7ece18fc",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "23fa99055c8f597e4e02dd76",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "b773df739c1ab563c595b8e6",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "64b80029ee225187e1fd765d",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "fa4a90d07b5608098dc2edd3",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "d5daf611becf26689ee385a6",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        }
+      ],
+      "events": [
+        {
+          "eventId": "323024a2f9bc45316a4a4c38",
+          "roundId": "4820a31033cd575e1fe662ea",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "e409c01dec171fd68b346f81",
+          "roundId": "94dfa726a023efeb7ece18fc",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "6d11ec57a0a8901dc23370fd",
+          "roundId": "23fa99055c8f597e4e02dd76",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "b389c227954bf164d97e3a65",
+          "roundId": "b773df739c1ab563c595b8e6",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "fd68c3ce10409ed7cba08747",
+          "roundId": "64b80029ee225187e1fd765d",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "a06e207b0cd5f6dcd6fc2ad4",
+          "roundId": "fa4a90d07b5608098dc2edd3",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "65e2398761d435c77d7c62be",
+          "roundId": "d5daf611becf26689ee385a6",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        }
+      ],
+      "issues": [
+        {
+          "severity": "info",
+          "code": "COMPLETION_CHECK",
+          "message": "Completed Standard Bomb match"
+        }
+      ]
+    }
+  },
+  {
+    "schemaVersion": "1.0.0",
+    "messageId": "1c76de87-066b-5cf1-ae00-f888b61eed84",
+    "collector": {
+      "installationId": "33333333-3333-4333-8333-333333333333",
+      "version": "0.3.7"
+    },
+    "source": {
+      "kind": "pc-replay",
+      "parserName": "siege-dissect",
+      "parserVersion": "test-parser",
+      "normalizerVersion": "0.3.7",
+      "gameVersion": "TEST",
+      "collectedAt": "2026-10-16T18:02:14Z"
+    },
+    "payload": {
+      "match": {
+        "matchId": "7ee1eaf2-e569-5389-804d-5492fbfe7cfe",
+        "mapId": "9223372036854775808",
+        "mapName": "Test",
+        "playedAt": "2026-10-12T20:00:00Z",
+        "recordingProfileId": null,
+        "roundsPerMatch": 4,
+        "roundsPerMatchOvertime": 1,
+        "completion": "complete",
+        "matchType": "QuickMatch",
+        "gameMode": "QuickMatchBomb"
+      },
+      "rounds": [
+        {
+          "roundId": "80c692dbe780e3fa4bc9d29b",
+          "number": 1,
+          "site": null,
+          "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "491716296974fce139c60823",
+          "number": 2,
+          "site": null,
+          "sourceSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "d2135e80d8923641ba5c77c2",
+          "number": 3,
+          "site": null,
+          "sourceSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "3075de0546b6e1ad44e6ebcb",
+          "number": 4,
+          "site": null,
+          "sourceSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": false
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": true
+            }
+          ]
+        },
+        {
+          "roundId": "629a05a482ca3bb9b5277071",
+          "number": 5,
+          "site": null,
+          "sourceSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        }
+      ],
+      "players": [
+        {
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "profileId": "22222222-2222-4222-8222-222222222222",
+          "username": "One"
+        }
+      ],
+      "appearances": [
+        {
+          "roundId": "80c692dbe780e3fa4bc9d29b",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "491716296974fce139c60823",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "d2135e80d8923641ba5c77c2",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "3075de0546b6e1ad44e6ebcb",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "629a05a482ca3bb9b5277071",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        }
+      ],
+      "events": [
+        {
+          "eventId": "9a213b61f733b5a309d762dd",
+          "roundId": "80c692dbe780e3fa4bc9d29b",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "b95be5dbf4c62f794469b07c",
+          "roundId": "491716296974fce139c60823",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "9d6e407ea85a415c9af68b69",
+          "roundId": "d2135e80d8923641ba5c77c2",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "89084379d3534d45db10099e",
+          "roundId": "3075de0546b6e1ad44e6ebcb",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "89de155436f0228317e6d374",
+          "roundId": "629a05a482ca3bb9b5277071",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        }
+      ],
+      "issues": [
+        {
+          "severity": "info",
+          "code": "COMPLETION_CHECK",
+          "message": "Completed QuickMatch QuickMatchBomb match"
+        }
+      ]
+    }
+  },
+  {
+    "schemaVersion": "1.0.0",
+    "messageId": "568ab86b-70af-5ac2-9e75-da5ab19801cd",
+    "collector": {
+      "installationId": "33333333-3333-4333-8333-333333333333",
+      "version": "0.3.7"
+    },
+    "source": {
+      "kind": "pc-replay",
+      "parserName": "siege-dissect",
+      "parserVersion": "test-parser",
+      "normalizerVersion": "0.3.7",
+      "gameVersion": "TEST",
+      "collectedAt": "2026-10-16T18:02:14Z"
+    },
+    "payload": {
+      "match": {
+        "matchId": "c6d3eb34-57b8-5ba1-a219-7e02694806d8",
+        "mapId": "9223372036854775808",
+        "mapName": "Test",
+        "playedAt": "2026-10-12T20:00:00Z",
+        "recordingProfileId": null,
+        "roundsPerMatch": 4,
+        "roundsPerMatchOvertime": 1,
+        "completion": "complete",
+        "matchType": "QuickMatch",
+        "gameMode": "SecureArea"
+      },
+      "rounds": [
+        {
+          "roundId": "2fa1710a76b8bed21511faa2",
+          "number": 1,
+          "site": null,
+          "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "8fceef8dc99812bc731d5e0c",
+          "number": 2,
+          "site": null,
+          "sourceSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "321d0215c0351fb928fdc033",
+          "number": 3,
+          "site": null,
+          "sourceSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        }
+      ],
+      "players": [
+        {
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "profileId": "22222222-2222-4222-8222-222222222222",
+          "username": "One"
+        }
+      ],
+      "appearances": [
+        {
+          "roundId": "2fa1710a76b8bed21511faa2",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "8fceef8dc99812bc731d5e0c",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "321d0215c0351fb928fdc033",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        }
+      ],
+      "events": [
+        {
+          "eventId": "428e1f702bfe4181a1756130",
+          "roundId": "2fa1710a76b8bed21511faa2",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "253931e1386a0f3f889d1cb8",
+          "roundId": "8fceef8dc99812bc731d5e0c",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "64cc7fdbe84db1c7a78118ef",
+          "roundId": "321d0215c0351fb928fdc033",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        }
+      ],
+      "issues": [
+        {
+          "severity": "info",
+          "code": "COMPLETION_CHECK",
+          "message": "Completed QuickMatch SecureArea match"
+        }
+      ]
+    }
+  },
+  {
+    "schemaVersion": "1.0.0",
+    "messageId": "7bc96199-d0fe-5b55-8674-89c9d3d1d7bd",
+    "collector": {
+      "installationId": "33333333-3333-4333-8333-333333333333",
+      "version": "0.3.7"
+    },
+    "source": {
+      "kind": "pc-replay",
+      "parserName": "siege-dissect",
+      "parserVersion": "test-parser",
+      "normalizerVersion": "0.3.7",
+      "gameVersion": "TEST",
+      "collectedAt": "2026-10-16T18:02:14Z"
+    },
+    "payload": {
+      "match": {
+        "matchId": "99df98d7-b6fc-53da-aa4c-4db7ad931e99",
+        "mapId": "9223372036854775808",
+        "mapName": "Test",
+        "playedAt": "2026-10-12T20:00:00Z",
+        "recordingProfileId": null,
+        "roundsPerMatch": 4,
+        "roundsPerMatchOvertime": 1,
+        "completion": "complete",
+        "matchType": "QuickMatch",
+        "gameMode": "Hostage"
+      },
+      "rounds": [
+        {
+          "roundId": "562d52c4bb9f4aebea147c6d",
+          "number": 1,
+          "site": null,
+          "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "6d624162adbad68a055683b8",
+          "number": 2,
+          "site": null,
+          "sourceSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        },
+        {
+          "roundId": "bf3de76afa98cf5ff44dfea9",
+          "number": 3,
+          "site": null,
+          "sourceSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "teams": [
+            {
+              "slot": 0,
+              "side": "ATK",
+              "won": true
+            },
+            {
+              "slot": 1,
+              "side": "DEF",
+              "won": false
+            }
+          ]
+        }
+      ],
+      "players": [
+        {
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "profileId": "22222222-2222-4222-8222-222222222222",
+          "username": "One"
+        }
+      ],
+      "appearances": [
+        {
+          "roundId": "562d52c4bb9f4aebea147c6d",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "6d624162adbad68a055683b8",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        },
+        {
+          "roundId": "bf3de76afa98cf5ff44dfea9",
+          "playerId": "22222222-2222-4222-8222-222222222222",
+          "teamIndex": 0,
+          "operatorId": "1",
+          "operatorName": "Test",
+          "stats": {
+            "kills": 1,
+            "died": false,
+            "assists": null,
+            "headshots": 1,
+            "damageDealt": null,
+            "damageTaken": null,
+            "scoreSnapshot": -1
+          }
+        }
+      ],
+      "events": [
+        {
+          "eventId": "35fc035ea3a656c4b4e3d468",
+          "roundId": "562d52c4bb9f4aebea147c6d",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "787bc0e64668231e11fd68fa",
+          "roundId": "6d624162adbad68a055683b8",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        },
+        {
+          "eventId": "2d49936701b2bf92ff9a98e2",
+          "roundId": "bf3de76afa98cf5ff44dfea9",
+          "sequence": 0,
+          "type": "Kill",
+          "actorPlayerId": "22222222-2222-4222-8222-222222222222",
+          "targetPlayerId": null,
+          "actorUsername": "One",
+          "targetUsername": "Unresolved",
+          "timeRemainingSeconds": 15,
+          "headshot": null,
+          "weaponId": null
+        }
+      ],
+      "issues": [
+        {
+          "severity": "info",
+          "code": "COMPLETION_CHECK",
+          "message": "Completed QuickMatch Hostage match"
+        }
+      ]
+    }
+  }
+]

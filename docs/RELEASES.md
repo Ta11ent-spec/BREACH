@@ -54,10 +54,15 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 ## V0.1.7 — collector instructions
 - Updated download notes, Collector Setup and My Workspace to explain that uploads run in the system tray with Sync enabled and the PC awake. Closing the window requires background mode enabled; Pause or Quit stops uploads. Collector binary remains v0.3.3.
 
-## V0.1.9 � automatic map identification
+## V0.1.9 — automatic map identification
 - Unresolved collector IDs use unique recorded bombsite-pair evidence across the shared replay dataset. Conflicting or ambiguous evidence stays unresolved. Known maps and explicit admin links take priority; raw stats stay unchanged. Identified maps group with manual and known replay maps.
 - Admin map linking defaults to unresolved IDs, with Show all for review/override. Owner/Admin editing permissions unchanged.
 
-## V0.1.11 � collector folder detection
+## V0.1.11 — collector folder detection
 - Collector v0.3.5 discovers registered Steam installations, custom libraries and manifest install folders plus registered Ubisoft/game locations. Multiple matches offer a chooser; Browse and saved folders remain available.
 - Clarified that only completed Ranked Bomb matches upload. Other modes are held locally, not combined into Ranked collector stats.
+
+## V0.1.13 — separated playlist statistics
+- Collector v0.3.7 supports completed Unranked/Standard Bomb and Casual/Quick Match replays in supported recorded formats. Server validates playlist/score rules; missing format metadata is not guessed for new modes. Existing Ranked uploads remain compatible.
+- Shared Ranked (default), Unranked/Standard, Casual/Quick Match and Other/Unknown filters apply before analytics, histories and exports. Manual entries support matching Bomb formats.
+- Unsupported-mode holds retry once after collector upgrade. Parser crashes remain local with clearer diagnostics; affected original replays are needed to diagnose these separately.

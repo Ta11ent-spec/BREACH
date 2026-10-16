@@ -3,7 +3,7 @@ export type ManualPlayer={playerId:string;username:string;teamIndex:0|1};
 export type ManualPlayerStats={playerId:string;operator:string;kills:number|null;died:boolean|null;assists:number|null;headshots:number|null};
 export type ManualRound={side:'Attack'|'Defense';operator:string;site:string;won:boolean|null;kills:number|null;died:boolean|null;assists:number|null;headshots:number|null;notes:string;players?:ManualPlayerStats[]};
 export type ManualSummary={wins:number;losses:number;players:{playerId:string;kills:number|null;deaths:number|null;assists:number|null;headshots:number|null}[]};
-export type ManualMatch={playerId:string;username:string;platform:'PC'|'PlayStation'|'Xbox';map:string;mode:'Ranked Bomb'|'Custom Bomb';target:number;playedAt:string;notes:string;rounds:ManualRound[];roster?:ManualPlayer[];summary?:ManualSummary};
+export type ManualMatch={playerId:string;username:string;platform:'PC'|'PlayStation'|'Xbox';map:string;mode:'Ranked Bomb'|'Unranked Bomb'|'Standard Bomb'|'Casual Bomb'|'Custom Bomb';target:number;playedAt:string;notes:string;rounds:ManualRound[];roster?:ManualPlayer[];summary?:ManualSummary};
 export type ManualRecord={id:string;revision:number;status:'draft'|'submitted';payload:ManualMatch;updatedAt?:string};
 export const newRound=(side:ManualRound['side']='Attack',roster?:ManualPlayer[]):ManualRound=>({players:roster?.map(p=>({playerId:p.playerId,operator:'',kills:null,died:null,assists:null,headshots:null})),side,operator:'',site:'',won:null,kills:null,died:null,assists:null,headshots:null,notes:''});
 export function manualTotals(p:ManualMatch){
@@ -21,7 +21,7 @@ export function manualErrors(p:ManualMatch):string[]{
  if(!Number.isFinite(Date.parse(p.playedAt))||Date.parse(p.playedAt)>Date.now()+300000)errors.push('Enter a valid match date, not in the future.');
  if(p.summary){
   const {wins,losses,players}=p.summary,n=wins+losses;
-  const validScore=p.mode==='Ranked Bomb'?((Math.max(wins,losses)===4&&Math.min(wins,losses)<=2)||(Math.max(wins,losses)===5&&Math.min(wins,losses)>=3&&Math.min(wins,losses)<=4)):Math.max(wins,losses)===p.target&&Math.min(wins,losses)<p.target;
+  const validScore=(p.mode==='Ranked Bomb'||p.mode==='Unranked Bomb')?((Math.max(wins,losses)===4&&Math.min(wins,losses)<=2)||(Math.max(wins,losses)===5&&Math.min(wins,losses)>=3&&Math.min(wins,losses)<=4)):Math.max(wins,losses)===(p.mode==='Casual Bomb'?3:p.mode==='Standard Bomb'?4:p.target)&&Math.min(wins,losses)<(p.mode==='Casual Bomb'?3:p.mode==='Standard Bomb'?4:p.target);
   if(!Number.isInteger(wins)||!Number.isInteger(losses)||wins<0||losses<0||!validScore)errors.push('Enter a complete final score.');
   if(!p.roster||players.length!==10||new Set(players.map(x=>x.playerId)).size!==10||players.some(x=>!p.roster?.some(r=>r.playerId===x.playerId)))errors.push('Enter all ten scoreboard players.');
   for(const row of players){for(const key of ['kills','deaths','assists','headshots'] as const){const v=row[key];if(v!=null&&(!Number.isInteger(v)||v<0||v>(key==='deaths'?n:n*5)))errors.push('Scoreboard stats exceed the match limits.');}if(row.headshots!=null&&(row.kills==null||row.headshots>row.kills))errors.push('Headshots cannot exceed kills.');}
@@ -37,7 +37,7 @@ export function manualErrors(p:ManualMatch):string[]{
   if(stats.headshots!=null&&(stats.kills==null||stats.headshots>stats.kills))errors.push(`Round ${i+1}: headshots cannot exceed kills.`);
   }
   if(r.won===true)wins++;else if(r.won===false)losses++;
-  ended=p.mode==='Ranked Bomb'?(Math.max(wins,losses)>=5||(Math.max(wins,losses)>=4&&Math.abs(wins-losses)>=2)):Math.max(wins,losses)>=p.target;
+  ended=(p.mode==='Ranked Bomb'||p.mode==='Unranked Bomb')?(Math.max(wins,losses)>=5||(Math.max(wins,losses)>=4&&Math.abs(wins-losses)>=2)):Math.max(wins,losses)>=(p.mode==='Casual Bomb'?3:p.mode==='Standard Bomb'?4:p.target);
  }
  if(!ended)errors.push('Record all rounds through a match-ending score.');
  return errors;

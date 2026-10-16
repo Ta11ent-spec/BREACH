@@ -1,3 +1,4 @@
+import {usePlaylist} from '../../data/usePlaylist';
 import {ManualDataToggle,useManualInclusion} from '../../components/ManualDataToggle';
 import {loadOverview} from '../../data/manualOverview';
 import {sourceLabel} from '../../data/analyticsSources';
@@ -17,6 +18,7 @@ const rate = (value: number | null) => value == null ? '—' : `${value}%`;
 const sideName = (side: OperatorSide) => side === 'ATK' ? 'ATTACK' : side === 'DEF' ? 'DEFENSE' : 'UNKNOWN SIDE';
 
 export function RealOperatorsPage({ app }: { app: any }) {
+  const [playlist]=usePlaylist();
   const [includeManual,setIncludeManual]=useManualInclusion();
   const [data, setData] = useState<OverviewV3 | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +34,10 @@ export function RealOperatorsPage({ app }: { app: any }) {
   useEffect(() => {
     const controller = new AbortController();
     setData(null); setError(null);
-    loadOverview(includeManual, controller.signal).then(next => { if (!controller.signal.aborted) setData(next); })
+    loadOverview(includeManual, controller.signal,playlist).then(next => { if (!controller.signal.aborted) setData(next); })
       .catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to read recorded operator data.'); });
     return () => controller.abort();
-  }, [revision,includeManual]);
+  }, [revision,includeManual,playlist]);
   useEffect(() => { setExpanded(null); setHistoryLimit(10); }, [scope.mode, scope.selectedPlayer, scope.selectedSquad, period, search, side, minimum]);
   const analysis = useMemo(() => data ? analyzeOperators(data, { mode: scope.mode, members: scope.chosen }, period) : { operators: [], sideSamples: { ATK: 0, DEF: 0, UNKNOWN: 0 }, ambiguousMatches: 0 }, [data, scope.mode, scope.chosen, period]);
   const rows = sortOperators(analysis.operators.filter(o => (side === 'ALL' || o.side === side) && o.picks >= minimum && o.name.toLowerCase().includes(search.trim().toLowerCase())), sort);

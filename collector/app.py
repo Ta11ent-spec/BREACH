@@ -26,6 +26,10 @@ class Collector(tk.Tk):
         self.title('BREACH / INTEL — PC Collector')
         self.geometry('1100x740'); self.minsize(820, 600); self.configure(bg=BG)
         self.store = Store(data_dir / 'collector.db'); self.store.recover()
+        if self.store.get('modeSupportVersion') != VERSION:
+            with self.store.db:
+                self.store.db.execute("UPDATE jobs SET state='interrupted' WHERE state='held' AND (detail LIKE 'Unsupported mode%' OR detail LIKE 'Unsupported playlist%')")
+            self.store.set('modeSupportVersion', VERSION)
         self.parser = parser or resource('siege-dissect.exe')
         self.messages = queue.Queue(); self.stop = threading.Event(); self.worker = None
         self.watching = False; self.closing = False; self.next_scan = 0
@@ -78,7 +82,7 @@ class Collector(tk.Tk):
         body = tk.Frame(self, bg=BG, padx=28, pady=18); body.pack(fill='both', expand=True)
         self.label(body, 'REPLAY COLLECTION / WINDOWS', 9, ACCENT).pack(anchor='w')
         self.label(body, 'Your matches. Ready for analysis.', 23).pack(anchor='w', pady=(5, 3))
-        self.label(body, 'Collect finished Ranked Bomb replays. Sync contributes gameplay stats to BREACH’s shared player directory.', 10, MUTED).pack(anchor='w')
+        self.label(body, 'Collect finished Ranked, Unranked/Standard and Casual replays. Sync contributes gameplay stats to BREACH’s shared player directory.', 10, MUTED).pack(anchor='w')
         settings = tk.Frame(body, bg=PANEL, padx=16, pady=13); settings.pack(fill='x', pady=15)
         self.label(settings, '01 / REPLAY FOLDER', 9, ACCENT).pack(anchor='w')
         row = tk.Frame(settings, bg=PANEL); row.pack(fill='x', pady=(8, 0))
@@ -342,7 +346,7 @@ class Collector(tk.Tk):
             except Exception as exc: messagebox.showerror('Export failed', str(exc), parent=self)
 
     def about(self):
-        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · beta\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports conservative completion checks for Ranked Bomb. Other modes remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Uploads use your signed-in account. Automatic watching uses your saved replay folder. Enable Start with Windows for passive startup. Closing to the tray keeps collection running; use the tray menu to Quit. Sync must be enabled once, and your PC must be awake.', parent=self)
+        messagebox.showinfo('BREACH / INTEL', f'Collector {VERSION} · beta\n\nIncludes siege-dissect (MIT license). License files ship beside the app.\n\nSupports complete Ranked, Unranked/Standard and Casual matches. Unsupported formats and incomplete recordings remain held.\n\nAuth0 sign-in uses your browser. Saved tokens are protected by Windows. Uploads use your signed-in account. Automatic watching uses your saved replay folder. Enable Start with Windows for passive startup. Closing to the tray keeps collection running; use the tray menu to Quit. Sync must be enabled once, and your PC must be awake.', parent=self)
 
     def close_app(self):
         if self.keep_background.get() and self.tray_ready:
