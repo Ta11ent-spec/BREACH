@@ -50,3 +50,6 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 - Startup never bypasses initial folder selection, account authentication or the one-time Enable Sync action. The PC must be awake; Windows Startup Apps settings can disable startup.
 - Sign Out is in My account beside the email. The hidden arcade entrance is aligned with Remove Picture on the far-right inside edge of the profile box.
 - Existing role permissions, map linking and all stored match data are unchanged.
+
+## V0.1.7 — collector instructions
+- Updated download notes, Collector Setup and My Workspace to explain that uploads run in the system tray with Sync enabled and the PC awake. Closing the window requires background mode enabled; Pause or Quit stops uploads. Collector binary remains v0.3.3.
