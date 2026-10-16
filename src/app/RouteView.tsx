@@ -1,4 +1,5 @@
 import {AccountPage} from '../pages/workspace/AccountPage';
+import {PegBreak} from '../pages/arcade/PegBreak';
 import {MyWorkspace} from '../pages/workspace/MyWorkspace';
 import {RealUnavailablePage} from '../pages/real/RealPages';
 import {RealPlayersPage} from '../pages/players/RealPlayersPage';
@@ -28,6 +29,7 @@ const navTitle=(base:string)=>({'live':'Live operations','operators':'Operator i
 export function RouteView({app}: any){
   const parts = app.state.route.split('/').filter(Boolean);
   const base = parts[0] || 'overview';
+  if(base==='arcade')return <PegBreak/>;
   if(base==='account')return <AccountPage app={app}/>;
   if(base==='workspace')return <MyWorkspace app={app}/>;
   if(app.state.dataMode==='real') {

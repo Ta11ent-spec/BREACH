@@ -38,3 +38,8 @@ Validation: 77 isolated SQL integration checks, existing analytics regression su
 - My account displays the sign-in identity and account ID for unambiguous access requests.
 - Owner is configured by Security__OwnerAccountKey (the exact authenticated workspace/account hash), not by email, player name, or legacy dbo schema. There is no public bootstrap or ownership-transfer endpoint.
 - Validation: 98 isolated SQL checks, 80 frontend analytics tests, TypeScript/build checks. Original LocalDB instance failed to start; tests ran on a separate BREACH_Permissions_Test instance.
+
+## V1.1.4 — secret arcade
+- Invisible 64px entrance at the bottom-right of My account opens PEG / BREAK, an original peg-bouncing game. No sidebar entry or visible entrance button.
+- Mouse, touch and keyboard aiming; ten balls, orange objectives, blue scoring pegs, moving free-ball bucket, replay/next board, pause and local best score. No API calls or match-stat writes.
+- Fixed-step physics, bounded shot duration, background-tab pause and animation cleanup. Four physics tests cover shot resolution, scoring, catch, win/loss and next boards.
