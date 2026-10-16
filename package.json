@@ -1,6 +1,6 @@
 {
   "name": "breach-intel-website",
-  "version": "0.1.21",
+  "version": "0.1.23",
   "private": true,
   "description": "BREACH / INTEL — Rainbow Six Siege analytics UI and future official website",
   "type": "module",

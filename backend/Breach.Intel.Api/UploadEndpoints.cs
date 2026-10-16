@@ -5,21 +5,29 @@ using Microsoft.Data.SqlClient;
 namespace Breach.Intel.Api;
 public static class UploadEndpoints
 {
+    public static async Task<bool> CanAccessWorkspace(Workspace w,CancellationToken ct=default)=>await w.RoleAsync(ct) is "Owner" or "Admin";
     public static void MapUploads(this WebApplication app)
     {
         using var document=JsonDocument.Parse(File.ReadAllText(Path.Combine(app.Environment.ContentRootPath,"Contracts","collector-v1.schema.json")));
         var schema=document.RootElement.Clone();
-        app.MapGet("/api/workspace",async(SqlStore db,Workspace w)=>Results.Ok(new {
+        var workspace=app.MapGroup("/api/workspace");
+        workspace.AddEndpointFilter(async(context,next)=>{
+            if(context.HttpContext.User.Identity?.IsAuthenticated!=true)return Results.Unauthorized();
+            var w=context.HttpContext.RequestServices.GetRequiredService<Workspace>();
+            if(!await CanAccessWorkspace(w,context.HttpContext.RequestAborted))return Results.StatusCode(403);
+            return await next(context);
+        });
+        workspace.MapGet("",async(SqlStore db,Workspace w)=>Results.Ok(new {
             workspaceId=w.Id, name="My Workspace", privacy="private",
             summary=(await db.ReadAsync("SELECT (SELECT COUNT(*) FROM dbo.WorkspaceLibrary) AS matches,(SELECT COUNT(*) FROM dbo.Squads) AS squads,(SELECT COUNT(*) FROM dbo.UploadReceipts) AS receipts,(SELECT MAX(ReceivedAt) FROM dbo.UploadReceipts) AS lastUpload"))[0],
             collectors=await db.ReadAsync("SELECT InstallationId AS id,Version AS version,LastSeen AS lastSeen,RevokedAt AS revokedAt FROM dbo.CollectorConnections ORDER BY LastSeen DESC"),
             uploads=await db.ReadAsync("SELECT TOP(50) MessageId AS messageId,MatchId AS matchId,Outcome AS outcome,ReceivedAt AS receivedAt FROM dbo.UploadReceipts ORDER BY ReceivedAt DESC"),
             matches=await db.ReadAsync("SELECT TOP(30) m.MatchId AS matchId,MapName AS mapName,FirstRecordedAt AS playedAt FROM dbo.Matches m JOIN dbo.WorkspaceLibrary l ON l.MatchId=m.MatchId ORDER BY FirstRecordedAt DESC")
         }));
-        app.MapDelete("/api/workspace/collectors/{id:guid}",async(Guid id,SqlStore db)=> {
+        workspace.MapDelete("/collectors/{id:guid}",async(Guid id,SqlStore db)=> {
             await db.ReadAsync("UPDATE dbo.CollectorConnections SET RevokedAt=SYSUTCDATETIME() WHERE InstallationId=@id",("@id",id));return Results.NoContent();
         });
-        app.MapPost("/api/workspace/collectors/{id:guid}/enable",async(Guid id,SqlStore db)=> {
+        workspace.MapPost("/collectors/{id:guid}/enable",async(Guid id,SqlStore db)=> {
             await db.ReadAsync("UPDATE dbo.CollectorConnections SET RevokedAt=NULL WHERE InstallationId=@id",("@id",id));return Results.NoContent();
         });
         app.MapPost("/api/collector/matches",async(HttpContext http,Workspace w)=> {

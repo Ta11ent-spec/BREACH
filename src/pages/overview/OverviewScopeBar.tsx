@@ -1,3 +1,4 @@
+import {useWorkspaceAccess} from '../../data/WorkspaceAccess';
 import type {ReactNode} from 'react';
 import {AdvancedSettings} from '../../components/AdvancedSettings';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ type Props = {
   players:V3Player[]; advancedSettings?:ReactNode;
 };
 export function OverviewScopeBar({mode,onMode,squads,onSaveSquad,onDeleteSquad,busy,selectedSquad,onSelectedSquad,selectedPlayer,onSelectedPlayer,players,advancedSettings}:Props){
+  const {allowed}=useWorkspaceAccess();
   const [editing,setEditing]=useState(false);
   const [newName,setNewName]=useState('');
   const [renameName,setRenameName]=useState('');
@@ -39,7 +41,7 @@ export function OverviewScopeBar({mode,onMode,squads,onSaveSquad,onDeleteSquad,b
     <div className="squad-scope-main">
       <div className="scope-heading"><span className="eyebrow">TRACKING PERSPECTIVE</span><strong>Who are we analyzing?</strong></div>
       <div className="scope-toggle" role="group" aria-label="Dashboard scope">
-        <button type="button" onClick={()=>{window.location.hash='#/workspace';}}><Icon name="grid" size={15}/> MY WORKSPACE</button>
+        {allowed&&<button type="button" onClick={()=>{window.location.hash='#/workspace';}}><Icon name="grid" size={15}/> MY WORKSPACE</button>}
         <button type="button" className={mode==='team'?'active':''} aria-pressed={mode==='team'} onClick={()=>onMode('team')}><Icon name="shield" size={15}/> TEAM</button>
         <button type="button" className={mode==='player'?'active':''} aria-pressed={mode==='player'} onClick={()=>onMode('player')}><Icon name="users" size={15}/> PLAYER</button>
       </div>

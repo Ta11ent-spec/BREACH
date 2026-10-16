@@ -1,3 +1,4 @@
+import {useWorkspaceAccess} from '../../data/WorkspaceAccess';
 import {CollectorDownload} from '../../components/CollectorDownload';
 import {useEffect,useState} from 'react';
 import {ManualWorkspaceSummary} from '../manual/ManualWorkspaceSummary';
@@ -8,6 +9,12 @@ import {Icon,Btn} from '../../components';
 type Workspace={workspaceId:string;summary:{matches:number;squads:number;receipts:number;lastUpload:string|null};collectors:{id:string;version:string;lastSeen:string;revokedAt:string|null}[];uploads:{messageId:string;matchId:string;outcome:string;receivedAt:string}[];matches:{matchId:string;mapName:string|null;playedAt:string|null}[]};
 const date=(value:string|null)=>value?new Date(value.endsWith('Z')||/[+-]\d\d:\d\d$/.test(value)?value:value+'Z').toLocaleString():'Not yet';
 export function MyWorkspace({app}:{app:any}){
+ const {allowed,loading}=useWorkspaceAccess();
+ if(loading)return <div className="page" role="status">Checking workspace access…</div>;
+ if(!allowed)return <div className="page"><section className="panel workspace-body"><h2>Admin access required</h2><p>My Workspace is available to Admin and Owner accounts.</p><Btn onClick={()=>app.go('/overview')}>OPEN OVERVIEW</Btn></section></div>;
+ return <WorkspaceContent app={app}/>;
+}
+function WorkspaceContent({app}:{app:any}){
  const [data,setData]=useState<Workspace|null>(null),[error,setError]=useState(''),[refresh,setRefresh]=useState(0),[busy,setBusy]=useState(false);
  useEffect(()=>{const abort=new AbortController();void fetchApi<Workspace>('/workspace',abort.signal).then(d=>{setData(d);setError('');}).catch(()=>{if(!abort.signal.aborted)setError('Your workspace could not be loaded. Try refreshing.');});return()=>abort.abort();},[refresh]);
  useEffect(()=>{const id=setInterval(()=>setRefresh(n=>n+1),15000);return()=>clearInterval(id);},[]);

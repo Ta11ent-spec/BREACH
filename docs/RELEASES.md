@@ -86,3 +86,6 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 
 - Added HS% beside K/D in Operator Intel and the individual operator summaries in Player Comparison.
 - Uses existing filtered operator totals, preserving unavailable values (—) when headshots or kills are incomplete or there are no kills.
+
+## V0.1.23 — Admin workspace access
+My Workspace, all entry links and workspace management API endpoints now require Admin or Owner privileges. Sign-in opens Command Overview. Player collector uploads, manual entry and analytics remain available.

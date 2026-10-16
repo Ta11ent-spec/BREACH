@@ -2,6 +2,7 @@
 const accountKey=(key:string)=>{try{return (sessionStorage.getItem('breach_workspace')||'local')+':'+key;}catch{return 'local:'+key;}};
 // @ts-nocheck — Legacy prototype state controller. Pages now live in separate files.
 import React from 'react';
+import {WorkspaceAccessProvider} from '../data/WorkspaceAccess';
 import {VERSION} from '../components/layout/ReleaseControls';
 import { matches } from '../data/demoData';
 import { csvEscape } from '../lib/format';
@@ -35,7 +36,7 @@ export class App extends React.Component<any,any>{
   headline(eyebrow:string,title:string,desc:string,actions?:any){return <div className="page-head"><div><div className="eyebrow with-line">{eyebrow}</div><h1>{title}</h1><p>{desc}</p></div>{actions&&<div className="page-head-actions">{actions}</div>}</div>}
   render(){
     return (
-      <div className={'app-shell '+(this.state.prefs.compact?'compact-mode':'')}>
+      <WorkspaceAccessProvider><div className={'app-shell '+(this.state.prefs.compact?'compact-mode':'')}>
         <Sidebar app={this}/>
         <div className="main-shell">
           <Topbar app={this}/>
@@ -50,7 +51,7 @@ export class App extends React.Component<any,any>{
         {this.state.mobileOpen&&<div className="mobile-backdrop" onClick={()=>this.setState({mobileOpen:false})}/>}
         <div className="demo-label"><span className="live-bullet"/> {this.state.dataMode==='real'?'REAL MATCH DATA':'INTERACTIVE DEMO · SAMPLE DATA'}</div>
         {this.state.toast&&<div className="toast"><Icon name="check" size={17}/>{this.state.toast}</div>}
-      </div>
+      </div></WorkspaceAccessProvider>
     );
   }
 }

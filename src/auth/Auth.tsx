@@ -44,5 +44,5 @@ function Session({children}:{children:ReactNode}){
 }
 export function Authentication({children}:{children:ReactNode}){
   if(!authConfigured)return import.meta.env.DEV?<>{children}</>:<div className="auth-screen"><p>BREACH sign-in needs to be configured before this build can be used.</p></div>;
-  return <Auth0Provider domain={env.VITE_AUTH0_DOMAIN} clientId={env.VITE_AUTH0_CLIENT_ID} cacheLocation="memory" authorizationParams={{redirect_uri:window.location.origin,audience:env.VITE_AUTH0_AUDIENCE,scope:'openid profile email'}} onRedirectCallback={()=>{window.history.replaceState({},document.title,window.location.pathname+'#/workspace');}}><Session>{children}</Session></Auth0Provider>;
+  return <Auth0Provider domain={env.VITE_AUTH0_DOMAIN} clientId={env.VITE_AUTH0_CLIENT_ID} cacheLocation="memory" authorizationParams={{redirect_uri:window.location.origin,audience:env.VITE_AUTH0_AUDIENCE,scope:'openid profile email'}} onRedirectCallback={()=>{window.history.replaceState({},document.title,window.location.pathname+'#/overview');}}><Session>{children}</Session></Auth0Provider>;
 }
