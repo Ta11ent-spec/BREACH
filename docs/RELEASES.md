@@ -57,3 +57,7 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 ## V0.1.9 — automatic map identification
 - Unresolved collector IDs use unique recorded bombsite-pair evidence across the shared replay dataset. Conflicting or ambiguous evidence stays unresolved. Known maps and explicit admin links take priority; raw stats stay unchanged. Identified maps group with manual and known replay maps.
 - Admin map linking defaults to unresolved IDs, with Show all for review/override. Owner/Admin editing permissions unchanged.
+
+## V0.1.11 — collector folder detection
+- Collector v0.3.5 discovers registered Steam installations, custom libraries and manifest install folders plus registered Ubisoft/game locations. Multiple matches offer a chooser; Browse and saved folders remain available.
+- Clarified that only completed Ranked Bomb matches upload. Other modes are held locally, not combined into Ranked collector stats.

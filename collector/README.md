@@ -35,7 +35,7 @@ Uninstall removes installed program files while preserving queue data and game r
 Use Windows x64, the collector build virtual environment, the reviewed siege-dissect parser and NSIS:
 
 ```powershell
-.tmp/collector-venv/Scripts/python.exe collector/build.py --parser <parser.exe> --makensis <makensis.exe> --auth-config <public-auth-config.json> --api-url <https-api-origin> --output releases/collector/0.3.3-hosted
+.tmp/collector-venv/Scripts/python.exe collector/build.py --parser <parser.exe> --makensis <makensis.exe> --auth-config <public-auth-config.json> --api-url <https-api-origin> --output releases/collector/0.3.5-hosted
 ```
 
 Auth configuration contains only public domain, native client ID and audience. Never package sessions, queue databases or private developer settings. The installer includes third-party licenses.
@@ -43,3 +43,5 @@ Auth configuration contains only public domain, native client ID and audience. N
 The website's public/downloads/collector-release.json records the reviewed installer name, size and SHA-256. scripts/package-hosting.ps1 verifies these and copies only that installer into the website package; build work directories stay private. Update metadata only after verifying a new build.
 
 See [workspace sync](../docs/WORKSPACE_SYNC.md) for the protocol and isolation guarantees.
+
+Folder detection reads Steam installation records, registered libraryfolders.vdf paths, game manifests and registered Ubisoft/game install locations. Multiple found folders prompt for selection. It does not scan entire drives; Browse remains the fallback. Only completed Ranked Bomb matches upload; other modes remain held locally.

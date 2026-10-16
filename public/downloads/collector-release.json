@@ -1,8 +1,8 @@
 {
-  "version": "0.3.3",
-  "file": "BREACH-Collector-Setup-0.3.3.exe",
-  "sha256": "fca9e87c72cde5317b13890c741edeed6e0f0970d516e3e7fb341a15f4e45c13",
-  "bytes": 21193081,
+  "version": "0.3.5",
+  "file": "BREACH-Collector-Setup-0.3.5.exe",
+  "sha256": "0273e719e0f266898b2a883e2dc2dfa791398d3143c787d585b4d0d7a793e220",
+  "bytes": 21195034,
   "channel": "beta",
   "platform": "Windows x64",
   "signed": false

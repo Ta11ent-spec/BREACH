@@ -62,8 +62,10 @@ class AdapterTests(unittest.TestCase):
         self.assertFalse(completion(raw)[0])
 
     def test_unsupported_mode_is_held(self):
-        raw = source(); raw[-1]['matchType']['name'] = 'Custom'
-        self.assertFalse(completion(raw)[0])
+        for mode in ('Custom', 'Unranked', 'Standard', 'Casual', 'Quick Match'):
+            with self.subTest(mode=mode):
+                raw = source(); raw[-1]['matchType']['name'] = mode
+                self.assertFalse(completion(raw)[0])
 
     def test_missing_source_bytes_digest_is_rejected(self):
         with self.assertRaisesRegex(ValueError, 'original replay'):

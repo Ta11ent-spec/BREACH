@@ -131,12 +131,24 @@ class Collector(tk.Tk):
 
     def detect(self):
         roots = suggested_roots()
-        if roots:
-            self.stop.set(); self.watching = False; self.folder.set(roots[0]); self.store.set('replayFolder', roots[0])
-            self.status.set('Detected replay folder. Use Browse if you play from another installation.')
+        def select(folder):
+            self.stop.set(); self.watching = False; self.folder.set(folder); self.store.set('replayFolder', folder)
+            self.status.set('Detected replay folder. Automatic watching uses this saved location.')
             self.resume_automatically()
+        if len(roots) == 1: select(roots[0])
+        elif roots:
+            dialog=tk.Toplevel(self); dialog.title('Choose your Siege replay folder'); dialog.geometry('800x300'); dialog.transient(self)
+            tk.Label(dialog,text='Multiple installations found. Select the one you play:').pack(pady=12)
+            choices=tk.Listbox(dialog); choices.pack(fill='both',expand=True,padx=12)
+            for folder in roots: choices.insert('end',folder)
+            choices.selection_set(roots.index(self.folder.get()) if self.folder.get() in roots else 0)
+            def apply():
+                selected=choices.curselection()
+                if selected: select(roots[selected[0]]); dialog.destroy()
+            tk.Button(dialog,text='USE SELECTED FOLDER',command=apply).pack(pady=12)
+            dialog.grab_set()
         else:
-            self.status.set('No common replay folder found. Use Browse to select it.')
+            self.status.set('No MatchReplay folder found in installed-game records or Steam libraries. Use Browse to select it. If it does not exist yet, save a replay in Siege first, then Detect again.')
 
     def start_scan(self, retry=False):
         if self.worker and self.worker.is_alive():

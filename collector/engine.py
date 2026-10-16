@@ -27,15 +27,79 @@ def discover(root):
     return sorted(((p, files) for p, files in found if files), key=lambda item: max(p.stat().st_mtime_ns for p in item[1]), reverse=True)
 
 
+def installed_locations():
+    """Read launcher/game install records; never scan whole drives or change registry."""
+    if os.name != 'nt': return [], []
+    import winreg
+    steam, games = [], []
+    def values(hive, key, names):
+        try:
+            with winreg.OpenKey(hive, key) as handle:
+                for name in names:
+                    try:
+                        value, _ = winreg.QueryValueEx(handle, name)
+                        if isinstance(value, str) and value.strip(): yield Path(os.path.expandvars(value.strip().strip('"')))
+                    except OSError: pass
+        except OSError: pass
+    for hive in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
+        for key in (r'Software\Valve\Steam', r'Software\WOW6432Node\Valve\Steam'):
+            steam.extend(values(hive, key, ('SteamPath', 'InstallPath')))
+        for base in (r'Software\Microsoft\Windows\CurrentVersion\Uninstall', r'Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'):
+            try:
+                with winreg.OpenKey(hive, base) as parent:
+                    for i in range(winreg.QueryInfoKey(parent)[0]):
+                        try:
+                            key=base+'\\'+winreg.EnumKey(parent, i)
+                            with winreg.OpenKey(hive, key) as app:
+                                name, _=winreg.QueryValueEx(app, 'DisplayName')
+                            if 'rainbow' in str(name).lower() and 'siege' in str(name).lower():
+                                games.extend(values(hive, key, ('InstallLocation',)))
+                        except OSError: pass
+            except OSError: pass
+        for base in (r'Software\Ubisoft\Launcher\Installs', r'Software\WOW6432Node\Ubisoft\Launcher\Installs'):
+            try:
+                with winreg.OpenKey(hive, base) as parent:
+                    for i in range(winreg.QueryInfoKey(parent)[0]):
+                        try: games.extend(values(hive, base+'\\'+winreg.EnumKey(parent, i), ('InstallDir',)))
+                        except OSError: pass
+            except OSError: pass
+    return steam, games
+
+
 def suggested_roots():
-    roots = [Path(os.environ.get('PROGRAMFILES(X86)', 'C:/Program Files (x86)')) / 'Steam/steamapps/common/Tom Clancy\'s Rainbow Six Siege/MatchReplay',
-             Path(os.environ.get('PROGRAMFILES(X86)', 'C:/Program Files (x86)')) / 'Ubisoft/Ubisoft Game Launcher/games/Tom Clancy\'s Rainbow Six Siege/MatchReplay']
-    steam = Path(os.environ.get('PROGRAMFILES(X86)', 'C:/Program Files (x86)')) / 'Steam/steamapps/libraryfolders.vdf'
-    if steam.exists():
-        import re
-        for value in re.findall(r'"path"\s+"([^"]+)"', steam.read_text(encoding='utf-8', errors='replace')):
-            roots.append(Path(value.replace('\\\\', '\\')) / "steamapps/common/Tom Clancy's Rainbow Six Siege/MatchReplay")
-    return list(dict.fromkeys(str(p) for p in roots if p.is_dir()))
+    import re
+    steam, games = installed_locations()
+    for env, fallback in [('PROGRAMFILES(X86)', 'C:/Program Files (x86)'), ('PROGRAMFILES', 'C:/Program Files')]:
+        base=Path(os.environ.get(env, fallback))
+        steam.append(base/'Steam')
+        games.append(base/"Ubisoft/Ubisoft Game Launcher/games/Tom Clancy's Rainbow Six Siege")
+    libraries=list(steam)
+    for launcher in steam:
+        for config in (launcher/'steamapps/libraryfolders.vdf', launcher/'config/libraryfolders.vdf'):
+            try:
+                text=config.read_text(encoding='utf-8', errors='replace')
+                libraries.extend(Path(v.replace('\\\\', '\\')) for v in re.findall(r'"path"\s+"([^"]+)"', text))
+            except OSError: pass
+    for library in dict.fromkeys(libraries):
+        apps=library/'steamapps'
+        games.append(apps/"common/Tom Clancy's Rainbow Six Siege")
+        try:
+            for manifest in apps.glob('appmanifest_*.acf'):
+                try:
+                    text=manifest.read_text(encoding='utf-8', errors='replace')
+                    name=re.search(r'"name"\s+"([^"]+)"', text, re.I)
+                    directory=re.search(r'"installdir"\s+"([^"]+)"', text, re.I)
+                    if name and directory and 'rainbow' in name[1].lower() and 'siege' in name[1].lower():
+                        games.append(apps/'common'/directory[1])
+                except OSError: pass
+        except OSError: pass
+    roots={}
+    for game in games:
+        candidate=game if game.name.lower()=='matchreplay' else game/'MatchReplay'
+        try:
+            if candidate.is_dir(): roots.setdefault(os.path.normcase(str(candidate.resolve())), str(candidate.resolve()))
+        except OSError: pass
+    return list(roots.values())
 
 
 def parser_manifest():
