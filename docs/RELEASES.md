@@ -92,3 +92,7 @@ My Workspace, all entry links and workspace management API endpoints now require
 
 ## V0.1.25 / Collector v0.3.9 — Opening duels and clutch wins
 Manual round and final-scoreboard forms now accept opening enemy kills/deaths, separate opening teamkills/teamkill deaths/other deaths, and wins by 1v1–1v5 size. Player profiles, comparisons and match/round reports show recorded totals with measurement coverage. Teamkill events are labeled. Collector derives versioned metrics from validated Ranked Bomb event timelines, including posthumous gadget kills, and leaves unsafe or unverified-playlist metrics unknown. Existing K/D and replay facts stay unchanged; no automatic historical backfill. Existing collector queues and legacy upload fingerprints remain compatible.
+
+## V0.1.33 — Operator map filter
+
+- Added All maps / map selection beside Operator Intel search using shared canonical map identities. Operator stats, pick shares, summary cards and history use the selected map alongside existing filters.

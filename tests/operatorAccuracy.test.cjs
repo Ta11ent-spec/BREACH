@@ -72,3 +72,18 @@ test('sorting handles infinite, unavailable and zero ratios without changing sou
   assert.equal(sortOperators(list,'kd')[0].name,'Mute');assert.equal(list[0].name,'Ash');
   list[1].totals.kd='0.00';assert.equal(sortOperators(list,'kd')[0].name,'Mute');
 });
+
+test('map filter unifies canonical map aliases and excludes other-map facts',()=>{
+ const {filterOperatorMap}=loadTs('src/data/operatorAnalytics.ts');
+ const data=fixture();data.matches[0].mapName='ClubHouse';
+ const other=fixture();other.matches.forEach(m=>{m.matchId='other';m.mapName='Bank';});
+ other.rounds.forEach(r=>{r.matchId='other';r.roundId='other-'+r.roundId;});
+ other.appearances.forEach(a=>{a.matchId='other';a.roundId='other-'+a.roundId;a.kills=50;});
+ const combined={...data,matches:[...data.matches,...other.matches],rounds:[...data.rounds,...other.rounds],appearances:[...data.appearances,...other.appearances]};
+ const {resolveMap}=loadTs('src/data/mapCatalog.ts');
+ const filtered=filterOperatorMap(combined,resolveMap('Club House',null).key);
+ assert.equal(filtered.matches.length,1);
+ assert.deepEqual(analyzeOperators(filtered,perspective,'ALL',now),analyzeOperators(data,perspective,'ALL',now));
+ assert.equal(filterOperatorMap(combined,'').matches.length,2);
+ assert.equal(analyzeOperators(filterOperatorMap(combined,'missing'),perspective,'ALL',now).operators.length,0);
+});

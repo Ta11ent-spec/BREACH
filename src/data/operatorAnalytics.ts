@@ -1,3 +1,4 @@
+import {resolveMap} from './mapCatalog';
 import { analyzeOverview, asPercent } from './overviewAnalytics';
 import type { OverviewV3, Perspective, V3Appearance, ResolvedMatch } from './overviewAnalytics';
 import { playerTotals } from './playerAnalytics';
@@ -15,6 +16,13 @@ const classifySide = (raw: string | null | undefined): OperatorSide => {
   return ['attack', 'attacker', 'atk'].includes(value) ? 'ATK'
     : ['defense', 'defence', 'defender', 'def'].includes(value) ? 'DEF' : 'UNKNOWN';
 };
+
+export function filterOperatorMap(data:OverviewV3,mapKey:string):OverviewV3 {
+  if(!mapKey)return data;
+  const matches=data.matches.filter(m=>resolveMap(m.mapName,m.mapId).key===mapKey);
+  const ids=new Set(matches.map(m=>m.matchId));
+  return {...data,matches,rounds:data.rounds.filter(r=>ids.has(r.matchId)),appearances:data.appearances.filter(a=>ids.has(a.matchId))};
+}
 
 /** Pick share is selected player appearances on the same recorded side, not a competitive ban/pick rate. */
 export function analyzeOperators(data: OverviewV3, perspective: Perspective, period: '7D' | '30D' | 'ALL', now = Date.now()) {
