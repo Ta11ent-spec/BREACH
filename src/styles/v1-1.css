@@ -9,7 +9,15 @@
 .nav-link.active,.workspace-icon{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}.sidebar-mini,.real-match-center .squad-scope{background:var(--surface2);border-color:var(--line)}
 .small-callout,.manual-intro{background:var(--surface2);border-color:var(--line);color:var(--text)}.segmented button.active{background:var(--accent);color:var(--bg)}[data-theme="light"] .segmented button.active{color:#fff}.manual-match-page .entry-layout{grid-template-columns:minmax(0,3fr) minmax(230px,1fr)}@media(max-width:1000px){.manual-match-page .entry-layout{grid-template-columns:1fr}}
 
-.period-switch button.active,.mode-switch button.active,.round-chip.won,.match-rounds-mini i.win{background:var(--accent);color:var(--bg);border-color:var(--accent)}
-[data-theme="light"] .period-switch button.active,[data-theme="light"] .mode-switch button.active,[data-theme="light"] .round-chip.won{color:#fff}
+.period-switch button.active,.mode-switch button.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+[data-theme="light"] .period-switch button.active,[data-theme="light"] .mode-switch button.active{color:#fff}
 [data-theme="light"] .btn,[data-theme="light"] .pill,[data-theme="light"] .auth-signout{color:var(--accent);border-color:var(--line)}
 [data-theme="light"] .btn.primary{color:#fff;background:var(--accent)}
+
+/* Match outcomes stay semantic green independently of the brand accent. */
+:root{--win:#9ee879;--win-fill:#79c85a;--win-ink:#10220b}
+[data-theme="light"]{--win:#23751c;--win-fill:#23751c;--win-ink:#fff}
+.result.win,.real-outcome.win,.match-status.win{color:var(--win);background:color-mix(in srgb,var(--win) 15%,var(--surface))}
+.round-chip.won,.match-rounds-mini i.win{background:var(--win-fill);color:var(--win-ink);border-color:var(--win-fill)}
+.round-chip.won:hover,.round-chip.won.selected{outline-color:var(--win)}
+.match-score .accent{color:var(--win)}
