@@ -81,3 +81,8 @@ The website version resets from V1.1.4 to V0.1.5 at the user's request. Future p
 
 - Moved playlist, source, date and squad reload controls into a popout opened by a green Advanced settings button beside the player/squad selector.
 - Player Comparison retains its existing filter bar. Popout closes on outside click, Escape or its close button; selections remain in existing page state.
+
+## V0.1.21 — Operator headshot percentages
+
+- Added HS% beside K/D in Operator Intel and the individual operator summaries in Player Comparison.
+- Uses existing filtered operator totals, preserving unavailable values (—) when headshots or kills are incomplete or there are no kills.
